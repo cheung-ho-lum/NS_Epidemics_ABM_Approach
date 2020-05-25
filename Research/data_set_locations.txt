@@ -1,0 +1,19 @@
+JHU county data on Kaggle - In general, just google for JHU Kaggle [whatever data]
+https://www.kaggle.com/headsortails/covid19-us-county-jhu-data-demographics 
+
+COVIDCast (CMU pulls data from various sources. I think you can also just access it from them)
+https://covidcast.cmu.edu/?sensor=doctor-visits-
+smoothed_adj_cli&level=county&region=42003&date=20200510&signalType=value 
+
+From working article:
+Where they got their covid data:
+New York Department of Health and Mental Hygiene. 2020. COVID-19: Data. https://www1.nyc.gov/site/doh/covid/covid-19-data.page: March 31, 2020. 
+
+Stations and turnstiles:
+Metropolitan Transportation Authority (MTA). 2020b. Stations.csv (text file, comma-separated). http://web.mta.info/developers/data/nyct/subway/Stations.csv: Last accessed April 4, 2020. 
+
+Metropolitan Transportation Authority (MTA). 2020c. Turnstile Data. http://web.mta.info/developers/turnstile.html: Last accessed April 4, 2020. 
+
+
+
+Perhaps moscow metro also publishes their data? Probably not. Maybe bogus anyway.

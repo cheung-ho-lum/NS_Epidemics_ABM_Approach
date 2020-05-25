@@ -1,0 +1,28 @@
+Useful Reading
+
+Topic: ABM Implementations in Python
+Goal: Find most appropriate implementation for what we are doing (NETWORK!)
+
+Netlogo
+https://ccl.northwestern.edu/netlogo/ 
+
+Mesa
+https://mesa.readthedocs.io/en/master/ 
+
+Evoplex - is this platform even available?
+https://www.sciencedirect.com/science/article/pii/S2352711018302437 
+
+(primary researcher, please add stuff)
+
+Topic: Prior research on epidemic spread on subways
+The controversial article that spawned this question [it’widely believed to be bogus]:
+http://web.mit.edu/jeffrey/harris/HarrisJE_WP2_COVID19_NYC_24-Apr-2020.pdf 
+
+Some prior research that says the opposite [but 4% is preeeetty good for some people]:
+https://www.researchgate.net/publication/
+51556957_The_Role_of_Subway_Travel_in_an_Influenza_Epidemic_A_New_York_City_Simulation 
+
+
+
+
+
