@@ -1,0 +1,75 @@
+\documentclass[12pt, a4, epsf] {article}
+%==================================================
+%Mypackages
+\usepackage{epsf, amsmath, amssymb, graphicx, epsfig, amsthm}
+
+\usepackage{subfigure} % For subfigures
+\usepackage{setspace} 
+\usepackage{fancyhdr} 
+\usepackage{eurosym}  %To write a Euro symbol
+\usepackage[euler]{textgreek}
+\usepackage[english]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[colorlinks = true, urlcolor = blue, linkcolor = blue]{hyperref}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{bbm}
+\usepackage{placeins}
+\usepackage{pdfpages}
+\usepackage{listings}
+\usepackage{tikz}
+\usetikzlibrary{graphs,graphs.standard}
+\usetikzlibrary{shapes.geometric}
+\usetikzlibrary{trees}
+\usepackage{forest}
+\usepackage{pdfpages}
+\usepackage{algorithm} 
+\usepackage{algpseudocode} 
+%\usepackage[round]{natbib}
+
+
+%Could change text height, width etc. 
+\oddsidemargin 0mm
+\evensidemargin 0mm
+\textheight=24cm
+\textwidth = 16cm
+\topmargin= -1cm 
+
+%Definition for theorems, definitions etc. for English texts
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{definition}[theorem]{Definition}
+\theoremstyle{definition}
+\newtheorem{example}[theorem]{Example}
+\newtheorem{remark}[theorem]{Remark}
+
+
+%==================================================
+%My commands: Define your commands here:
+
+\begin{document}
+\begin{center}
+
+{\Large Dummy Title\\}
+By Dummies \\
+27 JUN 2020
+\end{center}
+\section*{Abstract}
+On 24 April, 2020, a researcher at MIT released a working paper finding that "The Subways Seeded the Massive Coronavirus Epidemic in New York City". While the analyis in the paper has been called into question, it remains true that the role of public transportation in the spread of COVID-19 is still unknown. In this paper, we introduce an agent-based model of the New York City subway and analyze how well it can predict the spread of COVID-19 through the boroughs of New York City.\\
+
+Our findings that [insert findings here] should interest public health officials looking to make policy decisions about public transportation.
+
+[Writer's note: Of course, this is the ideal final result. We will focus on the early infection period and I give it a 50/50 that we even get to taking into account countermeasures and ridership losses. We will make a preliminary model, improve it, and see how far we can get.]
+
+\section*{Background}
+blah blah blah covid-19. cite something found from wikipedia.\\\\
+blah blah blah network science, subways are networks. nodes and edges node weights edge weights as we decide to use them.
+blah blah blah\\
+\section*{Methodology}
+\section*{Results}
+\section*{Conclusion}
+\nocite{*}
+\bibliography{bib_file}{}
+\bibliographystyle{plain}
+
+\end{document}
