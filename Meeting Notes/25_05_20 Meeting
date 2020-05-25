@@ -1,1 +1,54 @@
-hello world.
+data sources
+---
+some research topics:
+spread of covid across countries or cities based on transportation networks <or perhaps social networks>
+why? who would be interested?
+perhaps by states and the transportation networks along the states?
+<yes, we need reliable data>
+perhaps we can look at Spain?
+- we have the data for infected people per day per region in spain.
+
+
+subtopic: mobility  measures vs. r0/spread of disease
+NYC subway ridership and efficacy of closing subways
+
+what people would like to work on
+
+general expertise areas:
+dimas - collect data, visualization, good at ML
+elie - exploratory data analysis, report (so like visualizations and descriptive statistics)
+leroy - report, code validation, general ideas, interacting with other teams, 
+larry - write code
+- data collection
+-- gather necessary data
+--...? format it for language and platform.
+- coding
+-- (analyzes data, makes networks, has variables we can play with)
+- report
+-- graphs, plots,visualizations
+
+timeline:
+may 25 - discuss the problem
+may 28 - finalize initial research topic area.
+jun 1  - fully formulate and propose the problem to zhukov.
+jun 8  - data collection almost done. preliminary model built. 
+jun 15 - preliminary analysis done. <model being refined>
+jun 22 - best forecasting conclusions made.
+jun 27 - final due date / defense (.: report is written)
+
+*preliminary analysis = descriptive statistics, and how well our prelim model works given no changes.
+
+tasks before next meeting (Jun 1):
+Consider what problem we're working on [Everyone]
+Discuss abm software and which we think is best [Everyone]
+Investigate and make initial data source list [Dimas]
+Report Skeleton [Leroy]
+Draft Proposal [Leroy]
+Read Draft Proposal once done [Frank, Dimas, Elie]
+Create background reading list [Leroy]
+Read it [Frank, Dimas, Elie]
+
+github handle:
+elie-wanko
+dimasdmm
+acquayefrank
