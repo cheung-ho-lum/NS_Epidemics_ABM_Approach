@@ -1,9 +1,17 @@
+# General data
+
 JHU county data on Kaggle - In general, just google for JHU Kaggle [whatever data]
 https://www.kaggle.com/headsortails/covid19-us-county-jhu-data-demographics 
 
 COVIDCast (CMU pulls data from various sources. I think you can also just access it from them)
 https://covidcast.cmu.edu/?sensor=doctor-visits-
 smoothed_adj_cli&level=county&region=42003&date=20200510&signalType=value 
+
+From the working article, we can use many estimated data, e.g.:
+- Interactions of a person per day and per place.
+- Probability that a person infects to others.
+
+# USA
 
 From working article:
 Where they got their covid data:
@@ -14,6 +22,30 @@ Metropolitan Transportation Authority (MTA). 2020b. Stations.csv (text file, com
 
 Metropolitan Transportation Authority (MTA). 2020c. Turnstile Data. http://web.mta.info/developers/turnstile.html: Last accessed April 4, 2020. 
 
+Census data: https://www.census.gov/programs-surveys/acs/data/pums.html
+There is a lot of information and it may take a while to fully understand those CSV files.
+We will need this to understand those files: https://www2.census.gov/programs-surveys/acs/tech_docs/pums/data_dict/PUMS_Data_Dictionary_2018.pdf?#
 
+Average Weekday Subway Ridership: http://web.mta.info/nyct/facts/ridership/ridership_sub.htm
+
+# Spain
+
+Metro stations and locations: http://opendata.esri.es/datasets/crtm::m4-estaciones/data?geometry=-4.146%2C40.403%2C-3.157%2C40.585
+Train stations and locations: https://data.renfe.com/dataset/estaciones-cercanias-madrid/resource/daa68d9b-77cf-4024-890f-285d31184c5a
+Note that some metro-train stations are connected.
+
+Timetable of metro (frequency per hour, not exact times): https://www.metromadrid.es/es/linea/linea-1#line-timetable
+Timetable of trains: https://www.renfe.com/viajeros/cercanias/madrid/
+
+Census info:
+- House type: couple with children, people alone... https://www.ine.es/dyngs/INEbase/es/operacion.htm?c=Estadistica_C&cid=1254736176952&menu=ultiDatos&idp=1254735572981
+- Number of persons per house: https://www.ine.es/dyngs/INEbase/es/operacion.htm?c=Estadistica_C&cid=1254736176954&menu=ultiDatos&idp=1254735572981
+- Age/sex distribution per city and per region: https://www.ine.es/covid/piramides.htm#!tab-mun
+- And many other information in the English version: https://www.ine.es/dyngs/INEbase/en/categoria.htm?c=Estadistica_P&cid=1254734710990
+
+# Russia
 
 Perhaps moscow metro also publishes their data? Probably not. Maybe bogus anyway.
+
+Dimas' note: I've tried to find reliable info about metro workload, but I did not succeed.
+Maybe this? https://www.mosoblreclama.ru/auxpage_passazhiropotok_metro
