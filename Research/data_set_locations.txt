@@ -11,6 +11,9 @@ From the working article, we can use many estimated data, e.g.:
 - Interactions of a person per day and per place.
 - Probability that a person infects to others.
 
+Some news are useful to make assumptions:
+- "Of the passengers who tested positive, 81% had no symptoms." - https://translate.google.es/translate?sl=es&tl=en&u=https%3A%2F%2Fwww.elmundo.es%2Fciencia-y-salud%2Fsalud%2F2020%2F05%2F28%2F5eceec8afdddffc1bd8b45f7.html
+
 # USA
 
 From working article:
