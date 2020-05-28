@@ -6,13 +6,63 @@ why:
 2) discuss issues with scope (or selection) of research topic and details. and 
 3) actually do a check-in
 
+Leroy
+- Reviewed Netlogo and MESA ABM tools
+- read some general epidemic modelling articles and added some new citations and
+- prototyped a mesa ABM model in python
+- reviewed MTA turnstile data
+>< - unclear on the ... basic parameters of our model
++ continue writing report and conversing with people to get a clear picture of what and why we are doing this.
+
+Dimas
+- Looked for data sources for spain, usa, and russia.
+- Tried to understand USA census data
+>< - frustrated by lack of documentation on data
++ 
+
+Frank
+- Read the 'working paper' 
+- read the abstract/report
+- read about MESA
+>< waiting for the meeting in 10mins
++
+
+Elie
+- read about MESA
+-
+><
++
+
+ABMs.
+
 w/zhukov, makarov:
 discuss, outline project timeline and scope
 
 discussion:
+3+4 combined (at least for discussion)
+not just subways? - other mass transport networks
+stations as nodes [with some percentage of infection], traffic are edges. passenger flow is the edge thickness, 
+-=or=- (humans as agents)
+time-dependent links of people on their subway rides.
+-=or=- (lines as agents?!)
+
+some possible different ideas:
+- predicting moscow metro entries based on mesh data
+- scraping vk, other sn like fb (not recommended, small networks)
+
+==some confusion about what models
+>let's try a model which uses network and what doesn't
+
+3: general ABM
+4: with network structure
+
+
+
+
 
 next steps:
-
+based on the limited time: try to reproduce previous experiments.
+> calculate probability of being infected per station.
 
 some questions/comments to bring up
 1) btw, it is 'compartment'.
