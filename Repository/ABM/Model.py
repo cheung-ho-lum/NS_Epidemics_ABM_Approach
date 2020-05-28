@@ -3,8 +3,8 @@ from ABM import Agent
 from mesa.time import RandomActivation
 import random
 
-DEBUG_SEIR_INFECTED_INITIALIZATION = 0.1
 DEBUG_START_LOCATIONS = [4, 5, 6] #these are the street locations for the debug scenario
+
 
 class SEIR_Subway_Model(Model):
     """This guy's constructor should probably have a few more params."""
