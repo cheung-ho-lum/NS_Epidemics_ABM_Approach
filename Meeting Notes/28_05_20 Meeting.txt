@@ -12,3 +12,12 @@ discuss, outline project timeline and scope
 discussion:
 
 next steps:
+
+
+some questions/comments to bring up
+1) btw, it is 'compartment'.
+2) question: compare project prompt and proposed topic
+-- particularly, are we fitting the model right to answer the question
+3) question: best compartmental model (fits COVID)
+-- the big question is how it models contagious period. 
+4) question: best ABM software
