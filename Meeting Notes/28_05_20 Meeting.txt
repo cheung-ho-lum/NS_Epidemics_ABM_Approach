@@ -1,1 +1,14 @@
-test
+who:
+prj team + zhukov + makarov
+
+why:
+1) answer how we want to do check-in 
+2) discuss issues with scope (or selection) of research topic and details. and 
+3) actually do a check-in
+
+w/zhukov, makarov:
+discuss, outline project timeline and scope
+
+discussion:
+
+next steps:
