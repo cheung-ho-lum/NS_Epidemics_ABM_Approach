@@ -13,7 +13,8 @@ Stations and turnstiles:
 Metropolitan Transportation Authority (MTA). 2020b. Stations.csv (text file, comma-separated). http://web.mta.info/developers/data/nyct/subway/Stations.csv: Last accessed April 4, 2020. 
 
 Metropolitan Transportation Authority (MTA). 2020c. Turnstile Data. http://web.mta.info/developers/turnstile.html: Last accessed April 4, 2020. 
-
+^practically uninterpretable. reference:
+https://medium.com/qri-io/taming-the-mtas-unruly-turnstile-data-c945f5f96ba0
 
 
 Perhaps moscow metro also publishes their data? Probably not. Maybe bogus anyway.

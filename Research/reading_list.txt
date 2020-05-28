@@ -22,6 +22,11 @@ Some prior research that says the opposite [but 4% is preeeetty good for some pe
 https://www.researchgate.net/publication/
 51556957_The_Role_of_Subway_Travel_in_an_Influenza_Epidemic_A_New_York_City_Simulation 
 
+Barabasi book
+http://networksciencebook.com/chapter/10#epidemic-prediction
+
+Some really mathematical abstract which is not directly relevant, but we may comment why we took a different approach
+https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7094585/
 
 
 
