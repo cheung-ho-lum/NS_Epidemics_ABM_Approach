@@ -21,7 +21,14 @@ import numpy as np
 # Stage 2:
 # Introduce SEIR and add some numbers
 # Introduce the NYC Subway map and add attributes
+# Stage 2a:
+# Introduce a secondary mapping of weighted edges based on ridership
+# A sidenote that turnstiles don't count transfers. t.e. while we map ridership between nodes
+# They almost always take some specific path through the network
+# Although... the gridlike structure of nyc subway may make multiple choices viable. TBD
 # Stage 3:
+# ???
+
 
 def draw_SEIR_curve(statistics):
     """It's questionable to keep statistics in a non-descript matrix because we might want more, but for now:
@@ -47,11 +54,16 @@ def draw_SEIR_curve(statistics):
     plt.show()
 
 G_subway_map = Preprocessing.get_subway_map('NYC')
-G_full_map = Preprocessing.make_exit_nodes(G_subway_map)
+ADD_SHADOW = False
+if ADD_SHADOW:
+    G_full_map = Preprocessing.make_exit_nodes(G_subway_map)
+else:
+    G_full_map = G_subway_map
+
 print('Num stations:', len(G_subway_map.nodes()))
 print('Total order:', len(G_full_map.nodes()))
 print('NCC:', nx.algorithms.components.number_connected_components(G_full_map)) #if this is >1, we have a problem
-#cc_list = sorted(nx.connected_components(G_full_map), key=len, reverse=True) #largest first, for further debugging
+# cc_list = sorted(nx.connected_components(G_full_map), key=len, reverse=True) # largest first, for further debugging
 
 
 model = Model.SEIR_Subway_Model(SimulationParams.TOTAL_POPULATION, G_full_map)

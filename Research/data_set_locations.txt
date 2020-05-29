@@ -54,3 +54,14 @@ Perhaps moscow metro also publishes their data? Probably not. Maybe bogus anyway
 
 Dimas' note: I've tried to find reliable info about metro workload, but I did not succeed.
 Maybe this? https://www.mosoblreclama.ru/auxpage_passazhiropotok_metro
+
+HLC
+Moscow metro data (entrance/exits) available in json, xlsx and a bunch of other methods.:
+https://data.mos.ru/datasets/624
+we must be looking for Общее количество БПА: 4 билетных автоматах ?? wut?
+
+ok... so now where do we find a map. this is actually probably easier because we could literally just write it ourselves. (also, there's an app so it must exist)
+some starting point?
+https://data.mos.ru/classifier/7704786030-stantsii-moskovskogo-metropolitena
+
+http://datalytics.ru/all/kak-poluchit-spisok-stanciy-moskovskogo-metropolitena-po-api/

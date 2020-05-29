@@ -1,3 +1,5 @@
+import datetime
+
 import networkx as nx
 from Parameters import SubwayParams
 from pathlib import Path
@@ -17,15 +19,16 @@ def generate_NYC_subway_map():
     subway_map = nx.Graph()
     file_to_open = Path('Data/Stations.csv')
     routes_and_stations = {}
+    complex_to_station_dict = {}
     with open(file_to_open, 'r') as f:
         next(f) #skip header row
         complex_dict = {} #dictionary of complexes. values = stations at that complex
         for row in f:
             station_data = row.split(',')
             station_id = int(station_data[0])  # TODO: We're making this an int as early as possible!
-            complex_id = station_data[1]  # Complex ID. If stations are part of the same complex, they need to be connected
+            complex_id = station_data[1]  # Complex ID. A string! If stations are part of the same complex, they need to be connected
             _ = station_data[2]  # GTFS Stop ID
-            _ = station_data[3]  # Division
+            division_id = station_data[3]  # Division. These are not ints!
             _ = station_data[4]  # Line Caution!! Lines != Routes, not what you think it is!
             _ = station_data[5]  # Stop Name
             _ = station_data[6]  # Borough
@@ -33,6 +36,8 @@ def generate_NYC_subway_map():
             _ = station_data[8]  #
             station_lat_y = float(station_data[9])  # Latitude
             station_long_x = float(station_data[10])  # Longtitude
+
+            complex_to_station_dict[(complex_id, division_id)] = station_id
 
             # We're not counting Staten Island. I already duplicated Stations.csv in expectation of removing this trolly data
             if routes == 'SIR':
@@ -44,6 +49,7 @@ def generate_NYC_subway_map():
             subway_map.nodes[station_id]['x'] = station_long_x
             subway_map.nodes[station_id]['y'] = station_lat_y
             subway_map.nodes[station_id]['pos'] = (station_long_x, station_lat_y)
+            subway_map.nodes[station_id]['div'] = division_id
 
             #Adding any transfers
             if complex_id in complex_dict:
@@ -52,6 +58,7 @@ def generate_NYC_subway_map():
                 complex_dict[complex_id].append(station_id)
             else:
                 complex_dict[complex_id] = [station_id]
+
             #Adding edges between stations
             # TODO: this is crappy programming, but, besides geolocation, there's no good way to discover direct connections
             """ok here's what we actually do: we add the station and their xy coords to a list by route
@@ -148,6 +155,43 @@ def generate_NYC_subway_map():
             last_station = best_candidate
 
     nx.set_node_attributes(subway_map, SubwayParams.NODE_TYPE_STATION, 'type')
+
+    #Adding flowrate
+    """this will look substantially different from our geographically/train based map.
+    we will look at the turnstile data from Mar 1 - Mar 21 when the pandemic was starting
+    so... maybe this function should eventually take unix time etc., but we'll hardcode it for now"""
+    #Protip: you can get station id from complex id + division and referencing stations.csv
+    """stop_name,daytime_routes,division,line,borough,structure,gtfs_longitude,gtfs_latitude,complex_id,date,entries,exits"""
+    """Astoria - Ditmars Blvd,N W,BMT,Astoria,Q,Elevated,-73.912034,40.775036,1,2020-01-01,7024,7060"""
+    #So we filter down by date, sum up the entrance and exits, and call it 'passenger flow' node attribute.
+    #Remember that complex id and div id are strings!
+    file_to_open = Path('Data/Turnstile_Data.csv')
+    #TODO: Of course these should be model params, but we haven't the least  idea how to use them yet.
+    date_start = datetime.datetime(2020, 3, 1, 0, 0) #inclusive
+    date_end = datetime.datetime(2020, 3, 21, 0, 0)  #inclusive
+    nx.set_node_attributes(subway_map, 0, 'flow')
+    with open(file_to_open, 'r') as f:
+        next(f)  # skip header row
+        for row in f:
+            flow_data = row.split(',')
+            _ = flow_data[0]  # stop name
+            _ = flow_data[1]  # daytime routes
+            flow_division = flow_data[2]  # division
+            _ = flow_data[3]  # line
+            _ = flow_data[4]  # borough
+            _ = flow_data[5]  # structure
+            _ = flow_data[6]  # gtfs longtitude
+            _ = flow_data[7]  # gtfs latitude
+            flow_complex_id = flow_data[8]  # complex id
+            flow_date = datetime.datetime.strptime(flow_data[9], '%Y-%m-%d')  #date
+            flow_in = int(flow_data[10])  # entries
+            flow_out = int(flow_data[11])  # exits
+            if date_end >= flow_date >= date_start:
+                if (flow_complex_id, flow_division) in complex_to_station_dict:
+                    station_id = complex_to_station_dict[(flow_complex_id, flow_division)]
+                    if station_id in subway_map.nodes():  # we may have removed some stations (cough, staten island)
+                        subway_map.nodes[station_id]['flow'] += flow_in + flow_out
+
     return subway_map
 
 def generate_simple_triangle_map():
@@ -187,6 +231,7 @@ def make_exit_nodes(subway_map):
         subway_with_exits.nodes[node_index]['y'] = subway_map.nodes[node]['y'] + 0.01 #create a 'shadow'
         subway_with_exits.nodes[node_index]['pos'] = \
             (subway_with_exits.nodes[node_index]['x'], subway_with_exits.nodes[node_index]['y'])
+        subway_with_exits.nodes[node_index]['flow'] = 0
 
         subway_with_exits.add_edge(node_index, node)
         print(node_index,node, 'added')

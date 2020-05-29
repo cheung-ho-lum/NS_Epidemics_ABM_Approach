@@ -1,3 +1,5 @@
+import math
+
 import networkx as nx
 from networkx import Graph
 #Basically networkx graph wrapper with some helpers
@@ -27,9 +29,13 @@ class OurGraph(Graph):
             groups = set(nx.get_node_attributes(self._graph, node_attr).values())
             mapping = dict(zip(sorted(groups), count()))
             nodes = self._graph.nodes()
+            node_sizes = []
+            for n in nodes:
+                size_of_n = math.sqrt(self._graph.nodes[n]['flow'] / 500)
+                node_sizes.append(max(25, size_of_n))  # or the default value of 50
             colors = [mapping[self._graph.nodes[n][node_attr]] for n in nodes]
             pos = nx.get_node_attributes(self._graph, 'pos')
-            nx.draw_networkx(self._graph, node_size=50, with_labels=False, width=0.5, node_color=colors, pos=pos,
+            nx.draw_networkx(self._graph, node_size= node_sizes, with_labels=False, width=0.5, node_color=colors, pos=pos,
                              cmap=plt.cm.jet)
 
     @property
