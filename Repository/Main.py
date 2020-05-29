@@ -47,9 +47,7 @@ def draw_SEIR_curve(statistics):
     plt.show()
 
 G_subway_map = Preprocessing.get_subway_map('NYC')
-G_full_map = G_subway_map #Preprocessing.make_exit_nodes(G_subway_map)
-# Let's say that ticks are approximately 30 minutes.
-# And that agents have a chance of infecting anyone between their source and destination while in subway
+G_full_map = Preprocessing.make_exit_nodes(G_subway_map)
 print('Num stations:', len(G_subway_map.nodes()))
 print('Total order:', len(G_full_map.nodes()))
 print('NCC:', nx.algorithms.components.number_connected_components(G_full_map)) #if this is >1, we have a problem
@@ -63,14 +61,13 @@ show_every_2x = True
 SEIR_Statistics = np.zeros(shape=(SimulationParams.RUN_SPAN + 1, 5)) #reminder: np is zero indexed
 subway_map = model.our_graph
 SEIR_Statistics[0, 0] = 0
-print(model.calculate_SEIR(True))
 SEIR_Statistics[0, 1:5] = model.calculate_SEIR(True)  #reminder: but ranges are exclusive or something.
 
 for i in range(1, SimulationParams.RUN_SPAN + 1):
-    print('TIME', i)
-    SEIR_Statistics[i, 0] = i
-    SEIR_Statistics[i, 1:5] = model.calculate_SEIR(True)
     model.step()
+    print('TIME', model.schedule.time)
+    SEIR_Statistics[i, 0] = model.schedule.time
+    SEIR_Statistics[i, 1:5] = model.calculate_SEIR(True)
     subway_map = model.our_graph
     if i == 1:
         subway_map.draw_graph()

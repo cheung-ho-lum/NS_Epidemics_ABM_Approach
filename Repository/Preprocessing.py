@@ -2,16 +2,21 @@ import networkx as nx
 from Parameters import SubwayParams
 from pathlib import Path
 # TODO: we need to refactor out the graph/map level things into a different file.
-
+import itertools as it
+import math
 
 def generate_NYC_subway_map():
     """This is pretty straightforward as NYC keeps station data in a csv. In principle, we should probably
     make this a general import, but in reality, who is going to format their station data like NYC MTA?"""
-    # TODO: NYC Subway stations have a bunch of features (ID, Complex ID, etc.) we need to make node features
-    # TODO: add to docstring the tsv meanings
+    """Rant section:
+    what is this data?!
+    167,167,A32,IND,8th Av - Fulton St,W 4 St,M,A C E,Subway,40.732338,-74.000495,Uptown - Queens,Downtown & Brooklyn
+    167,167,D20,IND,6th Av - Culver,W 4 St,M,B D F M,Subway,40.732338,-74.000495,Uptown - Queens,Downtown & Brooklyn
+    """
     """Station ID,Complex ID,GTFS Stop ID,Division,Line,Stop Name,Borough,Daytime Routes,Structure,GTFS Latitude,GTFS Longitude,North Direction Label,South Direction Label"""
     subway_map = nx.Graph()
     file_to_open = Path('Data/Stations.csv')
+    routes_and_stations = {}
     with open(file_to_open, 'r') as f:
         next(f) #skip header row
         complex_dict = {} #dictionary of complexes. values = stations at that complex
@@ -29,7 +34,7 @@ def generate_NYC_subway_map():
             station_lat_y = float(station_data[9])  # Latitude
             station_long_x = float(station_data[10])  # Longtitude
 
-            #TODO: We're not counting Staten Island. I already duplicated Stations.csv in expectation of removing this trolly data
+            # We're not counting Staten Island. I already duplicated Stations.csv in expectation of removing this trolly data
             if routes == 'SIR':
                 continue
 
@@ -38,7 +43,7 @@ def generate_NYC_subway_map():
             subway_map.nodes[station_id]['routes'] = routes
             subway_map.nodes[station_id]['x'] = station_long_x
             subway_map.nodes[station_id]['y'] = station_lat_y
-            subway_map.nodes[station_id]['pos'] = (station_long_x, station_lat_y) #something weird, let's normalize
+            subway_map.nodes[station_id]['pos'] = (station_long_x, station_lat_y)
 
             #Adding any transfers
             if complex_id in complex_dict:
@@ -49,20 +54,98 @@ def generate_NYC_subway_map():
                 complex_dict[complex_id] = [station_id]
             #Adding edges between stations
             # TODO: this is crappy programming, but, besides geolocation, there's no good way to discover direct connections
-            # Between two stations. My proposal is that we build these edges with the assumption that
-            # the station connects to the station of the same line last on the list before it.
-            # ex. station 6 = line A. station 2 = last station before it on line A
-            # make edge 2<->6. undirected.
-            # (it's not even clear we want direct connections to represent our edges)
+            """ok here's what we actually do: we add the station and their xy coords to a list by route
+            we order the routes by xy position (look up how to, but euclidean probably suffices) 
+            we build those and only those edges"""
+            # you know, this doesn't even guarantee correctness. just logical correctness.
+
             for route in routes.split():
-                idx = int(station_id) - 1
-                predecessor_found = False
-                while idx > 0 and not predecessor_found:
-                    if subway_map.has_node(idx):
-                        if route in subway_map.nodes[idx]['routes']:
-                            subway_map.add_edge(station_id, idx)
-                            predecessor_found = True
-                    idx -= 1
+                if route not in routes_and_stations:
+                    routes_and_stations[route] = [station_id]
+                else:
+                    routes_and_stations[route].append(station_id)
+
+    "Adding Edges, a more logical approach (but still possibly crap, also might not matter)"
+    "Best theoretical mathy approach would be to find the shortest hamiltonian path. but i am lazy"
+    for route in routes_and_stations:
+        minX = -70
+        maxX = -75
+        minY = 42
+        maxY = 38
+        # TODO after thinking some more, just do something readable and logical and make an actual edge list later if needed.
+        # TODO after writing this and still having to hack in some lines, I 100% approve of that idea.
+        for station in routes_and_stations[route]:
+            x_coord = subway_map.nodes[station]['x']
+            y_coord = subway_map.nodes[station]['y']
+
+            if x_coord < minX:
+                minX = x_coord
+            if x_coord > maxX:
+                maxX = x_coord
+            if y_coord < minY:
+                minY = y_coord
+            if y_coord > maxY:
+                maxY = y_coord
+
+        terminal_station = -1
+        for station in routes_and_stations[route]:
+            x_coord = subway_map.nodes[station]['x']
+            y_coord = subway_map.nodes[station]['y']
+            if (x_coord == minX and y_coord == minY) or (x_coord == minX and y_coord == maxY) or \
+                (x_coord == maxX and y_coord == minY) or(x_coord == maxX and y_coord == maxY):
+                terminal_station = station
+                break
+        if route == 'F':
+            terminal_station = 58
+        if route == 'J':
+            terminal_station = 278
+        if route == 'Z':
+            terminal_station = 278
+        if route == 'M':
+            terminal_station = 108
+        if route == 'A':
+            terminal_station = 203
+        if route == 'C':
+            terminal_station = 188
+        if route == 'E':
+            terminal_station = 278
+        if route == '3':
+            terminal_station = 436
+        if route == '5':
+            terminal_station = 359
+
+        if terminal_station == -1:
+            print('HACK WAS UNABLE TO FIND TERMINAL STATION FOR ROUTE', route)
+
+        uncombined_stations = routes_and_stations[route].copy()
+        last_station = terminal_station
+        x_coord_last = subway_map.nodes[last_station]['x']
+        y_coord_last = subway_map.nodes[last_station]['y']
+        uncombined_stations.remove(terminal_station)
+        x_coord_next = -80
+        y_coord_next = 50
+
+        while(len(uncombined_stations) > 0):
+            best_distance = 100
+            best_candidate = -1
+            #Find the closest station to our current endpoint
+            for station_candidate in uncombined_stations:
+                candidate_distance = math.hypot(
+                    x_coord_last - subway_map.nodes[station_candidate]['x'],
+                    y_coord_last - subway_map.nodes[station_candidate]['y']
+                )
+                if candidate_distance < best_distance:
+                    best_distance = candidate_distance
+                    best_candidate = station_candidate
+
+            #Add the edge
+            subway_map.add_edge(last_station, best_candidate)
+
+            #Make the new endpoint
+            x_coord_last = subway_map.nodes[best_candidate]['x']
+            y_coord_last = subway_map.nodes[best_candidate]['y']
+            uncombined_stations.remove(best_candidate)
+            last_station = best_candidate
 
     nx.set_node_attributes(subway_map, SubwayParams.NODE_TYPE_STATION, 'type')
     return subway_map

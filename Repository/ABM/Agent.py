@@ -34,8 +34,7 @@ class SEIRAgent(Agent):
 
 
     def find_victims(self, map_location):
-        """TODO: BELONGS IN A GRAPH WRAPPER!! but it's 3pm so I write here
-        This function assumes you already checked the node location and everything.
+        """This function assumes you already checked the node location and everything.
         All it does is find peeople at the same location"""
         victim_list = []
         for a in self.model.agent_loc_dictionary[self._location]:
@@ -46,29 +45,31 @@ class SEIRAgent(Agent):
 
     def infect(self):
         # I an imagining different behavior if a person is asymptomatic, but let's just KISS rn
-        # Infected (and infected_asymptomatic) people are allowed to infect susceptible ppl w/ probability 0.05
+        # Infected (and infected_asymptomatic) people are allowed to infect susceptible ppl w/ probability 1.00
         # But only if they are in the subway!
         if self._infection_status == AgentParams.STATUS_INFECTED or \
                 self._infection_status == AgentParams.STATUS_INFECTED_ASYMPTOMATIC:
             if self.model.our_graph.graph.nodes[self._location]['type'] == SubwayParams.NODE_TYPE_STATION:
-                #TODO: There is a massive performance hit here finding the victims
-                #TODO: Probably best to have a dictionary of locations and agents.
-                #TODO: Also, it's high time you created your graph wrapper class
                 victim_agents = self.find_victims(self._location)
                 for a in victim_agents:
-                    if a.infection_status == AgentParams.STATUS_SUSCEPTIBLE:
-                        a.infection_status = AgentParams.STATUS_EXPOSED #TODO: and this should be in a method
-                        if PRINT_DEBUG:
-                            print('Agent', self.unique_id, '(', self._infection_status, ') exposed',
-                                a.unique_id, 'at', a.location)
+                    a.infection_status = AgentParams.STATUS_EXPOSED #TODO: and this should be in a method
+                    a.time_first_exposure = self.model.schedule.time
+                    if PRINT_DEBUG:
+                        print('Agent', self.unique_id, '(', self._infection_status, ') exposed',
+                            a.unique_id, 'at', a.location)
         return None
 
         # TODO: Obviously we should be checking time of first exposure
         # And possibly rolling dice against it.
         # But let's just say it takes 1 unit of time.
     def update_agent_health(self):
-        if(self._infection_status == AgentParams.STATUS_EXPOSED):
-            self._infection_status = AgentParams.STATUS_INFECTED
+        if self._infection_status == AgentParams.STATUS_EXPOSED:
+            if self.model.schedule.time > AgentParams.TIME_TO_INFECTION + self._time_first_exposure:
+                self._infection_status = AgentParams.STATUS_INFECTED
+                self._time_first_infection = self.model.schedule.time
+        if self._infection_status == AgentParams.STATUS_INFECTED:
+            if self.model.schedule.time > AgentParams.TIME_TO_RECOVER + self._time_first_infection:
+                self._infection_status = AgentParams.STATUS_RECOVERED
         return None
 
     def step(self):
@@ -91,3 +92,19 @@ class SEIRAgent(Agent):
     @location.setter
     def location(self, value):
         self._location = value
+
+    @property
+    def time_first_exposure(self):
+        return self._time_first_exposure
+
+    @time_first_exposure.setter
+    def time_first_exposure(self, value):
+        self._time_first_exposure = value
+
+    @property
+    def time_first_infection(self):
+        return self._time_first_infection
+
+    @time_first_infection.setter
+    def time_first_infection(self, value):
+        self._time_first_infection = value
