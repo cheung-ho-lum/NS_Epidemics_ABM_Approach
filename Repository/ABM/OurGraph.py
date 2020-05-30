@@ -10,12 +10,16 @@ from Parameters import AgentParams
 
 
 class OurGraph(Graph):
-    def __init__(self, orig=None):
+    def __init__(self, orig=None, route_dict=None):
         if orig is None:
             super().__init__(Graph)
             self._graph = None
         else:
             self._graph = nx.Graph.copy(orig)
+        if route_dict is not None:
+            self._routing_dict = route_dict
+        else:
+            print('Warning, missing route dict currently not supported!')
 
     def update_hotspots(self, agents):
         nx.set_node_attributes(self._graph, 0, 'hotspot')
@@ -35,7 +39,7 @@ class OurGraph(Graph):
                 node_sizes.append(max(25, size_of_n))  # or the default value of 50
             colors = [mapping[self._graph.nodes[n][node_attr]] for n in nodes]
             pos = nx.get_node_attributes(self._graph, 'pos')
-            nx.draw_networkx(self._graph, node_size= node_sizes, with_labels=False, width=0.5, node_color=colors, pos=pos,
+            nx.draw_networkx(self._graph, node_size=node_sizes, with_labels=False, width=0.5, node_color=colors, pos=pos,
                              cmap=plt.cm.jet)
 
     @property
@@ -45,3 +49,11 @@ class OurGraph(Graph):
     @graph.setter
     def graph(self, value):
         self._graph = value
+
+    @property
+    def routing_dict(self):
+        return self._routing_dict
+
+    @routing_dict.setter
+    def routing_dict(self, value):
+        self._routing_dict = value

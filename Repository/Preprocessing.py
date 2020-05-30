@@ -43,12 +43,12 @@ def generate_NYC_subway_map():
             complex_to_station_dict[(complex_id, division_id)] = station_id
 
             # We're not counting Staten Island. I already duplicated Stations.csv in expectation of removing this trolly data
-            if routes == 'SIR':
+            if 'SIR' in routes:
                 continue
 
             #Adding Station
             subway_map.add_node(station_id)
-            subway_map.nodes[station_id]['routes'] = routes
+            subway_map.nodes[station_id]['routes'] = routes.split()
             subway_map.nodes[station_id]['x'] = station_long_x
             subway_map.nodes[station_id]['y'] = station_lat_y
             subway_map.nodes[station_id]['pos'] = (station_long_x, station_lat_y)
@@ -76,109 +76,128 @@ def generate_NYC_subway_map():
                 else:
                     routes_and_stations[route].append(station_id)
 
-    "Adding Edges, a more logical approach (but still possibly crap, also might not matter)"
-    "Best theoretical mathy approach would be to find the shortest hamiltonian path. but i am lazy"
-    file_routing_by_id = Path('Data/Our_Routing_By_Id.csv')
-    file_routing_by_name = Path('Data/Our_Routing_By_Name.csv')
-    f_route_ids = open(file_routing_by_id, 'w')
-    f_route_names = open(file_routing_by_name, 'w')
+    build_edges_from_file = True
+    # Builds the edges between stations based on our own listing of correct edges between stations
+    # The first column in each row is the route name or a fake route name
+    # successor columns are consecutive stations. just link em up
+    #TODO: note that in ods, racepark or aqueduct or something is not fixed.
+    if build_edges_from_file:
+        file_fixed_routings = Path('Data/Fixed_Routings.csv')
+        with open(file_fixed_routings, 'r') as f_routes:
+            for row in f_routes:
+                route_data = row.split(',')[1:]
+                previous_station = -1
+                for station in route_data:
+                    if previous_station != -1:
+                        subway_map.add_edge(int(previous_station), int(station))
+                    previous_station = station
 
-    for route in routes_and_stations:
-        minX = -70
-        maxX = -75
-        minY = 42
-        maxY = 38
-        # TODO after thinking some more, just do something readable and logical and make an actual edge list later if needed.
-        # TODO after writing this and still having to hack in some lines, I 100% approve of that idea.
-        for station in routes_and_stations[route]:
-            x_coord = subway_map.nodes[station]['x']
-            y_coord = subway_map.nodes[station]['y']
 
-            if x_coord < minX:
-                minX = x_coord
-            if x_coord > maxX:
-                maxX = x_coord
-            if y_coord < minY:
-                minY = y_coord
-            if y_coord > maxY:
-                maxY = y_coord
+    make_best_guess_routes = False
+    if make_best_guess_routes:
+        "Adding Edges, a more logical approach (but still possibly crap, also might not matter)"
+        "Best theoretical mathy approach would be to find the shortest hamiltonian path. but i am lazy"
+        file_routing_by_id = Path('Data/Our_Routing_By_Id.csv')
+        file_routing_by_name = Path('Data/Our_Routing_By_Name.csv')
+        f_route_ids = open(file_routing_by_id, 'w')
+        f_route_names = open(file_routing_by_name, 'w')
 
-        terminal_station = -1
-        for station in routes_and_stations[route]:
-            x_coord = subway_map.nodes[station]['x']
-            y_coord = subway_map.nodes[station]['y']
-            if (x_coord == minX and y_coord == minY) or (x_coord == minX and y_coord == maxY) or \
-                (x_coord == maxX and y_coord == minY) or(x_coord == maxX and y_coord == maxY):
-                terminal_station = station
-                break
-        if route == 'F':
-            terminal_station = 58
-        if route == 'J':
-            terminal_station = 278
-        if route == 'Z':
-            terminal_station = 278
-        if route == 'M':
-            terminal_station = 108
-        if route == 'A':
-            terminal_station = 203
-        if route == 'C':
-            terminal_station = 188
-        if route == 'E':
-            terminal_station = 278
-        if route == '3':
-            terminal_station = 436
-        if route == '5':
-            terminal_station = 359
+        for route in routes_and_stations:
+            minX = -70
+            maxX = -75
+            minY = 42
+            maxY = 38
+            # TODO after thinking some more, just do something readable and logical and make an actual edge list later if needed.
+            # TODO after writing this and still having to hack in some lines, I 100% approve of that idea.
+            for station in routes_and_stations[route]:
+                x_coord = subway_map.nodes[station]['x']
+                y_coord = subway_map.nodes[station]['y']
 
-        if terminal_station == -1:
-            print('HACK WAS UNABLE TO FIND TERMINAL STATION FOR ROUTE', route)
+                if x_coord < minX:
+                    minX = x_coord
+                if x_coord > maxX:
+                    maxX = x_coord
+                if y_coord < minY:
+                    minY = y_coord
+                if y_coord > maxY:
+                    maxY = y_coord
 
-        uncombined_stations = routes_and_stations[route].copy()
-        last_station = terminal_station
-        # TODO: we don't really need to rewrite (to validate every time)
-        station_list = [terminal_station]
-        station_list_names = [subway_map.nodes[terminal_station]['name']]
-        x_coord_last = subway_map.nodes[last_station]['x']
-        y_coord_last = subway_map.nodes[last_station]['y']
-        uncombined_stations.remove(terminal_station)
+            terminal_station = -1
+            for station in routes_and_stations[route]:
+                x_coord = subway_map.nodes[station]['x']
+                y_coord = subway_map.nodes[station]['y']
+                if (x_coord == minX and y_coord == minY) or (x_coord == minX and y_coord == maxY) or \
+                    (x_coord == maxX and y_coord == minY) or(x_coord == maxX and y_coord == maxY):
+                    terminal_station = station
+                    break
+            if route == 'F':
+                terminal_station = 58
+            if route == 'J':
+                terminal_station = 278
+            if route == 'Z':
+                terminal_station = 278
+            if route == 'M':
+                terminal_station = 108
+            if route == 'A':
+                terminal_station = 203
+            if route == 'C':
+                terminal_station = 188
+            if route == 'E':
+                terminal_station = 278
+            if route == '3':
+                terminal_station = 436
+            if route == '5':
+                terminal_station = 359
 
-        while(len(uncombined_stations) > 0):
-            best_distance = 100
-            best_candidate = -1
-            #Find the closest station to our current endpoint
-            for station_candidate in uncombined_stations:
-                candidate_distance = math.hypot(
-                    x_coord_last - subway_map.nodes[station_candidate]['x'],
-                    y_coord_last - subway_map.nodes[station_candidate]['y']
-                )
-                if candidate_distance < best_distance:
-                    best_distance = candidate_distance
-                    best_candidate = station_candidate
+            if terminal_station == -1:
+                print('HACK WAS UNABLE TO FIND TERMINAL STATION FOR ROUTE', route)
 
-            #Add the edge
-            subway_map.add_edge(last_station, best_candidate)
+            uncombined_stations = routes_and_stations[route].copy()
+            last_station = terminal_station
+            # TODO: we don't really need to rewrite (to validate every time)
+            station_list = [terminal_station]
+            station_list_names = [subway_map.nodes[terminal_station]['name']]
+            x_coord_last = subway_map.nodes[last_station]['x']
+            y_coord_last = subway_map.nodes[last_station]['y']
+            uncombined_stations.remove(terminal_station)
 
-            #Make the new endpoint
-            x_coord_last = subway_map.nodes[best_candidate]['x']
-            y_coord_last = subway_map.nodes[best_candidate]['y']
-            uncombined_stations.remove(best_candidate)
-            last_station = best_candidate
+            while(len(uncombined_stations) > 0):
+                best_distance = 100
+                best_candidate = -1
+                #Find the closest station to our current endpoint
+                for station_candidate in uncombined_stations:
+                    candidate_distance = math.hypot(
+                        x_coord_last - subway_map.nodes[station_candidate]['x'],
+                        y_coord_last - subway_map.nodes[station_candidate]['y']
+                    )
+                    if candidate_distance < best_distance:
+                        best_distance = candidate_distance
+                        best_candidate = station_candidate
 
-            #Update the route list for validation
-            station_list.append(last_station)
-            station_list_names.append(subway_map.nodes[last_station]['name'])
+                #Add the edge
+                subway_map.add_edge(last_station, best_candidate)
 
-        ids_as_csv = ','.join(map(str, station_list))
-        names_as_csv = ','.join(map(str, station_list_names))
+                #Make the new endpoint
+                x_coord_last = subway_map.nodes[best_candidate]['x']
+                y_coord_last = subway_map.nodes[best_candidate]['y']
+                uncombined_stations.remove(best_candidate)
+                last_station = best_candidate
 
-        f_route_ids.write(route + ',' + ids_as_csv + '\n')
-        f_route_names.write(route + ',' + names_as_csv + '\n')
+                #Update the route list for validation
+                station_list.append(last_station)
+                station_list_names.append(subway_map.nodes[last_station]['name'])
 
-    f_route_ids.close()
-    f_route_names.close()
+            ids_as_csv = ','.join(map(str, station_list))
+            names_as_csv = ','.join(map(str, station_list_names))
+
+            f_route_ids.write(route + ',' + ids_as_csv + '\n')
+            f_route_names.write(route + ',' + names_as_csv + '\n')
+
+        f_route_ids.close()
+        f_route_names.close()
 
     nx.set_node_attributes(subway_map, SubwayParams.NODE_TYPE_STATION, 'type')
-
+    nx.set_node_attributes(subway_map, 0, 'viral_load')
     #Adding flowrate
     """this will look substantially different from our geographically/train based map.
     we will look at the turnstile data from Mar 1 - Mar 21 when the pandemic was starting
@@ -215,7 +234,7 @@ def generate_NYC_subway_map():
                     if station_id in subway_map.nodes():  # we may have removed some stations (cough, staten island)
                         subway_map.nodes[station_id]['flow'] += flow_in + flow_out
 
-    return subway_map
+    return subway_map, routes_and_stations
 
 def generate_simple_triangle_map():
     """A fake subway. We'll need a naming convention for stations in the real one"""

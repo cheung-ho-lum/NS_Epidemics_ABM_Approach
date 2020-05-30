@@ -4,14 +4,15 @@ from mesa.time import RandomActivation
 from ABM import OurGraph
 import random
 from Parameters import AgentParams
+import networkx as nx
 
 DEBUG_START_LOCATIONS = [4, 5, 6] #these are the street locations for the debug scenario
 
 class SEIR_Subway_Model(Model):
     """This guy's constructor should probably have a few more params."""
-    def __init__(self, n, subway_map):
+    def __init__(self, n, subway_map, routing_dict):
         self.num_agents = n
-        self._our_graph = OurGraph.OurGraph(subway_map)
+        self._our_graph = OurGraph.OurGraph(subway_map, routing_dict)
         self._agent_loc_dictionary = {}  # a dictionary of locations with lists of agents at each location
         self.schedule = RandomActivation(self)
         # Create agents
@@ -19,13 +20,19 @@ class SEIR_Subway_Model(Model):
         for i in range(self.num_agents):
             start_location = random.choice(list(self._our_graph.graph.nodes()))
             a = Agent.SEIRAgent(i, self, location=start_location)
-            if start_location in self._agent_loc_dictionary:
-                self._agent_loc_dictionary[start_location].append(a)
+            if a.location in self._agent_loc_dictionary:
+                self._agent_loc_dictionary[a.location].append(a)
             else:
-                self._agent_loc_dictionary[start_location] = [a]
+                self._agent_loc_dictionary[a.location] = [a]
             self.schedule.add(a)
 
+    #Decay the viral loads in the environment. just wipes them for now.
+    def decay_viral_loads(self):
+        nx.set_node_attributes(self.our_graph.graph, 0, 'viral_load')
+        return None
+
     def step(self):
+        self.decay_viral_loads()
         self.schedule.step()
 
     def calculate_SEIR(self, print_results = False):
