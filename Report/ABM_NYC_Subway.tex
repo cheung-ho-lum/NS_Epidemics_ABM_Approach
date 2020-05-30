@@ -54,6 +54,7 @@
 By Dummies \\
 27 JUN 2020
 \end{center}
+
 \section*{Abstract}
 On 24 April, 2020, a researcher at MIT released a working paper finding that "The Subways Seeded the Massive Coronavirus Epidemic in New York City". While the analysis in the paper has been called into question, it remains true that the role of public transportation in the spread of COVID-19 is still unknown. In this paper, we introduce an agent-based model of the New York City subway and analyze how well it can predict the spread of COVID-19 through the boroughs of New York City.\\
 
@@ -61,23 +62,54 @@ Our findings that [insert findings here] should interest public health officials
 
 [Writer's Note: Of course, this is the ideal final result. We will focus on the early infection period and I give it a 50/50 that we even get to taking into account countermeasures and ridership losses. We will make a preliminary model, improve it, and see how far we can get.]
 
+\section*{Competencies Briefing}
+\textbf{Purpose: Brief others on competencies so we can discuss things\\}
+\textbf{Transportation Networks\\}
+\textit{specifically subways, the NYC subway. mapping, passenger flow\\}
+\textbf{python, networkx, mesa\\}
+\textit{we're working with these techs.\\}
+\textit{Writer's Note: Obviously to be removed before submission\\}
+\textit{This report was last pushed to OverLeaf on 30.05.2020. You will find our latest work at the link below:}
+\url{https://github.com/cheung-ho-lum/NS_Epidemics_ABM_Approach/blob/master/Report/ABM_NYC_Subway.pdf}
+
 \section*{Background}
 \subsection*{Epidemics and COVID-19}
-\subsection*{SEIR Model}
-\subsection*{Newer Compartmental Models}
-\subsection*{Urban Transportation Networks and Subways}
-This guy is indispensable for figuring out how to parse some of this data:\\
-\url{https://en.wikipedia.org/wiki/New_York_City_Subway_nomenclature}
 \subsection*{A Timeline of the Start of COVID-19 in NYC}
-[Writer's Note: I mean the honest reference is Wikipedia]
+[Writer's Note: I mean the honest reference is Wikipedia]\\
 Feb 25 - Some guy came back from Iran\\
 Mar 3 - First P2P spread\\
 Mar 9 - 16 confirmed cases\\
 Mar 9 (Approx.) - Metro ridership starts decreasing\\
 Mar 16 - schools close\\
 Mar 18? - PAUSE government order to shelter in place\\
-\subsection*{Agent-Based Modelling}
+\subsection*{Mathematical Modeling of Epidemics}
+\subsection*{SEIR Model}
+[Some explanation of SEIR goes here]. We're looking into more advanced models (see bibliography). The key additions are 'super-spreaders' and 'asymptomatic'. At the end of the day, we just need pure mathematically modeling to provide some parameters for how agents should behave. 
+\subsection*{Newer Compartmental Models}
+\subsection*{Agent Based Models}
+It's just a tool. like any model. Simulating agents in an environment. Key parameters are agent, model, and environment parameters. For example, we have the following list thus far:\\
+\begin{verbatim}
+	(Agent)STATUS_SUSCEPTIBLE = 'Susceptible'
+	(Agent)STATUS_EXPOSED = 'Exposed'
+	(Agent)STATUS_INFECTED = 'Infected'
+	(Agent)STATUS_INFECTED_ASYMPTOMATIC = 'Asymptomatic'
+	(Agent)STATUS_RECOVERED = 'Recovered'
+	(Agent)TIME_TO_RECOVER = 10
+	(Agent)TIME_TO_INFECTION = 3
+	(Model)RUN_SPAN = 60
+	(Model)TOTAL_POPULATION = 50000
+\end{verbatim}
+The environment is new york subway mapped as a network.\\ 
+All of this is still being discussed.\\
+\subsection*{Urban Transportation Networks and Subways}
+This guy is indispensable for figuring out how to parse some of this data:\\
+\url{https://en.wikipedia.org/wiki/New_York_City_Subway_nomenclature}
+\subsection*{MTA Station Data}
+\textbf{Station, Complex, Line, Route\\}
+\textit{station 167... doubled\\}
+\textit{making edges. GTFS Data... no we do it ourselves\\}
 \subsection*{MTA Turnstile Data}
+\textit{discuss format. every 4 hours, every machine. aggregation.\\}
 \paragraph*{MESA(Or our model)}
 \section*{Methodology}
 \section*{Results}
