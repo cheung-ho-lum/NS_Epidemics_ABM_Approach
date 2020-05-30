@@ -15,6 +15,9 @@ def generate_NYC_subway_map():
     167,167,A32,IND,8th Av - Fulton St,W 4 St,M,A C E,Subway,40.732338,-74.000495,Uptown - Queens,Downtown & Brooklyn
     167,167,D20,IND,6th Av - Culver,W 4 St,M,B D F M,Subway,40.732338,-74.000495,Uptown - Queens,Downtown & Brooklyn
     """
+    #TODO: some thinking needs to be done about station 167. We need to change it to a complex.
+    #TODO: as it stands, 2nd node overwrites first node. by luck or good programming, all routes are preserved.
+    #TODO: (line would be overwritten)
     """Station ID,Complex ID,GTFS Stop ID,Division,Line,Stop Name,Borough,Daytime Routes,Structure,GTFS Latitude,GTFS Longitude,North Direction Label,South Direction Label"""
     subway_map = nx.Graph()
     file_to_open = Path('Data/Stations.csv')
@@ -30,7 +33,7 @@ def generate_NYC_subway_map():
             _ = station_data[2]  # GTFS Stop ID
             division_id = station_data[3]  # Division. These are not ints!
             _ = station_data[4]  # Line Caution!! Lines != Routes, not what you think it is!
-            _ = station_data[5]  # Stop Name
+            stop_name = station_data[5]  # Stop Name
             _ = station_data[6]  # Borough
             routes = station_data[7] # daytime(?) Routes
             _ = station_data[8]  #
@@ -50,6 +53,7 @@ def generate_NYC_subway_map():
             subway_map.nodes[station_id]['y'] = station_lat_y
             subway_map.nodes[station_id]['pos'] = (station_long_x, station_lat_y)
             subway_map.nodes[station_id]['div'] = division_id
+            subway_map.nodes[station_id]['name'] = stop_name
 
             #Adding any transfers
             if complex_id in complex_dict:
@@ -74,6 +78,11 @@ def generate_NYC_subway_map():
 
     "Adding Edges, a more logical approach (but still possibly crap, also might not matter)"
     "Best theoretical mathy approach would be to find the shortest hamiltonian path. but i am lazy"
+    file_routing_by_id = Path('Data/Our_Routing_By_Id.csv')
+    file_routing_by_name = Path('Data/Our_Routing_By_Name.csv')
+    f_route_ids = open(file_routing_by_id, 'w')
+    f_route_names = open(file_routing_by_name, 'w')
+
     for route in routes_and_stations:
         minX = -70
         maxX = -75
@@ -126,11 +135,12 @@ def generate_NYC_subway_map():
 
         uncombined_stations = routes_and_stations[route].copy()
         last_station = terminal_station
+        # TODO: we don't really need to rewrite (to validate every time)
+        station_list = [terminal_station]
+        station_list_names = [subway_map.nodes[terminal_station]['name']]
         x_coord_last = subway_map.nodes[last_station]['x']
         y_coord_last = subway_map.nodes[last_station]['y']
         uncombined_stations.remove(terminal_station)
-        x_coord_next = -80
-        y_coord_next = 50
 
         while(len(uncombined_stations) > 0):
             best_distance = 100
@@ -153,6 +163,19 @@ def generate_NYC_subway_map():
             y_coord_last = subway_map.nodes[best_candidate]['y']
             uncombined_stations.remove(best_candidate)
             last_station = best_candidate
+
+            #Update the route list for validation
+            station_list.append(last_station)
+            station_list_names.append(subway_map.nodes[last_station]['name'])
+
+        ids_as_csv = ','.join(map(str, station_list))
+        names_as_csv = ','.join(map(str, station_list_names))
+
+        f_route_ids.write(route + ',' + ids_as_csv + '\n')
+        f_route_names.write(route + ',' + names_as_csv + '\n')
+
+    f_route_ids.close()
+    f_route_names.close()
 
     nx.set_node_attributes(subway_map, SubwayParams.NODE_TYPE_STATION, 'type')
 
@@ -234,7 +257,6 @@ def make_exit_nodes(subway_map):
         subway_with_exits.nodes[node_index]['flow'] = 0
 
         subway_with_exits.add_edge(node_index, node)
-        print(node_index,node, 'added')
         node_index += 1
 
     return subway_with_exits
