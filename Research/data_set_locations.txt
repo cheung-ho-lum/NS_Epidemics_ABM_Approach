@@ -65,3 +65,6 @@ some starting point?
 https://data.mos.ru/classifier/7704786030-stantsii-moskovskogo-metropolitena
 
 http://datalytics.ru/all/kak-poluchit-spisok-stanciy-moskovskogo-metropolitena-po-api/
+
+zip-code start areas:
+https://data.cityofnewyork.us/Health/Modified-Zip-Code-Tabulation-Areas-MODZCTA-/pri4-ifjk
