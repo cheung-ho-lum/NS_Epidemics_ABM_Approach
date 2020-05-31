@@ -19,9 +19,14 @@ class SEIRAgent(Agent):
         self._subway_commuter = True  # Envisioning some non subway riders in this system eventually.
         if unique_id in DEBUG_SEIR_INFECTED_INITIALIZATION:
             self._infection_status = AgentParams.STATUS_INFECTED
-            self._location = 55
-            self._home_addr = 55
-            print('patient 0 initialized')
+            if self.model.our_graph.graph.has_node(55):
+                self._location = 55
+                self._home_addr = 55
+            else:
+                self._location = 1
+                self._home_addr = 1
+            print('patient 0 initialized at', self._location)
+
     def move(self):
         # For now, agents do not move!
         return None

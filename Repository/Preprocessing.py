@@ -7,6 +7,47 @@ from pathlib import Path
 import itertools as it
 import math
 
+def generate_geometric_map(type="sierpinski"):
+    file_to_open = Path('Data/ss_' + type + '.csv')
+    #TODO: catch in case of stupidity?
+    #Our simplified subway has no complexes. Routes and stations only.
+    routes_and_stations = {}
+    subway_map = nx.Graph()
+    with open(file_to_open, 'r') as f:
+        next(f)
+        for row in f:
+            #REMINDER TODO: FILL OUT ROUTE/station data! trivial.
+            route_data = row.strip().split(',')
+            route_name = route_data.pop(0)
+            route_list = list(filter(None, route_data))
+            previous_station_id = -1
+            for station in route_list:
+                station_id = int(station)
+                #sets if exists, appends if not TODO: redo the other way of doing things.
+                routes_and_stations.setdefault(route_name, []).append(station_id)
+                #TODO: encapsulate this (almost same as generate_nyc_subway_map)
+                #Builds the stations
+                if not subway_map.has_node(station_id):
+                    subway_map.add_node(station_id)
+                    subway_map.nodes[station_id]['routes'] = [route_name]
+                    #subway_map.nodes[station_id]['x'] = station_long_x
+                    #subway_map.nodes[station_id]['y'] = station_lat_y
+                    #subway_map.nodes[station_id]['pos'] = (station_long_x, station_lat_y)
+                    #subway_map.nodes[station_id]['div'] = division_id
+                    #subway_map.nodes[station_id]['name'] = stop_name
+                else:
+                    subway_map.nodes[station_id]['routes'].append(route_name)
+
+                #Builds their connections
+                if previous_station_id != -1:
+                    subway_map.add_edge(int(previous_station_id), int(station_id))
+                previous_station_id = station_id
+
+    nx.set_node_attributes(subway_map, SubwayParams.NODE_TYPE_STATION, 'type')
+    nx.set_node_attributes(subway_map, 0, 'viral_load')
+    nx.set_node_attributes(subway_map, 0, 'flow')
+    return subway_map,routes_and_stations
+
 def generate_NYC_subway_map():
     """This is pretty straightforward as NYC keeps station data in a csv. In principle, we should probably
     make this a general import, but in reality, who is going to format their station data like NYC MTA?"""
@@ -198,6 +239,8 @@ def generate_NYC_subway_map():
 
     nx.set_node_attributes(subway_map, SubwayParams.NODE_TYPE_STATION, 'type')
     nx.set_node_attributes(subway_map, 0, 'viral_load')
+    nx.set_node_attributes(subway_map, 0, 'flow')
+
     #Adding flowrate
     """this will look substantially different from our geographically/train based map.
     we will look at the turnstile data from Mar 1 - Mar 21 when the pandemic was starting
@@ -211,7 +254,6 @@ def generate_NYC_subway_map():
     #TODO: Of course these should be model params, but we haven't the least  idea how to use them yet.
     date_start = datetime.datetime(2020, 3, 1, 0, 0) #inclusive
     date_end = datetime.datetime(2020, 3, 21, 0, 0)  #inclusive
-    nx.set_node_attributes(subway_map, 0, 'flow')
     with open(file_to_open, 'r') as f:
         next(f)  # skip header row
         for row in f:
@@ -249,12 +291,20 @@ def generate_simple_triangle_map():
 
     return subway_map
 
+
 def get_subway_map(map_type):
+    """main wrapper to return different maps. the below should really be an enum."""
     subway_map = nx.Graph()
     if map_type == 'TEST':
         return generate_simple_triangle_map()
     if map_type == 'NYC':
         return generate_NYC_subway_map()
+    if map_type == 'sierpinski':
+        return generate_geometric_map('sierpinski')
+    if map_type == 'moscow':
+        return generate_geometric_map('moscow')
+    if map_type == 'grid':
+        return generate_geometric_map('grid')
     return subway_map
 
 

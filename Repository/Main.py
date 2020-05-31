@@ -32,6 +32,8 @@ import imageio
 # make agents move based on commuting (give them a home)
 # make agents infect *stations* for an amount of time, and not directly infect other agents
 # fix the line data
+# Stage 3.5:
+# build some other subway maps.
 # Stage 4
 # Spawn agents at home based on ridership numbers.
 # Give agents some work data
@@ -112,7 +114,7 @@ for i in range(1, SimulationParams.RUN_SPAN + 1):
         subway_map.update_hotspots(model.schedule.agents)
         #subway_map.draw_graph('hotspot') #by number of agents (unnormalized)
         f = plt.figure()
-        subway_map.draw_graph('viral_load') #by viral load
+        subway_map.draw_graph('viral_load', timestamp=str(i)) #by viral load
         #plt.show()
         f.savefig("Visualizations/time" + f'{i:03}')
         plt.close(f)
@@ -120,4 +122,4 @@ draw_SEIR_curve(SEIR_Statistics) #TODO: Figure out what class this belongs in
 images = []
 for i in range(1, SimulationParams.RUN_SPAN + 1):
     images.append(imageio.imread("Visualizations/time" + f'{i:03}.png'))
-imageio.mimsave('Visualizations/infection_timelapse.gif', images)
+imageio.mimsave('Visualizations/infection_timelapse.gif', images, duration=0.4)
