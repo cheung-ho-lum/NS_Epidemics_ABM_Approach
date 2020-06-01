@@ -78,7 +78,7 @@ def draw_SEIR_curve(statistics):
         ax.spines[spine].set_visible(False)
     plt.show()
 
-g_subway_map, routing_dict = Preprocessing.get_subway_map('NYC')
+g_subway_map, routing_dict = Preprocessing.get_subway_map('MOSCOW')
 ADD_SHADOW = False
 if ADD_SHADOW:
     g_full_map = Preprocessing.make_exit_nodes(g_subway_map)
@@ -87,39 +87,43 @@ else:
 
 print('Num stations:', len(g_subway_map.nodes()))
 print('Total order:', len(g_full_map.nodes()))
-print('NCC:', nx.algorithms.components.number_connected_components(g_full_map)) #if this is >1, we have a problem
-# cc_list = sorted(nx.connected_components(G_full_map), key=len, reverse=True) # largest first, for further debugging
+num_connected_components = nx.algorithms.components.number_connected_components(g_full_map)
+print('NCC:', num_connected_components ) #if this is >1, we have a problem
 
+if num_connected_components > 1:
+    print("Warning: graph not connected. Picking GCC")
+    cc_list = sorted(nx.connected_components(g_full_map), key=len, reverse=True)  # largest first, for further debugging
+    g_full_map = g_full_map.subgraph((cc_list[0]))
 
 model = Model.SEIR_Subway_Model(SimulationParams.TOTAL_POPULATION, g_full_map, routing_dict)
 
-always_show_graph = True
-show_every_2x = True
+
 SEIR_Statistics = np.zeros(shape=(SimulationParams.RUN_SPAN + 1, 5)) #reminder: np is zero indexed
 subway_map = model.our_graph
 SEIR_Statistics[0, 0] = 0
 SEIR_Statistics[0, 1:5] = model.calculate_SEIR(True)  #reminder: but ranges are exclusive or something.
 
+# TODO: put constants in right folder. DisplayParams?
+ALWAYS_SHOW_GRAPH = False
+SHOW_EVERY_2X = False
+GRAPH_BY_FEATURE = 'viral_load'  # best options are hotspot, viral_load
+GIF_DELAY = 0.4
 for i in range(1, SimulationParams.RUN_SPAN + 1):
     model.step()
     print('TIME', model.schedule.time)
     SEIR_Statistics[i, 0] = model.schedule.time
     SEIR_Statistics[i, 1:5] = model.calculate_SEIR(True)
     subway_map = model.our_graph
-    if i == 1:
-        subway_map.draw_graph()
 
+    subway_map.update_hotspots(model.schedule.agents)
+    f = plt.figure()
+    subway_map.draw_graph(GRAPH_BY_FEATURE, timestamp=str(i)) #by number of agents (unnormalized)
+    f.savefig("Visualizations/time" + f'{i:03}')
+    if ALWAYS_SHOW_GRAPH or (math.log2(i).is_integer() and SHOW_EVERY_2X) or i == SimulationParams.RUN_SPAN:
         plt.show()
-    if always_show_graph or (math.log2(i).is_integer() and show_every_2x) or i == SimulationParams.RUN_SPAN:
-        subway_map.update_hotspots(model.schedule.agents)
-        #subway_map.draw_graph('hotspot') #by number of agents (unnormalized)
-        f = plt.figure()
-        subway_map.draw_graph('viral_load', timestamp=str(i)) #by viral load
-        #plt.show()
-        f.savefig("Visualizations/time" + f'{i:03}')
-        plt.close(f)
+    plt.close(f)
 draw_SEIR_curve(SEIR_Statistics) #TODO: Figure out what class this belongs in
 images = []
 for i in range(1, SimulationParams.RUN_SPAN + 1):
     images.append(imageio.imread("Visualizations/time" + f'{i:03}.png'))
-imageio.mimsave('Visualizations/infection_timelapse.gif', images, duration=0.4)
+imageio.mimsave('Visualizations/infection_timelapse.gif', images, duration=GIF_DELAY)
