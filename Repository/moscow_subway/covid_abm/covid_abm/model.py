@@ -35,13 +35,18 @@ def number_eradicated(model):
     return number_state(model, State.ERADICATED)
 
 
+class CustomNetworkGrid(NetworkGrid):
+
+    def get_egde_data(self, node_a, node_b):
+        return self.G.get_edge_data(node_a, node_b, default=0)
+
+
 class VirusOnNetwork(Model):
     """A virus model with some number of agents"""
 
     def __init__(
         self,
         num_hubs=10,
-        avg_travel_time=120,
         initial_outbreak_size=1,
         virus_spread_chance=0.4,
         virus_check_frequency=0.4,
@@ -49,7 +54,7 @@ class VirusOnNetwork(Model):
         gain_resistance_chance=0.5,
     ):
         self._set_graph()
-        self.grid = NetworkGrid(self.G)
+        self.grid = CustomNetworkGrid(self.G)
         self.schedule = RandomActivation(self)
         self.initial_outbreak_size = (
             initial_outbreak_size if initial_outbreak_size <= num_hubs else num_hubs
