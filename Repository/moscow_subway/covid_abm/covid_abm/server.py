@@ -17,12 +17,12 @@ def network_portrayal(G):
         )
 
     def edge_color(agent1, agent2):
-        if State.RESISTANT in (agent1.state, agent2.state):
+        if State.ERADICATED in (agent1.state, agent2.state):
             return "#000000"
         return "#e8e8e8"
 
     def edge_width(agent1, agent2):
-        if State.RESISTANT in (agent1.state, agent2.state):
+        if State.ERADICATED in (agent1.state, agent2.state):
             return 3
         return 2
 
@@ -66,7 +66,7 @@ chart = ChartModule(
 
 class MyTextElement(TextElement):
     def render(self, model):
-        ratio = model.resistant_susceptible_ratio()
+        ratio = model.eradicated_susceptible_ratio()
         ratio_text = "&infin;" if ratio is math.inf else "{0:.2f}".format(ratio)
         infected_text = str(number_infected(model))
 
@@ -76,14 +76,14 @@ class MyTextElement(TextElement):
 
 
 model_params = {
-    "num_people": UserSettableParameter(
+    "num_hubs": UserSettableParameter(
         "slider",
-        "Number of people",
-        1000000,
-        1000000,
-        25000000,
-        1000000,
-        description="Choose how many people to include in the model",
+        "Number of hubs",
+        10,
+        10,
+        200,
+        10,
+        description="Choose how many hubs to include in the model",
     ),
 }
 

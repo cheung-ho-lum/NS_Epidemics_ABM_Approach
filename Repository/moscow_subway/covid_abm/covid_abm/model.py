@@ -16,7 +16,7 @@ folder_path = os.path.dirname(os.getcwd())
 class State(Enum):
     SUSCEPTIBLE = 0
     INFECTED = 1
-    RESISTANT = 2
+    ERADICATED = 2
 
 
 def number_state(model, state):
@@ -31,8 +31,8 @@ def number_susceptible(model):
     return number_state(model, State.SUSCEPTIBLE)
 
 
-def number_resistant(model):
-    return number_state(model, State.RESISTANT)
+def number_eradicated(model):
+    return number_state(model, State.ERADICATED)
 
 
 class VirusOnNetwork(Model):
@@ -40,7 +40,7 @@ class VirusOnNetwork(Model):
 
     def __init__(
         self,
-        num_people=25000000,
+        num_hubs=10,
         avg_travel_time=120,
         initial_outbreak_size=1,
         virus_spread_chance=0.4,
@@ -52,7 +52,7 @@ class VirusOnNetwork(Model):
         self.grid = NetworkGrid(self.G)
         self.schedule = RandomActivation(self)
         self.initial_outbreak_size = (
-            initial_outbreak_size if initial_outbreak_size <= num_people else num_people
+            initial_outbreak_size if initial_outbreak_size <= num_hubs else num_hubs
         )
         self.virus_spread_chance = virus_spread_chance
         self.virus_check_frequency = virus_check_frequency
@@ -63,13 +63,13 @@ class VirusOnNetwork(Model):
             {
                 "Infected": number_infected,
                 "Susceptible": number_susceptible,
-                "Resistant": number_resistant,
+                "Eradicated": number_eradicated,
             }
         )
 
-        # Create people
+        # Create hub
         for i, node in enumerate(self.G.nodes()):
-            a = People(
+            a = Hub(
                 i,
                 self,
                 State.SUSCEPTIBLE,
@@ -90,9 +90,9 @@ class VirusOnNetwork(Model):
         self.running = True
         self.datacollector.collect(self)
 
-    def resistant_susceptible_ratio(self):
+    def eradicated_susceptible_ratio(self):
         try:
-            return number_state(self, State.RESISTANT) / number_state(
+            return number_state(self, State.ERADICATED) / number_state(
                 self, State.SUSCEPTIBLE
             )
         except ZeroDivisionError:
@@ -115,7 +115,7 @@ class VirusOnNetwork(Model):
         self.G = nx.nx.from_pandas_edgelist(routes_df, 'id_from', 'id_to', ['delay', 'station_from', 'station_from'])
 
 
-class People(Agent):
+class Hub(Agent):
     def __init__(
         self,
         unique_id,
@@ -148,7 +148,7 @@ class People(Agent):
 
     def try_gain_resistance(self):
         if self.random.random() < self.gain_resistance_chance:
-            self.state = State.RESISTANT
+            self.state = State.ERADICATED
 
     def try_remove_infection(self):
         # Try to remove
