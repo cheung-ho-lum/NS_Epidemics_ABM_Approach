@@ -40,8 +40,8 @@ class VirusOnNetwork(Model):
 
     def __init__(
         self,
-        num_agents=10,
-        avg_node_degree=3,
+        num_people=25000000,
+        avg_travel_time=120,
         initial_outbreak_size=1,
         virus_spread_chance=0.4,
         virus_check_frequency=0.4,
@@ -52,7 +52,7 @@ class VirusOnNetwork(Model):
         self.grid = NetworkGrid(self.G)
         self.schedule = RandomActivation(self)
         self.initial_outbreak_size = (
-            initial_outbreak_size if initial_outbreak_size <= num_agents else num_agents
+            initial_outbreak_size if initial_outbreak_size <= num_people else num_people
         )
         self.virus_spread_chance = virus_spread_chance
         self.virus_check_frequency = virus_check_frequency
@@ -67,9 +67,9 @@ class VirusOnNetwork(Model):
             }
         )
 
-        # Create agents
+        # Create people
         for i, node in enumerate(self.G.nodes()):
-            a = VirusAgent(
+            a = People(
                 i,
                 self,
                 State.SUSCEPTIBLE,
@@ -115,7 +115,7 @@ class VirusOnNetwork(Model):
         self.G = nx.nx.from_pandas_edgelist(routes_df, 'id_from', 'id_to', ['delay', 'station_from', 'station_from'])
 
 
-class VirusAgent(Agent):
+class People(Agent):
     def __init__(
         self,
         unique_id,
