@@ -1,0 +1,9 @@
+# General data
+
+Moscow  stations_data.tsv
+
+https://gist.github.com/altsoph/6d3bfc97e26a4614d07fa74657739163
+
+routes_data.tsv
+
+https://gist.github.com/altsoph/56c38e76bae853655b962979346d194e
