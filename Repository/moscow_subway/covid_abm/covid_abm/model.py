@@ -48,10 +48,10 @@ class VirusOnNetwork(Model):
         self,
         num_hubs=10,
         initial_outbreak_size=1,
-        virus_spread_chance=0.4,
-        virus_check_frequency=0.4,
-        recovery_chance=0.3,
-        gain_resistance_chance=0.5,
+        virus_spread_chance=0.4, # to be computed by agent interactions (people)
+        preventive_measures=0.4,
+        minimiation_likelyhood=0.3, # must depend on preventive measures
+        eradication_likelyhood=0.5, # must depend on preventive measures and eradication likelyhood
     ):
         self._set_graph()
         self.grid = CustomNetworkGrid(self.G)
@@ -60,9 +60,9 @@ class VirusOnNetwork(Model):
             initial_outbreak_size if initial_outbreak_size <= num_hubs else num_hubs
         )
         self.virus_spread_chance = virus_spread_chance
-        self.virus_check_frequency = virus_check_frequency
-        self.recovery_chance = recovery_chance
-        self.gain_resistance_chance = gain_resistance_chance
+        self.preventive_measures = preventive_measures
+        self.minimiation_likelyhood = minimiation_likelyhood
+        self.eradication_likelyhood = eradication_likelyhood
 
         self.datacollector = DataCollector(
             {
@@ -79,9 +79,9 @@ class VirusOnNetwork(Model):
                 self,
                 State.SUSCEPTIBLE,
                 self.virus_spread_chance,
-                self.virus_check_frequency,
-                self.recovery_chance,
-                self.gain_resistance_chance,
+                self.preventive_measures,
+                self.minimiation_likelyhood,
+                self.eradication_likelyhood,
             )
             self.schedule.add(a)
             # Add the agent to the node
@@ -127,18 +127,18 @@ class Hub(Agent):
         model,
         initial_state,
         virus_spread_chance,
-        virus_check_frequency,
-        recovery_chance,
-        gain_resistance_chance,
+        preventive_measures,
+        minimiation_likelyhood,
+        eradication_likelyhood,
     ):
         super().__init__(unique_id, model)
 
         self.state = initial_state
 
         self.virus_spread_chance = virus_spread_chance
-        self.virus_check_frequency = virus_check_frequency
-        self.recovery_chance = recovery_chance
-        self.gain_resistance_chance = gain_resistance_chance
+        self.preventive_measures = preventive_measures
+        self.minimiation_likelyhood = minimiation_likelyhood
+        self.eradication_likelyhood = eradication_likelyhood
 
     def try_to_infect_neighbors(self):
         neighbors_nodes = self.model.grid.get_neighbors(self.pos, include_center=False)
@@ -151,22 +151,22 @@ class Hub(Agent):
             if self.random.random() < self.virus_spread_chance:
                 a.state = State.INFECTED
 
-    def try_gain_resistance(self):
-        if self.random.random() < self.gain_resistance_chance:
+    def try_minimiation_likelyhood(self):
+        if self.random.random() < self.minimiation_likelyhood:
             self.state = State.ERADICATED
 
     def try_remove_infection(self):
         # Try to remove
-        if self.random.random() < self.recovery_chance:
+        if self.random.random() < self.eradication_likelyhood:
             # Success
             self.state = State.SUSCEPTIBLE
-            self.try_gain_resistance()
+            self.try_minimiation_likelyhood()
         else:
             # Failed
             self.state = State.INFECTED
 
     def try_check_situation(self):
-        if self.random.random() < self.virus_check_frequency:
+        if self.random.random() < self.preventive_measures:
             # Checking...
             if self.state is State.INFECTED:
                 self.try_remove_infection()
