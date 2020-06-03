@@ -68,3 +68,12 @@ http://datalytics.ru/all/kak-poluchit-spisok-stanciy-moskovskogo-metropolitena-p
 
 zip-code start areas:
 https://data.cityofnewyork.us/Health/Modified-Zip-Code-Tabulation-Areas-MODZCTA-/pri4-ifjk
+
+
+Moscow  stations_data.tsv
+
+https://gist.github.com/altsoph/6d3bfc97e26a4614d07fa74657739163
+
+routes_data.tsv
+
+https://gist.github.com/altsoph/56c38e76bae853655b962979346d194e
