@@ -4,8 +4,9 @@ from mesa.visualization.ModularVisualization import ModularServer
 from mesa.visualization.modules import ChartModule, NetworkModule, TextElement
 from mesa.visualization.UserParam import UserSettableParameter
 
-from .model import State, VirusOnNetwork, number_infected, number_infected_passengers, number_of_passengers
-from .agent import Passenger
+from .model import State, VirusOnNetwork 
+from .utils import number_infected 
+from .agent import Passenger, number_infected_passengers, number_of_passengers
 
 
 def network_portrayal(G):
@@ -15,12 +16,14 @@ def network_portrayal(G):
         return {State.INFECTED: "#FF0000", State.SUSCEPTIBLE: "#008000"}.get(
             agent.state, "#808080"
         )
-
+    
+    # figure out edge colour in relation to spread
     def edge_color(agent1, agent2):
         if State.ERADICATED in (agent1.state, agent2.state):
             return "#000000"
         return "#e8e8e8"
 
+    # figure out edge with in relation to population
     def edge_width(agent1, agent2):
         if State.ERADICATED in (agent1.state, agent2.state):
             return 3
@@ -73,14 +76,12 @@ chart = ChartModule(
 
 class MyTextElement(TextElement):
     def render(self, model):
-        ratio = model.eradicated_susceptible_ratio()
-        ratio_text = "&infin;" if ratio is math.inf else "{0:.2f}".format(ratio)
         infected_stations = str(number_infected(model))
         infected_passengers = str(number_infected_passengers(model))
         passengers = str(number_of_passengers(model))
 
-        return "Eradicated/Susceptible Ratio: {}<br>Infected Stations: {} <br>Infected Passengers: {} <br>Total Number of Passengers: {}".format(
-            ratio_text, infected_stations, infected_passengers, passengers   
+        return "Infected Stations: {} <br>Infected Passengers: {} <br>Total Number of Passengers: {}".format(
+            infected_stations, infected_passengers, passengers   
         )
 
 
