@@ -10,21 +10,41 @@ DEBUG_START_LOCATIONS = [4, 5, 6] #these are the street locations for the debug 
 
 class SEIR_Subway_Model(Model):
     """This guy's constructor should probably have a few more params."""
-    def __init__(self, n, subway_map, routing_dict):
+    def __init__(self, n, subway_map, routing_dict, passenger_flow=0):
         self.num_agents = n
-        self._our_graph = OurGraph.OurGraph(subway_map, routing_dict)
+        self._our_graph = OurGraph.OurGraph(subway_map, routing_dict, passenger_flow)
         self._agent_loc_dictionary = {}  # a dictionary of locations with lists of agents at each location
         self.schedule = RandomActivation(self)
         # Create agents
         # Should create agents, and (for now) place them in random street locations
-        for i in range(self.num_agents):
-            start_location = random.choice(list(self._our_graph.graph.nodes()))
-            a = Agent.SEIRAgent(i, self, location=start_location)
-            if a.location in self._agent_loc_dictionary:
-                self._agent_loc_dictionary[a.location].append(a)
-            else:
-                self._agent_loc_dictionary[a.location] = [a]
-            self.schedule.add(a)
+        #TODO: It would be cool if we were able to roll agents independently.
+        #For now, let's just place an appropriate number of agents at each location
+        if self.our_graph.passenger_flow > 0:
+            agents_placed = 0
+            for loc in list(self.our_graph.graph.nodes()):
+                loc_agents_placed = 0
+                loc_passenger_flow = self.our_graph.graph.nodes[loc]['flow']
+                loc_flow_percentage = loc_passenger_flow / self.our_graph.passenger_flow
+                num_agents_to_place = round(loc_flow_percentage * self.num_agents)
+                while loc_agents_placed < num_agents_to_place and agents_placed < self.num_agents:
+                    a = Agent.SEIRAgent(agents_placed, self, location=loc)
+                    if a.location in self._agent_loc_dictionary:
+                        self._agent_loc_dictionary[a.location].append(a)
+                    else:
+                        self._agent_loc_dictionary[a.location] = [a]
+                    self.schedule.add(a)
+                    loc_agents_placed += 1
+                    agents_placed += 1
+                # debug print(loc, loc_agents_placed)
+        else:
+            for i in range(self.num_agents):
+                start_location = random.choice(list(self._our_graph.graph.nodes()))
+                a = Agent.SEIRAgent(i, self, location=start_location)
+                if a.location in self._agent_loc_dictionary:
+                    self._agent_loc_dictionary[a.location].append(a)
+                else:
+                    self._agent_loc_dictionary[a.location] = [a]
+                self.schedule.add(a)
 
     #Decay the viral loads in the environment. just wipes them for now.
     def decay_viral_loads(self):

@@ -1,12 +1,7 @@
 import Preprocessing
-import Parameters
-from ABM import Agent
 from ABM import Model
-from ABM import OurGraph
-from Parameters import SimulationParams
-from itertools import count
+from Parameters import SimulationParams, DisplayParams
 import networkx as nx
-from Parameters import SubwayParams
 import matplotlib.pyplot as plt
 import math
 import numpy as np
@@ -34,26 +29,43 @@ import imageio
 # fix the line data
 # Stage 3.5:
 # build some other subway maps.
-# Stage 4
-# Spawn agents at home based on ridership numbers.
+# Stage 3.6:
+# total passenger flow now calculated
+# riders spawned by ratio of their station to the total
+# Some code cleanup (give map types an enum, create DisplayParams)
+# Stage 3.7: (<-- YOU ARE HERE)
+# More code cleanup: It's time preprocessing just created an OurGraph
+# Clean up passenger flow calculations
+# Stage 3.9:
+# Refactor and clean up data folder.
+# Code cleanup: Model should really handle more of its own graphics
+# Stage 4:
 # Give agents some work data
+
+
+# Open TODO modeling parameters. Note that all parameters beyond basic abstraction should be optional!
+# Currently, viral load is not diminished by distance.
+# Currently, viral load is not diminished by number of routes
 
 #TODO: it would be good if we outline NYC in the background
 #TODO: but it seems a little trickier than I previously thought.
 #TODO: this belongs in a graphics class.
-def nyc_map_test():
-    print('nyc map test')
-    west, south, east, north = -74.26, 40.50, -73.70, 40.92
-    m = Basemap(resolution='f', # c, l, i, h, f or None
-                projection='merc',
-                area_thresh=50,
-                lat_0=(west + south)/2, lon_0=(east + north)/2,
-                llcrnrlon= west, llcrnrlat= south, urcrnrlon= east, urcrnrlat= north)
 
-    m.drawmapboundary(fill_color='#46bcec')
-    m.fillcontinents(color='#f2f2f2',lake_color='#46bcec')
-    m.drawcoastlines()
-    m.drawrivers()
+
+# def nyc_map_test():
+#     print('nyc map test')
+#     west, south, east, north = -74.26, 40.50, -73.70, 40.92
+#     m = Basemap(resolution='f', # c, l, i, h, f or None
+#                 projection='merc',
+#                 area_thresh=50,
+#                 lat_0=(west + south)/2, lon_0=(east + north)/2,
+#                 llcrnrlon= west, llcrnrlat= south, urcrnrlon= east, urcrnrlat= north)
+#
+#     m.drawmapboundary(fill_color='#46bcec')
+#     m.fillcontinents(color='#f2f2f2',lake_color='#46bcec')
+#     m.drawcoastlines()
+#     m.drawrivers()
+
 
 def draw_SEIR_curve(statistics):
     """It's questionable to keep statistics in a non-descript matrix because we might want more, but for now:
@@ -78,7 +90,8 @@ def draw_SEIR_curve(statistics):
         ax.spines[spine].set_visible(False)
     plt.show()
 
-g_subway_map, routing_dict = Preprocessing.get_subway_map('MOSCOW')
+g_subway_map, routing_dict, passenger_flow = Preprocessing.get_subway_map('NYC')
+
 ADD_SHADOW = False
 if ADD_SHADOW:
     g_full_map = Preprocessing.make_exit_nodes(g_subway_map)
@@ -95,7 +108,7 @@ if num_connected_components > 1:
     cc_list = sorted(nx.connected_components(g_full_map), key=len, reverse=True)  # largest first, for further debugging
     g_full_map = g_full_map.subgraph((cc_list[0]))
 
-model = Model.SEIR_Subway_Model(SimulationParams.TOTAL_POPULATION, g_full_map, routing_dict)
+model = Model.SEIR_Subway_Model(SimulationParams.TOTAL_POPULATION, g_full_map, routing_dict, passenger_flow)
 
 
 SEIR_Statistics = np.zeros(shape=(SimulationParams.RUN_SPAN + 1, 5)) #reminder: np is zero indexed
@@ -103,11 +116,7 @@ subway_map = model.our_graph
 SEIR_Statistics[0, 0] = 0
 SEIR_Statistics[0, 1:5] = model.calculate_SEIR(True)  #reminder: but ranges are exclusive or something.
 
-# TODO: put constants in right folder. DisplayParams?
-ALWAYS_SHOW_GRAPH = False
-SHOW_EVERY_2X = False
-GRAPH_BY_FEATURE = 'viral_load'  # best options are hotspot, viral_load
-GIF_DELAY = 0.4
+
 for i in range(1, SimulationParams.RUN_SPAN + 1):
     model.step()
     print('TIME', model.schedule.time)
@@ -117,13 +126,13 @@ for i in range(1, SimulationParams.RUN_SPAN + 1):
 
     subway_map.update_hotspots(model.schedule.agents)
     f = plt.figure()
-    subway_map.draw_graph(GRAPH_BY_FEATURE, timestamp=str(i)) #by number of agents (unnormalized)
+    subway_map.draw_graph(DisplayParams.GRAPH_BY_FEATURE, timestamp=str(i)) #by number of agents (unnormalized)
     f.savefig("Visualizations/time" + f'{i:03}')
-    if ALWAYS_SHOW_GRAPH or (math.log2(i).is_integer() and SHOW_EVERY_2X) or i == SimulationParams.RUN_SPAN:
+    if DisplayParams.ALWAYS_SHOW_GRAPH or (math.log2(i).is_integer() and DisplayParams.SHOW_EVERY_2X):
         plt.show()
     plt.close(f)
 draw_SEIR_curve(SEIR_Statistics) #TODO: Figure out what class this belongs in
 images = []
 for i in range(1, SimulationParams.RUN_SPAN + 1):
     images.append(imageio.imread("Visualizations/time" + f'{i:03}.png'))
-imageio.mimsave('Visualizations/infection_timelapse.gif', images, duration=GIF_DELAY)
+imageio.mimsave('Visualizations/infection_timelapse.gif', images, duration=DisplayParams.GIF_DELAY)
