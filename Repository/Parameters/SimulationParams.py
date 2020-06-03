@@ -1,3 +1,9 @@
 RUN_SPAN = 60
 TOTAL_POPULATION = 50000 #I would say problems start at > 50000 due to code to find victims. can change, but should?
 GRAPH_SEED = 314
+MAP_TYPE_TEST = 'TEST'
+MAP_TYPE_NYC = 'NYC'
+MAP_TYPE_GEOMETRIC_SIERPINSKI = 'sierpinski'
+MAP_TYPE_GEOMETRIC_GRID = 'grid'
+MAP_TYPE_GEOMETRIC_CIRCULAR = 'simple_moscow'
+MAP_TYPE_MOSCOW = 'MOSCOW'

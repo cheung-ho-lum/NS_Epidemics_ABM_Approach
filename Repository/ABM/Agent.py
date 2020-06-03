@@ -87,13 +87,13 @@ class SEIRAgent(Agent):
         #If exposed, move to next stage given enough time has passed
         if self._infection_status == AgentParams.STATUS_EXPOSED:
             if self.model.schedule.time > AgentParams.TIME_TO_INFECTION + self._time_first_exposure:
-                if random.randint(0,100) > 50:
+                if random.randint(0, 100) > 50:
                     self._infection_status = AgentParams.STATUS_INFECTED
                     self._time_first_infection = self.model.schedule.time
         #If infected, move to recovered given enough time has passed
         if self._infection_status == AgentParams.STATUS_INFECTED:
             if self.model.schedule.time > AgentParams.TIME_TO_RECOVER + self._time_first_infection:
-                if random.randint(0,100) > 50:
+                if random.randint(0, 100) > 50:
                     self._infection_status = AgentParams.STATUS_RECOVERED
         return None
 

@@ -1,11 +1,10 @@
 import datetime
-
 import networkx as nx
-from Parameters import SubwayParams
+from Parameters import SubwayParams, SimulationParams
 from pathlib import Path
-# TODO: we need to refactor out the graph/map level things into a different file.
-import itertools as it
 import math
+from transliterate import translit
+import codecs
 
 def generate_geometric_map(type="sierpinski"):
     file_to_open = Path('Data/ss_' + type + '.csv')
@@ -46,7 +45,79 @@ def generate_geometric_map(type="sierpinski"):
     nx.set_node_attributes(subway_map, SubwayParams.NODE_TYPE_STATION, 'type')
     nx.set_node_attributes(subway_map, 0, 'viral_load')
     nx.set_node_attributes(subway_map, 0, 'flow')
-    return subway_map,routes_and_stations
+    return subway_map, routes_and_stations, 0
+
+def generate_moskva_subway_map():
+    """This is even more straightforward, but we have to pull data from elsewhere and add interchange links ourselves"""
+    """i.e. novokuznetskaya - tretyakovskaya"""
+    """Line,LineColor,Name,PseudoID,Latitude,Longitude,Order"""
+    """Калининская,FFCD1C,Новокосино,55.745113,37.864052,0"""
+    """Note: I coded pseudoID for each station"""
+    """Note: GPS Coords vary slightly for a station based on what line it is on. whatever?"""
+    """Also: Moscow subway lines have numbers as identifiers, but this guy used their names. whatever (for now)"""
+    """Note: We also depend on the list being ordered by line and then route ordering"""
+    # TODO: circular lines are not closed (they are incorrect)
+    # TODO: these stations are not part of gcc  #{86, 23, 186, 28, 189, 190, 31} <-- due to missing ped. links
+    subway_map = nx.Graph()
+    file_to_open = Path('Data/list_of_moscow_metro_stations.csv')
+    routes_and_stations = {}
+    with codecs.open(file_to_open, 'r', encoding='utf8') as f:
+        next(f)  # skip header row
+        current_line = ""
+        last_station_order = -1  # will be used for some error checking
+        last_station_id = -1
+        for row in f:
+            station_data = row.split(',')
+            line_name = translit(station_data[0], 'ru', reversed=True)
+            line_color = station_data[1]
+            station_name = translit(station_data[2], 'ru', reversed=True)
+            station_id = int(station_data[3])
+            station_lat_y = float(station_data[4])
+            station_long_x = float(station_data[5])
+            station_order = int(station_data[6])
+
+
+            if(subway_map.has_node(station_id)):
+                subway_map.nodes[station_id]['routes'].append(line_name)
+            else:
+                # Add Station if it does not exist.
+                subway_map.add_node(station_id)
+                subway_map.nodes[station_id]['x'] = station_long_x
+                subway_map.nodes[station_id]['y'] = station_lat_y
+                subway_map.nodes[station_id]['pos'] = (station_long_x, station_lat_y)
+                subway_map.nodes[station_id]['div'] = ""
+                subway_map.nodes[station_id]['name'] = station_name
+                subway_map.nodes[station_id]['routes'] = [line_name]
+
+            # Adding connections on the same line
+            if station_order == 0:
+                current_line = line_name
+                routes_and_stations[line_name] = [station_id]
+            else:
+                routes_and_stations[line_name].append(station_id)
+                #if current_line != line_name or station_order <= last_station_order:
+                    # Some sanity check (may not be necessary, but someone might rearrange the list)
+                #    print('WARNING! REVIEW:', station_id, line_name, station_order)
+                #else:
+                subway_map.add_edge(station_id, last_station_id)
+
+            last_station_id = station_id
+            last_station_order = station_order
+
+            # Adding any pedestrian transfers
+            #TODO: There are pedestrian transfers. esp at big central stations
+            #TODO: i.e. novokuznetskaya + tretyakovskaya
+
+    # Adding circular links TODO: kludgy, no?
+    subway_map.add_edge(19, 109)  # koltsevaya
+    subway_map.add_edge(113, 87)  # МЦК
+
+    nx.set_node_attributes(subway_map, SubwayParams.NODE_TYPE_STATION, 'type')
+    nx.set_node_attributes(subway_map, 0, 'viral_load')
+    nx.set_node_attributes(subway_map, 0, 'flow')
+
+    return subway_map, routes_and_stations, 0
+
 
 def generate_NYC_subway_map():
     """This is pretty straightforward as NYC keeps station data in a csv. In principle, we should probably
@@ -81,6 +152,7 @@ def generate_NYC_subway_map():
             station_lat_y = float(station_data[9])  # Latitude
             station_long_x = float(station_data[10])  # Longtitude
 
+            #TODO: turns out complexID + divid is not a unique identifier! see 467, 468
             complex_to_station_dict[(complex_id, division_id)] = station_id
 
             # We're not counting Staten Island. I already duplicated Stations.csv in expectation of removing this trolly data
@@ -241,19 +313,28 @@ def generate_NYC_subway_map():
     nx.set_node_attributes(subway_map, 0, 'viral_load')
     nx.set_node_attributes(subway_map, 0, 'flow')
 
-    #Adding flowrate
+    # TODO: Of course these should be model params, but we haven't the least  idea how to use them yet.
+    date_start = datetime.datetime(2020, 3, 1, 0, 0)  # inclusive
+    date_end = datetime.datetime(2020, 3, 21, 0, 0)  # inclusive
+
+    #I suppose the nice thing about python is I don't have too much to update if I need to return something new.
+    total_flow = update_flow_data(subway_map, 'Turnstile_Data.csv', complex_to_station_dict, date_start, date_end)
+
+    return subway_map, routes_and_stations, total_flow
+
+#for NYC, total passenger flow was about 124975642
+def update_flow_data(subway_map, flow_files, complex_to_station_dict, date_start, date_end):
     """this will look substantially different from our geographically/train based map.
     we will look at the turnstile data from Mar 1 - Mar 21 when the pandemic was starting
     so... maybe this function should eventually take unix time etc., but we'll hardcode it for now"""
-    #Protip: you can get station id from complex id + division and referencing stations.csv
+    # Protip: you can get station id from complex id + division and referencing stations.csv
     """stop_name,daytime_routes,division,line,borough,structure,gtfs_longitude,gtfs_latitude,complex_id,date,entries,exits"""
     """Astoria - Ditmars Blvd,N W,BMT,Astoria,Q,Elevated,-73.912034,40.775036,1,2020-01-01,7024,7060"""
-    #So we filter down by date, sum up the entrance and exits, and call it 'passenger flow' node attribute.
-    #Remember that complex id and div id are strings!
-    file_to_open = Path('Data/Turnstile_Data.csv')
-    #TODO: Of course these should be model params, but we haven't the least  idea how to use them yet.
-    date_start = datetime.datetime(2020, 3, 1, 0, 0) #inclusive
-    date_end = datetime.datetime(2020, 3, 21, 0, 0)  #inclusive
+    # So we filter down by date, sum up the entrance and exits, and call it 'passenger flow' node attribute.
+    # Remember that complex id and div id are strings!
+    file_to_open = Path('Data/' + flow_files)
+    total_flow = 0
+
     with open(file_to_open, 'r') as f:
         next(f)  # skip header row
         for row in f:
@@ -267,7 +348,7 @@ def generate_NYC_subway_map():
             _ = flow_data[6]  # gtfs longtitude
             _ = flow_data[7]  # gtfs latitude
             flow_complex_id = flow_data[8]  # complex id
-            flow_date = datetime.datetime.strptime(flow_data[9], '%Y-%m-%d')  #date
+            flow_date = datetime.datetime.strptime(flow_data[9], '%Y-%m-%d')  # date
             flow_in = int(flow_data[10])  # entries
             flow_out = int(flow_data[11])  # exits
             if date_end >= flow_date >= date_start:
@@ -275,36 +356,57 @@ def generate_NYC_subway_map():
                     station_id = complex_to_station_dict[(flow_complex_id, flow_division)]
                     if station_id in subway_map.nodes():  # we may have removed some stations (cough, staten island)
                         subway_map.nodes[station_id]['flow'] += flow_in + flow_out
+                        total_flow += flow_in + flow_out
 
-    return subway_map, routes_and_stations
+    #TODO: HACK ALERT! DUE TO ISSUES WITH COMPLEX/STATION DATA. REFERENCE COMPLEX_TO_STATION_DICT TODO:
+    for station_id in subway_map.nodes():
+        if subway_map.nodes[station_id]['flow'] == 0:
+            subway_map.nodes[station_id]['flow'] = 600000
+            total_flow += 600000
+    return total_flow
 
 def generate_simple_triangle_map():
     """A fake subway. We'll need a naming convention for stations in the real one"""
+    routes_and_stations = {}
     subway_map = nx.Graph()
-    subway_map.add_nodes_from([1,2,3])
+    subway_map.add_nodes_from([1, 2, 3])
 
     subway_map.add_edge(1, 2)
     subway_map.add_edge(2, 3)
     subway_map.add_edge(3, 1)
 
-    nx.set_node_attributes(subway_map, SubwayParams.NODE_TYPE_STATION, 'type')
+    subway_map.nodes[1]['routes'] = [1, 3]
+    subway_map.nodes[2]['routes'] = [1, 2]
+    subway_map.nodes[3]['routes'] = [2, 3]
 
-    return subway_map
+    routes_and_stations[1] = [1, 2]
+    routes_and_stations[2] = [2, 3]
+    routes_and_stations[3] = [3, 1]
+
+    nx.set_node_attributes(subway_map, SubwayParams.NODE_TYPE_STATION, 'type')
+    nx.set_node_attributes(subway_map, 0, 'viral_load')
+    nx.set_node_attributes(subway_map, 0, 'flow')
+
+    return subway_map, routes_and_stations, 0
 
 
 def get_subway_map(map_type):
     """main wrapper to return different maps. the below should really be an enum."""
+    # TODO: This is the crappiest way of updating abstraction I ever did see.
+    # TODO: It's high time *everyone* returned an OurGraph
     subway_map = nx.Graph()
-    if map_type == 'TEST':
+    if map_type == SimulationParams.MAP_TYPE_TEST:
         return generate_simple_triangle_map()
-    if map_type == 'NYC':
+    if map_type == SimulationParams.MAP_TYPE_NYC:
         return generate_NYC_subway_map()
-    if map_type == 'sierpinski':
+    if map_type == SimulationParams.MAP_TYPE_GEOMETRIC_SIERPINSKI:
         return generate_geometric_map('sierpinski')
-    if map_type == 'moscow':
+    if map_type == SimulationParams.MAP_TYPE_GEOMETRIC_CIRCULAR:
         return generate_geometric_map('moscow')
-    if map_type == 'grid':
+    if map_type == SimulationParams.MAP_TYPE_GEOMETRIC_GRID:
         return generate_geometric_map('grid')
+    if map_type == SimulationParams.MAP_TYPE_MOSCOW:
+        return generate_moskva_subway_map()
     return subway_map
 
 

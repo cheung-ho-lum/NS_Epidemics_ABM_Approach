@@ -10,7 +10,7 @@ from Parameters import AgentParams, SimulationParams
 
 
 class OurGraph(Graph):
-    def __init__(self, orig=None, route_dict=None):
+    def __init__(self, orig=None, route_dict=None, passenger_flow=0):
         if orig is None:
             super().__init__(Graph)
             self._graph = None
@@ -20,6 +20,10 @@ class OurGraph(Graph):
             self._routing_dict = route_dict
         else:
             print('Warning, missing route dict currently not supported!')
+
+        if passenger_flow == 0:
+            print('Warning, missing passenger flow data. Also not really supported!')
+        self._passenger_flow = passenger_flow
 
     def update_hotspots(self, agents):
         nx.set_node_attributes(self._graph, 0, 'hotspot')
@@ -62,3 +66,11 @@ class OurGraph(Graph):
     @routing_dict.setter
     def routing_dict(self, value):
         self._routing_dict = value
+
+    @property
+    def passenger_flow(self):
+        return self._passenger_flow
+
+    @graph.setter
+    def graph(self, value):
+        self._passenger_flow = value
