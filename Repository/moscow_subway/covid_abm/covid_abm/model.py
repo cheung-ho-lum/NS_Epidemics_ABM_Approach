@@ -1,13 +1,16 @@
 import math
+import os
 from enum import Enum
+from random import randrange
+
 import networkx as nx
 import pandas as pd
-import os
-
 from mesa import Agent, Model
-from mesa.time import RandomActivation
 from mesa.datacollection import DataCollector
 from mesa.space import NetworkGrid
+from mesa.time import RandomActivation
+
+from .agent import Passenger
 
 
 folder_path = os.path.dirname(os.getcwd())
@@ -18,6 +21,12 @@ class State(Enum):
     INFECTED = 1
     ERADICATED = 2
 
+
+def number_infected_passengers(model, state='INFECTED'):
+    return sum([1 for a in model.grid.get_all_cell_contents() if type(a) == Passenger and  a.state is state])
+
+def number_of_passengers(model):
+    return sum([1 for a in model.grid.get_all_cell_contents() if type(a) == Passenger])
 
 def number_state(model, state):
     return sum([1 for a in model.grid.get_all_cell_contents() if a.state is state])
@@ -36,9 +45,11 @@ def number_eradicated(model):
 
 
 class CustomNetworkGrid(NetworkGrid):
-
     def get_egde_data(self, node_a, node_b):
         return self.G.get_edge_data(node_a, node_b, default=0)
+
+
+number_daily_passengers = 100
 
 
 class VirusOnNetwork(Model):
@@ -46,12 +57,13 @@ class VirusOnNetwork(Model):
 
     def __init__(
         self,
-        num_hubs=10,
+        num_hubs=194,
         initial_outbreak_size=1,
-        virus_spread_chance=0.4, # to be computed by agent interactions (people)
+        virus_spread_chance=0.4,  # to be computed by agent interactions (people)
         preventive_measures=0.4,
-        minimiation_likelyhood=0.3, # must depend on preventive measures
-        eradication_likelyhood=0.5, # must depend on preventive measures and eradication likelyhood
+        minimiation_likelyhood=0.3,  # must depend on preventive measures
+        eradication_likelyhood=0.5,  # must depend on preventive measures and eradication likelyhood
+        number_daily_passengers=100,
     ):
         self._set_graph()
         self.grid = CustomNetworkGrid(self.G)
@@ -63,6 +75,7 @@ class VirusOnNetwork(Model):
         self.preventive_measures = preventive_measures
         self.minimiation_likelyhood = minimiation_likelyhood
         self.eradication_likelyhood = eradication_likelyhood
+        self.number_daily_passengers = number_daily_passengers
 
         self.datacollector = DataCollector(
             {
@@ -91,6 +104,15 @@ class VirusOnNetwork(Model):
         infected_nodes = self.random.sample(self.G.nodes(), self.initial_outbreak_size)
         for a in self.grid.get_cell_list_contents(infected_nodes):
             a.state = State.INFECTED
+            for i in range(self.initial_outbreak_size):
+                passenger = Passenger(unique_id=i, model=self, initial_state='INFECTED', moore=False)
+                self.grid.place_agent(passenger, a.unique_id)
+
+        for i in range(self.number_daily_passengers-self.initial_outbreak_size):
+            initial_state = 'SUSCEPTIBLE'
+            passenger = Passenger(unique_id=i, model=self, initial_state=initial_state, moore=False)
+            self.grid.place_agent(passenger, node)
+            self.schedule.add(passenger)
 
         self.running = True
         self.datacollector.collect(self)
@@ -103,6 +125,8 @@ class VirusOnNetwork(Model):
         except ZeroDivisionError:
             return math.inf
 
+    # def number_infected_passengers(self):
+
     def step(self):
         self.schedule.step()
         # collect data
@@ -112,12 +136,13 @@ class VirusOnNetwork(Model):
         for i in range(n):
             self.step()
 
-
     def _set_graph(self, path_file=None):
         if not path_file:
-            path_file = folder_path + '/covid_abm/data/routes_data.tsv'
-        routes_df = pd.read_csv(path_file, sep='\t')
-        self.G = nx.nx.from_pandas_edgelist(routes_df, 'id_from', 'id_to', ['delay', 'station_from', 'station_from'])
+            path_file = folder_path + "/covid_abm/data/routes_data.tsv"
+        routes_df = pd.read_csv(path_file, sep="\t")
+        self.G = nx.nx.from_pandas_edgelist(
+            routes_df, "id_from", "id_to", ["delay", "station_from", "station_from"]
+        )
 
 
 class Hub(Agent):
