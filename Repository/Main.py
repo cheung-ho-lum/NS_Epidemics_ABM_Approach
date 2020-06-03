@@ -1,5 +1,5 @@
 import Preprocessing
-from ABM import Model
+from ABM import SubwayModel
 from Parameters import SimulationParams, DisplayParams
 import networkx as nx
 import matplotlib.pyplot as plt
@@ -33,7 +33,11 @@ import imageio
 # total passenger flow now calculated
 # riders spawned by ratio of their station to the total
 # Some code cleanup (give map types an enum, create DisplayParams)
-# Stage 3.7: (<-- YOU ARE HERE)
+# Stage 3.6.5: (<-- YOU ARE HERE)
+# Evaluate and pull out what is common to agents on all types of transportation
+# Create Generic Transportation Model
+# Refactor SubwayModel to inherit from TransportationModel
+# Stage 3.7:
 # More code cleanup: It's time preprocessing just created an OurGraph
 # Clean up passenger flow calculations
 # Stage 3.9:
@@ -108,7 +112,7 @@ if num_connected_components > 1:
     cc_list = sorted(nx.connected_components(g_full_map), key=len, reverse=True)  # largest first, for further debugging
     g_full_map = g_full_map.subgraph((cc_list[0]))
 
-model = Model.SEIR_Subway_Model(SimulationParams.TOTAL_POPULATION, g_full_map, routing_dict, passenger_flow)
+model = SubwayModel.SEIR_Subway_Model(SimulationParams.TOTAL_POPULATION, g_full_map, routing_dict, passenger_flow)
 
 
 SEIR_Statistics = np.zeros(shape=(SimulationParams.RUN_SPAN + 1, 5)) #reminder: np is zero indexed

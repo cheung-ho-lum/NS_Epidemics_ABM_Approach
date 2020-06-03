@@ -5,7 +5,7 @@ from networkx import Graph
 #Basically networkx graph wrapper with some helpers
 import matplotlib.pyplot as plt
 from itertools import count
-from ABM import Agent
+from ABM import SubwayAgent
 from Parameters import AgentParams, SimulationParams
 
 

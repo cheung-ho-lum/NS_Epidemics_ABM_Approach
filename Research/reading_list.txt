@@ -33,3 +33,6 @@ https://experience.arcgis.com/experience/6f649c27b114410a8973ad671df707eb
 
 nyc pop data
 https://github.com/nychealth/coronavirus-data
+
+subway travel distance and infection rate in london
+https://ehjournal.biomedcentral.com/articles/10.1186/s12940-018-0427-5

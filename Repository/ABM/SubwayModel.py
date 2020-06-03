@@ -1,7 +1,7 @@
 from mesa import Model
-from ABM import Agent
+from ABM import SubwayAgent
 from mesa.time import RandomActivation
-from ABM import OurGraph
+from ABM import SubwayGraph
 import random
 from Parameters import AgentParams
 import networkx as nx
@@ -12,7 +12,7 @@ class SEIR_Subway_Model(Model):
     """This guy's constructor should probably have a few more params."""
     def __init__(self, n, subway_map, routing_dict, passenger_flow=0):
         self.num_agents = n
-        self._our_graph = OurGraph.OurGraph(subway_map, routing_dict, passenger_flow)
+        self._our_graph = SubwayGraph.OurGraph(subway_map, routing_dict, passenger_flow)
         self._agent_loc_dictionary = {}  # a dictionary of locations with lists of agents at each location
         self.schedule = RandomActivation(self)
         # Create agents
@@ -27,7 +27,7 @@ class SEIR_Subway_Model(Model):
                 loc_flow_percentage = loc_passenger_flow / self.our_graph.passenger_flow
                 num_agents_to_place = round(loc_flow_percentage * self.num_agents)
                 while loc_agents_placed < num_agents_to_place and agents_placed < self.num_agents:
-                    a = Agent.SEIRAgent(agents_placed, self, location=loc)
+                    a = SubwayAgent.SEIRAgent(agents_placed, self, location=loc)
                     if a.location in self._agent_loc_dictionary:
                         self._agent_loc_dictionary[a.location].append(a)
                     else:
@@ -39,7 +39,7 @@ class SEIR_Subway_Model(Model):
         else:
             for i in range(self.num_agents):
                 start_location = random.choice(list(self._our_graph.graph.nodes()))
-                a = Agent.SEIRAgent(i, self, location=start_location)
+                a = SubwayAgent.SEIRAgent(i, self, location=start_location)
                 if a.location in self._agent_loc_dictionary:
                     self._agent_loc_dictionary[a.location].append(a)
                 else:
