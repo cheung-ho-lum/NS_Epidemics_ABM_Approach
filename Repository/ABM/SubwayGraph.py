@@ -25,9 +25,8 @@ class SubwayGraph(Graph):
 
     def update_hotspots(self, agents):
         nx.set_node_attributes(self._graph, 0, 'hotspot')
-        for agent in agents:
-            if agent.infection_status == AgentParams.STATUS_INFECTED:
-                self._graph.nodes[agent.location]['hotspot'] += 1
+        for agent in agents: #TODO: flooring this so it actually drops to 0.
+            self._graph.nodes[agent.location]['hotspot'] = math.floor(agent.population[AgentParams.STATUS_INFECTED])
 
     #Maybe this actually belongs in a graphics class
     #TODO: timestamp the graph, add node label options, do colors right.
@@ -41,11 +40,12 @@ class SubwayGraph(Graph):
                 size_of_n = math.sqrt(self._graph.nodes[n]['flow'] / 500)
                 node_sizes.append(max(25, size_of_n))  # or the default value of 25
             colors = [mapping[self._graph.nodes[n][node_attr]] for n in nodes]
+            #print("max ",node_attr,":", max(colors))  # print this to find appropriate vmin and vmax
             pos = nx.get_node_attributes(self._graph, 'pos')
             if len(pos) == 0:
                 pos = nx.spring_layout(self._graph, seed=SimulationParams.GRAPH_SEED)
             nx.draw_networkx(self._graph, node_size=node_sizes, with_labels=False, width=0.5, node_color=colors, pos=pos,
-                             cmap=plt.cm.jet)
+                             cmap=plt.cm.jet, vmin=100, vmax=400) #TODO: some vmin max hack to get the drawing right
             if len(timestamp) > 0:
                 plt.title(node_attr + ' t=' + timestamp)
 

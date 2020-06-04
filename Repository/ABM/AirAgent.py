@@ -9,7 +9,8 @@ PRINT_DEBUG = False
 
 class AirAgent(SEIR_Agent.SEIR_Agent):
     """This guy's constructor should probably have a few more params"""
-    def __init__(self, unique_id, model, location=-1, home_addr=-1, work_addr=-1):
+    def __init__(self, unique_id, model, location=-1, population=0,
+                 epi_characteristics={'alpha': AgentParams.DEFAULT_ALPHA}):
         super().__init__(unique_id, model, location)
         self._infection_status = AgentParams.STATUS_SUSCEPTIBLE
         if unique_id in DEBUG_SEIR_INFECTED_INITIALIZATION:

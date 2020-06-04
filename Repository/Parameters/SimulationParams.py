@@ -1,5 +1,5 @@
 RUN_SPAN = 60
-TOTAL_POPULATION = 50000 #I would say problems start at > 50000 due to code to find victims. can change, but should?
+TOTAL_POPULATION = 50000 #TODO: this is probably a goner
 GRAPH_SEED = 314
 MAP_TYPE_TEST = 'TEST'
 MAP_TYPE_NYC = 'NYC'

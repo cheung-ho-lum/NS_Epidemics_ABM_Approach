@@ -53,7 +53,7 @@ import imageio
 # Currently, viral load is not diminished by distance.
 # Currently, viral load is not diminished by number of routes
 
-analysis_type = 'air_routes'
+analysis_type = 'subway'
 if analysis_type == 'subway':
     g_subway_map, routing_dict, passenger_flow = Preprocessing.get_subway_map('NYC')
 
@@ -73,7 +73,7 @@ if analysis_type == 'subway':
         cc_list = sorted(nx.connected_components(g_full_map), key=len, reverse=True)  # largest first, for further debugging
         g_full_map = g_full_map.subgraph((cc_list[0]))
 
-    model = SubwayModel.Subway_Model(SimulationParams.TOTAL_POPULATION, g_full_map, routing_dict, passenger_flow)
+    model = SubwayModel.Subway_Model(g_full_map, routing_dict)
 
 if analysis_type == 'air_routes':
     g_airway_map = Preprocessing.get_airway_map('world')
@@ -99,7 +99,7 @@ for i in range(1, SimulationParams.RUN_SPAN + 1):
     SEIR_Statistics[i, 0] = model.schedule.time
     SEIR_Statistics[i, 1:5] = model.calculate_SEIR(True)
 
-    #TODO: for now, just create separate graphics modelling for map type
+    #TODO: so it turns out draw_graph should actually be at the model level. just copypasta for now.
     if analysis_type == 'subway':
         f = plt.figure()
         model.subway_graph.draw_graph(DisplayParams.GRAPH_BY_FEATURE, timestamp=str(i)) #by number of agents (unnormalized)
@@ -117,7 +117,8 @@ for i in range(1, SimulationParams.RUN_SPAN + 1):
             plt.show()
         plt.close(f)
 
-Graphics.draw_SEIR_curve(SEIR_Statistics)  # TODO: Figure out what class this belongs in
+Graphics.draw_SEIR_curve(SEIR_Statistics)  # TODO: Figure out what class this belongs in. also save it automatically.
+
 images = []
 for i in range(1, SimulationParams.RUN_SPAN + 1):
     images.append(imageio.imread("Visualizations/time" + f'{i:03}.png'))

@@ -4,52 +4,66 @@ from mesa import Agent
 
 class SEIR_Agent(Agent):
     """Base Agent type"""
-    def __init__(self, unique_id, model, location=-1):
+    def __init__(self, unique_id, model, location=-1, population=0,
+                 epi_characteristics=None):
         super().__init__(unique_id, model)
-        self._infection_status = AgentParams.STATUS_SUSCEPTIBLE
         self._location = location
-        self._time_first_exposure = -1
-        self._time_first_infection = -1
+        if population == 0:
+            print('creating agent with 0 population?')
+        self._population = {
+            AgentParams.STATUS_SUSCEPTIBLE: population,
+            AgentParams.STATUS_EXPOSED: 0,
+            AgentParams.STATUS_INFECTED: 0,
+            AgentParams.STATUS_RECOVERED: 0,
+        }
+
+
+        if epi_characteristics == None:
+            self._epi_characteristics = {'alpha': AgentParams.DEFAULT_ALPHA,
+                                         'gamma': AgentParams.DEFAULT_GAMMA,
+                                         'beta': AgentParams.DEFAULT_BETA}
+        else:
+            self._epi_characteristics = epi_characteristics
 
     def move(self):
         # For now, agents do not move!
         return None
 
-    def infect(self):
-        # Default infection behavior
-        if self._infection_status == AgentParams.STATUS_INFECTED:
-            return None
-
     def update_agent_health(self):
-        # Default agent behavior
-        #If exposed, move to next stage given enough time has passed
-        if self._infection_status == AgentParams.STATUS_EXPOSED:
-            if self.model.schedule.time > AgentParams.TIME_TO_INFECTION + self._time_first_exposure:
-                if random.randint(0, 100) > 50:
-                    self._infection_status = AgentParams.STATUS_INFECTED
-                    self._time_first_infection = self.model.schedule.time
+        # Sick are infected based on viral load
+        # Everyone else ignores viral load and follows alpha/gamma.
+        # If exposed, move to next stage given enough time has passed
+        #TODO: maybe we should be using fractions all along? Reference ODE materials
 
-        #If infected, move to recovered given enough time has passed
-        if self._infection_status == AgentParams.STATUS_INFECTED:
-            if self.model.schedule.time > AgentParams.TIME_TO_RECOVER + self._time_first_infection:
-                if random.randint(0, 100) > 50:
-                    self._infection_status = AgentParams.STATUS_RECOVERED
+        coeff_beta = self._epi_characteristics['beta']
+        coeff_alpha = self._epi_characteristics['alpha']
+        coeff_gamma = self._epi_characteristics['gamma']
+
+        susceptible = self._population[AgentParams.STATUS_SUSCEPTIBLE]
+        exposed = self._population[AgentParams.STATUS_EXPOSED]
+        infected = self._population[AgentParams.STATUS_INFECTED]
+        recovered = self._population[AgentParams.STATUS_RECOVERED]
+        normalization_factor = susceptible + exposed + infected + recovered
+        terminal_velocity = 10
+        if infected > 0:
+            terminal_velocity = normalization_factor / infected #TODO: lol? the idea is someetimes alpha is too high
+        coeff_beta = min(terminal_velocity, coeff_beta)
+
+        self._population[AgentParams.STATUS_SUSCEPTIBLE] -= susceptible * infected * coeff_beta / normalization_factor
+
+        self._population[AgentParams.STATUS_EXPOSED] += susceptible * infected * coeff_beta / normalization_factor - \
+                                                        exposed * coeff_alpha
+        self._population[AgentParams.STATUS_INFECTED] += exposed * coeff_alpha - \
+                                                         infected * coeff_gamma
+        self._population[AgentParams.STATUS_RECOVERED] += infected * coeff_gamma
+
         return None
 
     def step(self):
-        self.move()
-        self.infect()
+        #viral load modeling now moved to model level.
         self.update_agent_health()
 
     @property
-    def infection_status(self):
-        return self._infection_status
-
-    @infection_status.setter
-    def infection_status(self, value):
-        self._infection_status = value
-
-    @property
     def location(self):
         return self._location
 
@@ -58,17 +72,17 @@ class SEIR_Agent(Agent):
         self._location = value
 
     @property
-    def infection_status(self):
-        return self._infection_status
+    def population(self):
+        return self._population
 
-    @infection_status.setter
-    def infection_status(self, value):
-        self._infection_status = value
+    @population.setter
+    def population(self, value):
+        self._population = value
 
     @property
-    def location(self):
-        return self._location
+    def epi_characteristics(self):
+        return self._epi_characteristics
 
-    @location.setter
-    def location(self, value):
-        self._location = value
+    @epi_characteristics.setter
+    def epi_characteristics(self, value):
+        self._epi_characteristics = value

@@ -1,9 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-from Parameters import SimulationParams
-
-
 def draw_SEIR_curve(statistics):
     """It's questionable to keep statistics in a non-descript matrix because we might want more, but for now:
     rows = timestamp, cols(5) = t,S,E,I,R"""
@@ -17,7 +14,7 @@ def draw_SEIR_curve(statistics):
     ax.plot(statistics[..., 0], statistics[..., 4], 'green', alpha=0.5, lw=2, label='Recovered')
     ax.set_xlabel('Time')
     ax.set_ylabel('Patients')
-    ax.set_ylim(0, SimulationParams.TOTAL_POPULATION)
+    ax.set_ylim(0, sum(statistics[0, 1:]))
     ax.yaxis.set_tick_params(length=0)
     ax.xaxis.set_tick_params(length=0)
     ax.grid(b=True, which='major', c='w', lw=2, ls='-')
