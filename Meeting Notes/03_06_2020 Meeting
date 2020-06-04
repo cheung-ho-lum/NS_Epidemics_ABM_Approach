@@ -1,0 +1,48 @@
+Agenda (Team 3):
+
+1) Re-Introduce ourselves and 10,000 ft overview briefly
+2) Everyone talks about what they did this week and why (including prototypes)
+a) Larry
+presented demo of moscow metro where nodes are infected stations.
+continue with subway station focus?
+
+b) Dimas
+mm... look at data scraping package? 
+but what are you data scraping?
+- apparently simulate/predicts the flow of metro
+
+c) Leroy
+see the 3rd part of notes
+
+- please make realistic models
+- makarov wants some pipeline about the quality of prediction
+-- probably has to do with SEIR.
+- and whether it predicts death rates. MAPE
+
+quality measure: MAPE
+a model you can compare against: R packages epimodel
+
+- study literature
+- report 
+- some reference materials for ABM
+-- also about general subway research
+
+Tabled questions:
+
+Next Steps from meeting:
+(see above)
+
+are we focused on transportation networks? (yes)
+wait, is team 4 relying on something from us? (they'll tell us).
+
+
+
+final metric:
+how well can we map SEIR over time? use mape.
+
+
+Other Notes (team 4):
+- Reminder that we need to share research (but we have been...)
+- Reminder to not be siloed in python and look at things in R
+- 
+
