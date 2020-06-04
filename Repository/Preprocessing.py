@@ -1,10 +1,13 @@
 import datetime
 import networkx as nx
+
+from ABM.AirGraph import AirGraph
 from Parameters import SubwayParams, SimulationParams
 from pathlib import Path
 import math
 from transliterate import translit
 import codecs
+import csv
 
 def generate_geometric_map(type="sierpinski"):
     file_to_open = Path('Data/ss_' + type + '.csv')
@@ -409,6 +412,79 @@ def get_subway_map(map_type):
         return generate_moskva_subway_map()
     return subway_map
 
+def generate_fake_world_map():
+    air_graph = nx.Graph()
+    air_graph.add_nodes_from([1, 2, 3])
+
+    air_graph.add_edge(1, 2)
+    air_graph.add_edge(2, 3)
+    air_graph.add_edge(3, 1)
+
+    air_graph.nodes[1]['flow'] = 100
+    air_graph.nodes[2]['flow'] = 100
+    air_graph.nodes[3]['flow'] = 100
+
+    nx.set_node_attributes(air_graph, SubwayParams.NODE_TYPE_STATION, 'type') #LOL?
+    nx.set_node_attributes(air_graph, 0, 'viral_load')
+
+    return AirGraph(air_graph, 300)
+
+
+def generate_wan_map():
+    """1,"Goroka Airport","Goroka","Papua New Guinea","GKA","AYGA",-6.081689834590001,145.391998291,5282,10,"U","Pacific/Port_Moresby","airport","OurAirports"""
+    airway_map = nx.Graph()
+    # Build Nodes
+    file_to_open = Path('Data/airports.dat')
+    with codecs.open(file_to_open, 'r', encoding='utf8') as f:
+        csv_reader = csv.reader(f, delimiter=',', quotechar='"') #TODO, really this should be done everywhere
+        for wan_data in csv_reader:
+            airport_id = int(wan_data[0])  # airport uid (for open flights)
+            airport_name = wan_data[1]  # airport name
+            _ = wan_data[2]  # airport region??
+            _ = wan_data[3]  # airport country
+            _ = wan_data[4]  # airport IATA code
+            _ = wan_data[5]  # other airport code
+            airport_lat_y = float(wan_data[6])  # airport latitude
+            airport_long_x = float(wan_data[7])  # airport longtitude
+            #bunch of other fields i don't care about
+
+            airway_map.add_node(airport_id)
+            airway_map.nodes[airport_id]['x'] = airport_long_x
+            airway_map.nodes[airport_id]['y'] = airport_lat_y
+            airway_map.nodes[airport_id]['pos'] = (airport_long_x, airport_lat_y)
+            airway_map.nodes[airport_id]['name'] = airport_name
+
+
+    # Build Edges (without weights)
+    file_to_open = Path('Data/routes.dat')
+    with codecs.open(file_to_open, 'r', encoding='utf8') as f:
+        """2B,410,AER,2965,KZN,2990,,0,CR2"""
+        for row in f:
+            route_data = row.split(',')
+            _ = route_data[0]
+            _ = route_data[1]
+            _ = route_data[2]  # source name
+            src_id = route_data[3]  # source uid
+            _ = route_data[4]  # destination name
+            dest_id = route_data[5]  # destination uid
+            if dest_id != r'\N' and src_id != r'\N' and \
+                airway_map.has_node(int(src_id)) and airway_map.has_node(int(dest_id)): # TODO: wow...
+                airway_map.add_edge(int(src_id), int(dest_id))
+            #bunch of other fields i don't care about
+
+    nx.set_node_attributes(airway_map, 0, 'flow')
+    nx.set_node_attributes(airway_map, SubwayParams.NODE_TYPE_STATION, 'type')  # LOL?
+    nx.set_node_attributes(airway_map, 0, 'viral_load')
+
+    return AirGraph(airway_map, 0)
+
+def get_airway_map(map_type):
+    airway_map = nx.Graph()
+    if map_type == SimulationParams.MAP_TYPE_WORLD:
+        return generate_wan_map()
+    if map_type == SimulationParams.MAP_TYPE_FAKE_WORLD:
+        return generate_fake_world_map()
+    return AirGraph(airway_map, 0)
 
 def make_exit_nodes(subway_map):
     """Given a subway map, add a street-level exit node.

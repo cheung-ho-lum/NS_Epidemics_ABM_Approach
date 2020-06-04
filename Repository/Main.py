@@ -1,11 +1,11 @@
+import Graphics
 import Preprocessing
-from ABM import SubwayModel
+from ABM import SubwayModel, AirModel
 from Parameters import SimulationParams, DisplayParams
 import networkx as nx
 import matplotlib.pyplot as plt
 import math
 import numpy as np
-from mpl_toolkits.basemap import Basemap as Basemap
 import imageio
 
 # Stage 1:
@@ -33,10 +33,12 @@ import imageio
 # total passenger flow now calculated
 # riders spawned by ratio of their station to the total
 # Some code cleanup (give map types an enum, create DisplayParams)
-# Stage 3.6.5: (<-- YOU ARE HERE)
+# Stage 3.6.5:
 # Evaluate and pull out what is common to agents on all types of transportation
 # Create Generic Transportation Model
 # Refactor SubwayModel to inherit from TransportationModel
+# Stage 3.6.6:
+# Redo agents to best mimic a population at a station.
 # Stage 3.7:
 # More code cleanup: It's time preprocessing just created an OurGraph
 # Clean up passenger flow calculations
@@ -51,72 +53,42 @@ import imageio
 # Currently, viral load is not diminished by distance.
 # Currently, viral load is not diminished by number of routes
 
-#TODO: it would be good if we outline NYC in the background
-#TODO: but it seems a little trickier than I previously thought.
-#TODO: this belongs in a graphics class.
+analysis_type = 'air_routes'
+if analysis_type == 'subway':
+    g_subway_map, routing_dict, passenger_flow = Preprocessing.get_subway_map('NYC')
 
+    ADD_SHADOW = False
+    if ADD_SHADOW:
+        g_full_map = Preprocessing.make_exit_nodes(g_subway_map)
+    else:
+        g_full_map = g_subway_map
 
-# def nyc_map_test():
-#     print('nyc map test')
-#     west, south, east, north = -74.26, 40.50, -73.70, 40.92
-#     m = Basemap(resolution='f', # c, l, i, h, f or None
-#                 projection='merc',
-#                 area_thresh=50,
-#                 lat_0=(west + south)/2, lon_0=(east + north)/2,
-#                 llcrnrlon= west, llcrnrlat= south, urcrnrlon= east, urcrnrlat= north)
-#
-#     m.drawmapboundary(fill_color='#46bcec')
-#     m.fillcontinents(color='#f2f2f2',lake_color='#46bcec')
-#     m.drawcoastlines()
-#     m.drawrivers()
+    print('Num stations:', len(g_subway_map.nodes()))
+    print('Total order:', len(g_full_map.nodes()))
+    num_connected_components = nx.algorithms.components.number_connected_components(g_full_map)
+    print('NCC:', num_connected_components) #if this is >1, we have a problem
 
+    if num_connected_components > 1:
+        print("Warning: graph not connected. Picking GCC")
+        cc_list = sorted(nx.connected_components(g_full_map), key=len, reverse=True)  # largest first, for further debugging
+        g_full_map = g_full_map.subgraph((cc_list[0]))
 
-def draw_SEIR_curve(statistics):
-    """It's questionable to keep statistics in a non-descript matrix because we might want more, but for now:
-    rows = timestamp, cols(5) = t,S,E,I,R"""
-    time_span = np.shape(statistics)[1] #should match run timespan
+    model = SubwayModel.Subway_Model(SimulationParams.TOTAL_POPULATION, g_full_map, routing_dict, passenger_flow)
 
-    fig = plt.figure(facecolor='w')
-    ax = fig.add_subplot(111, facecolor='#dddddd', axisbelow=True)
-    ax.plot(statistics[..., 0], statistics[..., 1], 'blue', alpha=0.5, lw=2, label='Susceptible')
-    ax.plot(statistics[..., 0], statistics[..., 2], 'orange', alpha=0.5, lw=2, label='Exposed')
-    ax.plot(statistics[..., 0], statistics[..., 3], 'red', alpha=0.5, lw=2, label='Infected')
-    ax.plot(statistics[..., 0], statistics[..., 4], 'green', alpha=0.5, lw=2, label='Recovered')
-    ax.set_xlabel('Time')
-    ax.set_ylabel('Patients')
-    ax.set_ylim(0, SimulationParams.TOTAL_POPULATION)
-    ax.yaxis.set_tick_params(length=0)
-    ax.xaxis.set_tick_params(length=0)
-    ax.grid(b=True, which='major', c='w', lw=2, ls='-')
-    legend = ax.legend()
-    legend.get_frame().set_alpha(0.5)
-    for spine in ('top', 'right', 'bottom', 'left'):
-        ax.spines[spine].set_visible(False)
-    plt.show()
+if analysis_type == 'air_routes':
+    g_airway_map = Preprocessing.get_airway_map('world')
+    print('Total order:', len(g_airway_map.graph.nodes()))
+    num_connected_components = nx.algorithms.components.number_connected_components(g_airway_map.graph)
+    print('NCC:', num_connected_components)  # if this is >1, we have a problem
+    if num_connected_components > 1:
+        print("Warning: graph not connected. Picking GCC")
+        cc_list = sorted(nx.connected_components(g_airway_map.graph), key=len, reverse=True)  # largest first, for further debugging
+        g_airway_map.graph = g_airway_map.graph.subgraph((cc_list[0]))
 
-g_subway_map, routing_dict, passenger_flow = Preprocessing.get_subway_map('NYC')
-
-ADD_SHADOW = False
-if ADD_SHADOW:
-    g_full_map = Preprocessing.make_exit_nodes(g_subway_map)
-else:
-    g_full_map = g_subway_map
-
-print('Num stations:', len(g_subway_map.nodes()))
-print('Total order:', len(g_full_map.nodes()))
-num_connected_components = nx.algorithms.components.number_connected_components(g_full_map)
-print('NCC:', num_connected_components ) #if this is >1, we have a problem
-
-if num_connected_components > 1:
-    print("Warning: graph not connected. Picking GCC")
-    cc_list = sorted(nx.connected_components(g_full_map), key=len, reverse=True)  # largest first, for further debugging
-    g_full_map = g_full_map.subgraph((cc_list[0]))
-
-model = SubwayModel.SEIR_Subway_Model(SimulationParams.TOTAL_POPULATION, g_full_map, routing_dict, passenger_flow)
+    model = AirModel.Air_Model(SimulationParams.TOTAL_POPULATION, g_airway_map)
 
 
 SEIR_Statistics = np.zeros(shape=(SimulationParams.RUN_SPAN + 1, 5)) #reminder: np is zero indexed
-subway_map = model.our_graph
 SEIR_Statistics[0, 0] = 0
 SEIR_Statistics[0, 1:5] = model.calculate_SEIR(True)  #reminder: but ranges are exclusive or something.
 
@@ -126,16 +98,26 @@ for i in range(1, SimulationParams.RUN_SPAN + 1):
     print('TIME', model.schedule.time)
     SEIR_Statistics[i, 0] = model.schedule.time
     SEIR_Statistics[i, 1:5] = model.calculate_SEIR(True)
-    subway_map = model.our_graph
 
-    subway_map.update_hotspots(model.schedule.agents)
-    f = plt.figure()
-    subway_map.draw_graph(DisplayParams.GRAPH_BY_FEATURE, timestamp=str(i)) #by number of agents (unnormalized)
-    f.savefig("Visualizations/time" + f'{i:03}')
-    if DisplayParams.ALWAYS_SHOW_GRAPH or (math.log2(i).is_integer() and DisplayParams.SHOW_EVERY_2X):
-        plt.show()
-    plt.close(f)
-draw_SEIR_curve(SEIR_Statistics) #TODO: Figure out what class this belongs in
+    #TODO: for now, just create separate graphics modelling for map type
+    if analysis_type == 'subway':
+        f = plt.figure()
+        model.subway_graph.draw_graph(DisplayParams.GRAPH_BY_FEATURE, timestamp=str(i)) #by number of agents (unnormalized)
+        f.savefig("Visualizations/time" + f'{i:03}')
+        if DisplayParams.ALWAYS_SHOW_GRAPH or (math.log2(i).is_integer() and DisplayParams.SHOW_EVERY_2X):
+            plt.show()
+        plt.close(f)
+
+    #TODO: Rendering this large graph makes things go real slow.
+    if analysis_type == 'air_routes':
+        f = plt.figure()
+        model.airway_graph.draw_graph(DisplayParams.GRAPH_BY_FEATURE, timestamp=str(i)) #by number of agents (unnormalized)
+        f.savefig("Visualizations/time" + f'{i:03}')
+        if DisplayParams.ALWAYS_SHOW_GRAPH or ((math.log2(i).is_integer() and DisplayParams.SHOW_EVERY_2X)):
+            plt.show()
+        plt.close(f)
+
+Graphics.draw_SEIR_curve(SEIR_Statistics)  # TODO: Figure out what class this belongs in
 images = []
 for i in range(1, SimulationParams.RUN_SPAN + 1):
     images.append(imageio.imread("Visualizations/time" + f'{i:03}.png'))

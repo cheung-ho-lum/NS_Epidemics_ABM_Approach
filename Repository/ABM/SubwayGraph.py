@@ -1,15 +1,13 @@
 import math
-
 import networkx as nx
 from networkx import Graph
-#Basically networkx graph wrapper with some helpers
 import matplotlib.pyplot as plt
 from itertools import count
-from ABM import SubwayAgent
 from Parameters import AgentParams, SimulationParams
 
 
-class OurGraph(Graph):
+class SubwayGraph(Graph):
+    """Basically nx graph wrapper with some subway-specific characteristics"""
     def __init__(self, orig=None, route_dict=None, passenger_flow=0):
         if orig is None:
             super().__init__(Graph)
@@ -71,6 +69,6 @@ class OurGraph(Graph):
     def passenger_flow(self):
         return self._passenger_flow
 
-    @graph.setter
-    def graph(self, value):
+    @passenger_flow.setter
+    def passenger_flow(self, value):
         self._passenger_flow = value

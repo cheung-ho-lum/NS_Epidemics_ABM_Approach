@@ -1,4 +1,6 @@
 from mesa import Agent
+
+from ABM import SEIR_Agent
 from Parameters import AgentParams
 from Parameters import SubwayParams
 import random
@@ -6,20 +8,18 @@ import random
 DEBUG_SEIR_INFECTED_INITIALIZATION = [1] #Agents here start out infected.
 PRINT_DEBUG = False
 
-class SEIRAgent(Agent):
+
+class SubwayAgent(SEIR_Agent.SEIR_Agent):
     """This guy's constructor should probably have a few more params"""
     def __init__(self, unique_id, model, location=-1, home_addr=-1, work_addr=-1):
-        super().__init__(unique_id, model)
+        super().__init__(unique_id, model, location)
         self._infection_status = AgentParams.STATUS_SUSCEPTIBLE
-        self._location = location
-        self._time_first_exposure = -1
-        self._time_first_infection = -1
         self._home_addr = home_addr
         self._work_addr = work_addr
         self._subway_commuter = True  # Envisioning some non subway riders in this system eventually.
         if unique_id in DEBUG_SEIR_INFECTED_INITIALIZATION:
             self._infection_status = AgentParams.STATUS_INFECTED
-            if self.model.our_graph.graph.has_node(451):  # 451 - Junction blvd. 55 - Brighton beach
+            if self.model.airway_graph.graph.has_node(451):  # 451 - Junction blvd. 55 - Brighton beach
                 self._location = 451
                 self._home_addr = 451
             else:
@@ -60,17 +60,17 @@ class SEIRAgent(Agent):
         # Stations on the same route get a viral load of +20 (regardless of distance)
         if self._infection_status == AgentParams.STATUS_INFECTED or \
                 self._infection_status == AgentParams.STATUS_INFECTED_ASYMPTOMATIC:
-            current_node = self.model.our_graph.graph.nodes[self._location]
+            current_node = self.model.airway_graph.graph.nodes[self._location]
             if current_node['type'] == SubwayParams.NODE_TYPE_STATION:
                 current_node['viral_load'] += 100
-                for nn in self.model.our_graph.graph.neighbors(self._location):
-                    self.model.our_graph.graph.nodes[nn]['viral_load'] += 20
+                for nn in self.model.airway_graph.graph.neighbors(self._location):
+                    self.model.airway_graph.graph.nodes[nn]['viral_load'] += 20
                 routes_affected = current_node['routes']
                 for route in routes_affected:
-                    stations_affected = self.model.our_graph.routing_dict[route]
+                    stations_affected = self.model.airway_graph.routing_dict[route]
                     for station in stations_affected:
                         if station != self._location:
-                            self.model.our_graph.graph.nodes[station]['viral_load'] += 10
+                            self.model.airway_graph.graph.nodes[station]['viral_load'] += 10
         return None
 
         # TODO: Obviously we should be checking time of first exposure
@@ -79,7 +79,7 @@ class SEIRAgent(Agent):
     def update_agent_health(self):
         #If susceptible, roll based on current location (currently arbitrarily set by me)
         if self._infection_status == AgentParams.STATUS_SUSCEPTIBLE:
-            viral_load = self.model.our_graph.graph.nodes[self._location]['viral_load']
+            viral_load = self.model.airway_graph.graph.nodes[self._location]['viral_load']
             if viral_load >= 100:
                 if random.randint(0, viral_load) > 50: #have a chance to dodge based on 'natural immunity'
                     self._infection_status = AgentParams.STATUS_EXPOSED
@@ -103,22 +103,6 @@ class SEIRAgent(Agent):
         self.update_agent_health()
 
     @property
-    def infection_status(self):
-        return self._infection_status
-
-    @infection_status.setter
-    def infection_status(self, value):
-        self._infection_status = value
-
-    @property
-    def location(self):
-        return self._location
-
-    @location.setter
-    def location(self, value):
-        self._location = value
-
-    @property
     def home_addr(self):
         return self._home_addr
 
@@ -134,18 +118,3 @@ class SEIRAgent(Agent):
     def work_addr(self, value):
         self._work_addr = value
 
-    @property
-    def time_first_exposure(self):
-        return self._time_first_exposure
-
-    @time_first_exposure.setter
-    def time_first_exposure(self, value):
-        self._time_first_exposure = value
-
-    @property
-    def time_first_infection(self):
-        return self._time_first_infection
-
-    @time_first_infection.setter
-    def time_first_infection(self, value):
-        self._time_first_infection = value

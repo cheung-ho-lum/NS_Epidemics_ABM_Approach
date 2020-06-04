@@ -36,3 +36,12 @@ https://github.com/nychealth/coronavirus-data
 
 subway travel distance and infection rate in london
 https://ehjournal.biomedcentral.com/articles/10.1186/s12940-018-0427-5
+
+anyone have 1000 bucks to spare to buy airline passenger flow data?
+https://books.google.ru/books?id=f_46BAAAQBAJ&pg=PA147&lpg=PA147&dq=IATA+airport+pairs+database&source=bl&ots=5M8gFsVPXb&sig=ACfU3U2ZUUXzdwBL3fEQAvmgkglmBu5rRA&hl=ru&sa=X&ved=2ahUKEwja9crUpObpAhXkpIsKHf2WA98Q6AEwAXoECAwQAQ#v=onepage&q=IATA%20airport%20pairs%20database&f=false
+
+some good guy explaining some other ways to obtain airline data
+https://www.sciencedirect.com/science/article/pii/S0966692315001581
+
+this metastudy:
+https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6685100/
