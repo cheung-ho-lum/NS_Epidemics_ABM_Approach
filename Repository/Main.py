@@ -8,78 +8,28 @@ import math
 import numpy as np
 import imageio
 
-# Stage 1:
-# Just the map and people
-# Create station map
-# Add an above-ground node for people in the zip. These people don't interact (for now)
-# Use MESA to make our Model
-# Have people move around the subway
-# End stage 1
-# Stage 2:
-# Introduce SEIR and add some numbers
-# Introduce the NYC Subway map and add attributes
-# Stage 2a:
-# Introduce a secondary mapping of weighted edges based on ridership
-# A sidenote that turnstiles don't count transfers. t.e. while we map ridership between nodes
-# They almost always take some specific path through the network
-# Although... the gridlike structure of nyc subway may make multiple choices viable. TBD
-# Stage 3:
-# make agents move based on commuting (give them a home)
-# make agents infect *stations* for an amount of time, and not directly infect other agents
-# fix the line data
-# Stage 3.5:
-# build some other subway maps.
-# Stage 3.6:
-# total passenger flow now calculated
-# riders spawned by ratio of their station to the total
-# Some code cleanup (give map types an enum, create DisplayParams)
-# Stage 3.6.5:
-# Evaluate and pull out what is common to agents on all types of transportation
-# Create Generic Transportation Model
-# Refactor SubwayModel to inherit from TransportationModel
-# Stage 3.6.6:
-# Redo agents to best mimic a population at a station.
-# Stage 3.7:
-# More code cleanup: It's time preprocessing just created an OurGraph
-# Clean up passenger flow calculations
-# Stage 3.9:
-# Refactor and clean up data folder.
-# Code cleanup: Model should really handle more of its own graphics
-# Stage 4:
-# Give agents some work data
-
-
-# Open TODO modeling parameters. Note that all parameters beyond basic abstraction should be optional!
-# Currently, viral load is not diminished by distance.
-# Currently, viral load is not diminished by number of routes
-
-analysis_type = 'subway'
+analysis_type = 'air_routes'
 if analysis_type == 'subway':
-    g_subway_map, routing_dict, passenger_flow = Preprocessing.get_subway_map('NYC')
+    g_subway_map, routing_dict = Preprocessing.get_subway_map('NYC')
 
-    ADD_SHADOW = False
-    if ADD_SHADOW:
-        g_full_map = Preprocessing.make_exit_nodes(g_subway_map)
-    else:
-        g_full_map = g_subway_map
-
-    print('Num stations:', len(g_subway_map.nodes()))
-    print('Total order:', len(g_full_map.nodes()))
-    num_connected_components = nx.algorithms.components.number_connected_components(g_full_map)
+    print('Total order:', len(g_subway_map.nodes()))
+    num_connected_components = nx.algorithms.components.number_connected_components(g_subway_map)
     print('NCC:', num_connected_components) #if this is >1, we have a problem
 
     if num_connected_components > 1:
         print("Warning: graph not connected. Picking GCC")
-        cc_list = sorted(nx.connected_components(g_full_map), key=len, reverse=True)  # largest first, for further debugging
-        g_full_map = g_full_map.subgraph((cc_list[0]))
+        cc_list = sorted(nx.connected_components(g_subway_map), key=len, reverse=True)  # largest first, for further debugging
+        g_subway_map = g_subway_map.subgraph((cc_list[0]))
 
-    model = SubwayModel.Subway_Model(g_full_map, routing_dict)
+    model = SubwayModel.Subway_Model(g_subway_map, routing_dict)
 
 if analysis_type == 'air_routes':
     g_airway_map = Preprocessing.get_airway_map('world')
+
     print('Total order:', len(g_airway_map.graph.nodes()))
     num_connected_components = nx.algorithms.components.number_connected_components(g_airway_map.graph)
     print('NCC:', num_connected_components)  # if this is >1, we have a problem
+
     if num_connected_components > 1:
         print("Warning: graph not connected. Picking GCC")
         cc_list = sorted(nx.connected_components(g_airway_map.graph), key=len, reverse=True)  # largest first, for further debugging

@@ -9,6 +9,7 @@ from transliterate import translit
 import codecs
 import csv
 
+
 def generate_geometric_map(type="sierpinski"):
     file_to_open = Path('Data/ss_' + type + '.csv')
     #TODO: catch in case of stupidity?
@@ -48,7 +49,7 @@ def generate_geometric_map(type="sierpinski"):
     nx.set_node_attributes(subway_map, SubwayParams.NODE_TYPE_STATION, 'type')
     nx.set_node_attributes(subway_map, 0, 'viral_load')
     nx.set_node_attributes(subway_map, 0, 'flow')
-    return subway_map, routes_and_stations, 0
+    return subway_map, routes_and_stations
 
 def generate_moskva_subway_map():
     """This is even more straightforward, but we have to pull data from elsewhere and add interchange links ourselves"""
@@ -119,7 +120,7 @@ def generate_moskva_subway_map():
     nx.set_node_attributes(subway_map, 0, 'viral_load')
     nx.set_node_attributes(subway_map, 0, 'flow')
 
-    return subway_map, routes_and_stations, 0
+    return subway_map, routes_and_stations
 
 
 def generate_NYC_subway_map():
@@ -323,7 +324,7 @@ def generate_NYC_subway_map():
     #I suppose the nice thing about python is I don't have too much to update if I need to return something new.
     total_flow = update_flow_data(subway_map, 'Turnstile_Data.csv', complex_to_station_dict, date_start, date_end)
 
-    return subway_map, routes_and_stations, total_flow
+    return subway_map, routes_and_stations
 
 #for NYC, total passenger flow was about 124975642
 def update_flow_data(subway_map, flow_files, complex_to_station_dict, date_start, date_end):
@@ -390,7 +391,7 @@ def generate_simple_triangle_map():
     nx.set_node_attributes(subway_map, 0, 'viral_load')
     nx.set_node_attributes(subway_map, 0, 'flow')
 
-    return subway_map, routes_and_stations, 0
+    return subway_map, routes_and_stations
 
 
 def get_subway_map(map_type):
@@ -476,7 +477,7 @@ def generate_wan_map():
     nx.set_node_attributes(airway_map, SubwayParams.NODE_TYPE_STATION, 'type')  # LOL?
     nx.set_node_attributes(airway_map, 0, 'viral_load')
 
-    return AirGraph(airway_map, 0)
+    return AirGraph(airway_map)
 
 def get_airway_map(map_type):
     airway_map = nx.Graph()
@@ -484,7 +485,7 @@ def get_airway_map(map_type):
         return generate_wan_map()
     if map_type == SimulationParams.MAP_TYPE_FAKE_WORLD:
         return generate_fake_world_map()
-    return AirGraph(airway_map, 0)
+    return AirGraph(airway_map)
 
 def make_exit_nodes(subway_map):
     """Given a subway map, add a street-level exit node.

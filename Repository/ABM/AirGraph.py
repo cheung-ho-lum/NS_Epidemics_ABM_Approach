@@ -4,29 +4,14 @@ from networkx import Graph
 import matplotlib.pyplot as plt
 from itertools import count
 from Parameters import AgentParams, SimulationParams
+from ABM.TransportationGraph import TransportationGraph
 
-
-class AirGraph(Graph):
+class AirGraph(TransportationGraph):
     """Basically nx graph wrapper with some subway-specific characteristics"""
-    def __init__(self, orig=None, route_dict=None, passenger_flow=0):
-        if orig is None:
-            super().__init__(Graph)
-            self._graph = None
-        else:
-            self._graph = nx.Graph.copy(orig)
+    def __init__(self, orig=None):
+        super().__init__(orig)
 
-        if passenger_flow == 0:
-            print('Warning, missing passenger flow data. Also not really supported!')
-        self._passenger_flow = passenger_flow
-
-    def update_hotspots(self, agents):
-        nx.set_node_attributes(self._graph, 0, 'hotspot')
-        for agent in agents:
-            if agent.infection_status == AgentParams.STATUS_INFECTED:
-                self._graph.nodes[agent.location]['hotspot'] += 1
-
-    #Maybe this actually belongs in a graphics class
-    #TODO: timestamp the graph, add node label options, do colors right.
+    #TODO: belongs in model. maybe under graphics.
     def draw_graph(self, node_attr="type", timestamp=""):
         if len(node_attr) > 0:
             groups = set(nx.get_node_attributes(self._graph, node_attr).values())
@@ -44,19 +29,3 @@ class AirGraph(Graph):
                              cmap=plt.cm.jet)
             if len(timestamp) > 0:
                 plt.title(node_attr + ' t=' + timestamp)
-
-    @property
-    def graph(self):
-        return self._graph
-
-    @graph.setter
-    def graph(self, value):
-        self._graph = value
-
-    @property
-    def passenger_flow(self):
-        return self._passenger_flow
-
-    @passenger_flow.setter
-    def passenger_flow(self, value):
-        self._passenger_flow = value
