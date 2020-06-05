@@ -1,0 +1,58 @@
+Design more, kludge less
+
+Environments
+Transportation Environment (TransportationGraph)
+Simulates a generic transportation network
+Has a networkx graph to track G(V,E)
+Vertices are locations
+Edges are connections between the locations
+It has node labels for positioning (long,lat)
+It has a node label for population
+It has a node label describing epidemiological (SEIR alpha, beta, gamma) behavior at that node
+It has a node label specifically tracking infected people for display purposes
+
+Air Environment (AirGraph)*
+This environment inherits from transportation environment
+It (ideally) has edge labels describing the passenger flow between edges
+It could instead have edge labels with some estimated passenger flow data
+Alternatively, it could use an edge label with the number of flights (I do not recommend this)
+- In preprocessing, maybe you could kill airports with <= X passenger flow.
+
+Subway Environment (SubwayGraph)*
+This environment inherits from transportation environment
+It adds node labels describing what route the node is on
+It adds node labels describing the passenger flow in and out of the station
+It adds node labels describing what complex the node is part of.
+For faster lookup, it also has a dictionary of route to nodes on the route
+It has a dictionary that maps station+division to complex *<this is actually not unique /sigh
+
+*While these do in fact ‘inherit’ from the generic graph, we just straight up completely build the networkx graph  during preprocessing and rely on the class labels to track/enforce that we’re using it correctly. 
+
+Agents
+SEIR Agent (SEIR_Agent)
+This agent represents the populace at a certain location (node) in our network
+It has a way to update its internal SEIR numbers
+
+Subway Agent (SubwayAgent)
+This agent inherits from SEIR Agent
+It adds a formula to “spread viral load” along its subway line
+It takes viral load into account when updating SEIR
+It should take average commuting distance into account (but doesn’t yet)
+
+Air Agent (Air Agent)
+This agent inherits from SEIR Agent
+It… does what? Maybe it adds a formula to “spread virus” based on passenger flow edge weights
+Alternatively, it could take into account neighboring nodes’ infected numbers when updating its SEIR numbers
+
+Models
+Transportation Model
+This is a basic (and nonexistent, why make it? Proof of concept.) model which would combine the SEIR Agent with a transportation environment. But in such a theoretical combination of environment/agent, there is not a way to spread disease to a different node/community.
+? Ok, it has a use. We can keep common calculations like overall SEIR here.
+
+SubwayModel
+Inherits from Transportation Model
+This is a model which combines the Subway Agent with a Subway Environment. The agent population is equal to the passenger flow of the station. We use this model with the NYC subway, initializing an outbreak at junction boulevard.
+
+AirModel
+Inherits from Transportation Model
+This is a model which combines the Air Agent with an Air Environment. The agent population is… what? Perhaps the population of the nearest city? We use this model with the WAN, initializing an outbreak at wuhan tianhe.

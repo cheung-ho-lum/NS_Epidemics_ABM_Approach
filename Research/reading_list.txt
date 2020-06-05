@@ -45,3 +45,6 @@ https://www.sciencedirect.com/science/article/pii/S0966692315001581
 
 this metastudy:
 https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6685100/
+
+some default alpha beta gamma numbers for the lazy
+https://towardsdatascience.com/social-distancing-to-slow-the-coronavirus-768292f04296 
