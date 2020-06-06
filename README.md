@@ -25,8 +25,8 @@ Essentially, we just preprocess NYC subway data into environment data. There's a
 #### Agent (population)
 * The population of each station is simply the aggregated passenger flow from the period March 1 to March 21. 
 * The agent updates its own SEIR numbers at each timestep based on:
-** SEIR numbers at previous step
-** 'viral load' representing exposure from an outside source.
+  * SEIR numbers at previous step
+  * 'viral load' representing exposure from an outside source.
 How this 'viral load' is key. From literature, we think the two major factors are the services coming to the station and the average commute distance from this station. We'll try to model it with this viral load.
 
 #### Environment
