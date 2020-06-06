@@ -48,3 +48,6 @@ https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6685100/
 
 some default alpha beta gamma numbers for the lazy
 https://towardsdatascience.com/social-distancing-to-slow-the-coronavirus-768292f04296 
+
+airports by passenger flow.
+https://www.aviationfanatic.com/ent_list.php?ent=7&NN_AP_Passengers=1&so=22 
