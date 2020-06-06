@@ -1,12 +1,12 @@
-from mesa import Model
 from ABM.SubwayAgent import SubwayAgent
 from mesa.time import RandomActivation
 from ABM.SubwayGraph import SubwayGraph
 from Parameters import AgentParams
 import networkx as nx
+from ABM.TransportationModel import TransportationModel
 
 
-class Subway_Model(Model):
+class SubwayModel(TransportationModel):
     """This guy's constructor should probably have a few more params."""
     def __init__(self, subway_map, routing_dict):
         self._subway_graph = SubwayGraph(subway_map, routing_dict)
@@ -21,11 +21,12 @@ class Subway_Model(Model):
                 print('making up passenger flow (10000) for location', loc)
                 loc_passenger_flow = 10000
             a = SubwayAgent(agent_id, self, loc, loc_passenger_flow)
-            if loc == AgentParams.MAP_LOCATION_JUNCTION_BLVD:
+            if loc == AgentParams.MAP_LOCATION_JUNCTION_BLVD: #TODO: this method of seeding is actually quite bad.
                 a.population[AgentParams.STATUS_INFECTED] += 1
+                a.population[AgentParams.STATUS_SUSCEPTIBLE] -= 1
             self.schedule.add(a)
 
-    #Decay the viral loads in the environment. just wipes them for now.
+    # Decay the viral loads in the environment. just wipes them for now.
     def decay_viral_loads(self):
         nx.set_node_attributes(self.subway_graph.graph, 0, 'viral_load')
         return None
@@ -44,7 +45,6 @@ class Subway_Model(Model):
         self.schedule.step()
         self.subway_graph.update_hotspots(self.schedule.agents) #TODO: repair this later
 
-
     def calculate_SEIR(self, print_results=False):
         sick, exposed, infected, recovered = 0, 0, 0, 0
         for a in self.schedule.agents:
@@ -56,11 +56,6 @@ class Subway_Model(Model):
             print('S,E,I,R:', sick, exposed, infected, recovered)
         return [sick, exposed, infected, recovered]
 
-    #Called by the agent class to update itself in the agent dictionary
-    def update_agent_location(self, agent, old_location, new_location):
-        self._agent_loc_dictionary[old_location].remove(agent)
-        self._agent_loc_dictionary[new_location].append(agent)
-
     @property
     def subway_graph(self):
         return self._subway_graph
@@ -68,12 +63,3 @@ class Subway_Model(Model):
     @subway_graph.setter
     def subway_graph(self, value):
         self._subway_graph = value
-
-
-    @property
-    def agent_loc_dictionary(self):
-        return self._agent_loc_dictionary
-
-    @agent_loc_dictionary.setter
-    def agent_loc_dictionary(self, value):
-        self._agent_loc_dictionary = value

@@ -1,6 +1,6 @@
-RUN_SPAN = 60
-TOTAL_POPULATION = 50000 #TODO: this is probably a goner
 GRAPH_SEED = 314
+AIR_SIM = 'air_routes'
+SUBWAY_SIM = 'subway'
 MAP_TYPE_TEST = 'TEST'
 MAP_TYPE_NYC = 'NYC'
 MAP_TYPE_GEOMETRIC_SIERPINSKI = 'sierpinski'
@@ -9,3 +9,7 @@ MAP_TYPE_GEOMETRIC_CIRCULAR = 'simple_moscow'
 MAP_TYPE_MOSCOW = 'MOSCOW'
 MAP_TYPE_WORLD = 'world'
 MAP_TYPE_FAKE_WORLD = 'test_world'
+MAP_TYPE_HLC_CURATED_WAN = "hlc_curated_world"
+# Researcher Adjustable. Recommended: 50 + Subway or 120 + Air
+RUN_SPAN = 120
+SIMULATION_TYPE = AIR_SIM

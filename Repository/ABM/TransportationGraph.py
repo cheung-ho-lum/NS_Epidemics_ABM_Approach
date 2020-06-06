@@ -1,9 +1,6 @@
-import math
 import networkx as nx
 from networkx import Graph
-import matplotlib.pyplot as plt
-from itertools import count
-from Parameters import AgentParams, SimulationParams
+from Parameters import AgentParams
 
 
 class TransportationGraph(Graph):
@@ -17,8 +14,13 @@ class TransportationGraph(Graph):
 
     def update_hotspots(self, agents):
         nx.set_node_attributes(self._graph, 0, 'hotspot')
-        for agent in agents: #TODO: flooring this so it actually drops to 0.
-            self._graph.nodes[agent.location]['hotspot'] = math.floor(agent.population[AgentParams.STATUS_INFECTED])
+        nx.set_node_attributes(self._graph, 0, 'normalized_hotspot')
+        for agent in agents:
+            infected = agent.population[AgentParams.STATUS_INFECTED]
+            total_population = sum(agent.population.values())
+            node = self._graph.nodes[agent.location]
+            node['hotspot'] = infected
+            node['normalized_hotspot'] = infected/total_population
 
     @property
     def graph(self):
@@ -35,3 +37,4 @@ class TransportationGraph(Graph):
     @passenger_flow.setter
     def passenger_flow(self, value):
         self._passenger_flow = value
+

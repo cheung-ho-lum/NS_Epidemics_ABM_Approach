@@ -1,5 +1,4 @@
 from Parameters import AgentParams
-import random
 from mesa import Agent
 
 class SEIR_Agent(Agent):
@@ -52,15 +51,14 @@ class SEIR_Agent(Agent):
         self._population[AgentParams.STATUS_SUSCEPTIBLE] -= susceptible * infected * coeff_beta / normalization_factor
 
         self._population[AgentParams.STATUS_EXPOSED] += susceptible * infected * coeff_beta / normalization_factor - \
-                                                        exposed * coeff_alpha
-        self._population[AgentParams.STATUS_INFECTED] += exposed * coeff_alpha - \
-                                                         infected * coeff_gamma
+                                                    exposed * coeff_alpha
+        self._population[AgentParams.STATUS_INFECTED] += exposed * coeff_alpha - infected * coeff_gamma
         self._population[AgentParams.STATUS_RECOVERED] += infected * coeff_gamma
 
         return None
 
     def step(self):
-        #viral load modeling now moved to model level.
+        # viral load modeling now moved to model level.
         self.update_agent_health()
 
     @property

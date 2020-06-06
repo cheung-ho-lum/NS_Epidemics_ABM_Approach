@@ -1,14 +1,13 @@
-from mesa import Model
 from ABM.AirAgent import AirAgent
 from mesa.time import RandomActivation
-import random
 from Parameters import AgentParams
 import networkx as nx
+from ABM.TransportationModel import TransportationModel
 
-class Air_Model(Model):
+
+class AirModel(TransportationModel):
     """This guy's constructor should probably have a few more params."""
-    def __init__(self, n, air_graph, passenger_flow=0):
-        self.num_agents = n
+    def __init__(self, air_graph):
         self._air_graph = air_graph
         self._agent_loc_dictionary = {}  # a dictionary of locations with lists of agents at each location
         self.schedule = RandomActivation(self)
@@ -22,7 +21,11 @@ class Air_Model(Model):
                 loc_passenger_flow = 10000
             a = AirAgent(agent_id, self, loc, loc_passenger_flow)
             if loc == AgentParams.MAP_LOCATION_WUHAN_TIANHE:
-                a.population[AgentParams.STATUS_INFECTED] += 1
+                # TODO these numbers are based on just running SEIR with a patient zero for 40 or so days.
+                a.population[AgentParams.STATUS_EXPOSED] += 2126
+                a.population[AgentParams.STATUS_INFECTED] += 559
+                a.population[AgentParams.STATUS_RECOVERED] += 1074
+                a.population[AgentParams.STATUS_SUSCEPTIBLE] -= 3759
             self.schedule.add(a)
 
     #Decay the viral loads in the environment. just wipes them for now.
@@ -30,12 +33,16 @@ class Air_Model(Model):
         nx.set_node_attributes(self.airway_graph.graph, 0, 'viral_load')
         return None
 
+    # TODO: viral loads not really viral loads in the case of air transportation
+    # It's more like... infected neighbors that came to this node.
     def increment_viral_loads(self):
         for a in self.schedule.agents:
             a.infect()
-        for loc in list(self.airway_graph.graph.nodes()):
-            viral_load = self.airway_graph.graph.nodes[loc]['viral_load']
-            self.airway_graph.graph.nodes[loc]['viral_load'] = min(viral_load, 1e6) #Let's top it out at 1e6
+            if a.location == AgentParams.MAP_LOCATION_WUHAN_TIANHE and False: # TODO: Some quick debugging
+                print('WUHAN SEIR:', a.population[AgentParams.STATUS_SUSCEPTIBLE],
+                      a.population[AgentParams.STATUS_EXPOSED],
+                      a.population[AgentParams.STATUS_INFECTED],
+                      a.population[AgentParams.STATUS_RECOVERED])
         return None
 
     def step(self):
@@ -56,12 +63,6 @@ class Air_Model(Model):
             print('S,E,I,R:', sick, exposed, infected, recovered)
         return [sick, exposed, infected, recovered]
 
-    #TODO: this can be removed. or moved to TransportationModel.
-    #Called by the agent class to update itself in the agent dictionary
-    def update_agent_location(self, agent, old_location, new_location):
-        self._agent_loc_dictionary[old_location].remove(agent)
-        self._agent_loc_dictionary[new_location].append(agent)
-
     @property
     def airway_graph(self):
         return self._air_graph
@@ -69,12 +70,3 @@ class Air_Model(Model):
     @airway_graph.setter
     def airway_graph(self, value):
         self._air_graph = value
-
-
-    @property
-    def agent_loc_dictionary(self):
-        return self._agent_loc_dictionary
-
-    @agent_loc_dictionary.setter
-    def agent_loc_dictionary(self, value):
-        self._agent_loc_dictionary = value

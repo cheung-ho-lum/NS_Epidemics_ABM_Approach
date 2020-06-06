@@ -1,13 +1,13 @@
 import datetime
 import networkx as nx
-
 from ABM.AirGraph import AirGraph
-from Parameters import SubwayParams, SimulationParams
+from Parameters import EnvParams, SimulationParams
 from pathlib import Path
 import math
 from transliterate import translit
 import codecs
 import csv
+import reverse_geocoder
 
 
 def generate_geometric_map(type="sierpinski"):
@@ -46,7 +46,7 @@ def generate_geometric_map(type="sierpinski"):
                     subway_map.add_edge(int(previous_station_id), int(station_id))
                 previous_station_id = station_id
 
-    nx.set_node_attributes(subway_map, SubwayParams.NODE_TYPE_STATION, 'type')
+    nx.set_node_attributes(subway_map, EnvParams.NODE_TYPE_STATION, 'type')
     nx.set_node_attributes(subway_map, 0, 'viral_load')
     nx.set_node_attributes(subway_map, 0, 'flow')
     return subway_map, routes_and_stations
@@ -116,7 +116,7 @@ def generate_moskva_subway_map():
     subway_map.add_edge(19, 109)  # koltsevaya
     subway_map.add_edge(113, 87)  # МЦК
 
-    nx.set_node_attributes(subway_map, SubwayParams.NODE_TYPE_STATION, 'type')
+    nx.set_node_attributes(subway_map, EnvParams.NODE_TYPE_STATION, 'type')
     nx.set_node_attributes(subway_map, 0, 'viral_load')
     nx.set_node_attributes(subway_map, 0, 'flow')
 
@@ -313,7 +313,7 @@ def generate_NYC_subway_map():
         f_route_ids.close()
         f_route_names.close()
 
-    nx.set_node_attributes(subway_map, SubwayParams.NODE_TYPE_STATION, 'type')
+    nx.set_node_attributes(subway_map, EnvParams.NODE_TYPE_STATION, 'type')
     nx.set_node_attributes(subway_map, 0, 'viral_load')
     nx.set_node_attributes(subway_map, 0, 'flow')
 
@@ -387,7 +387,7 @@ def generate_simple_triangle_map():
     routes_and_stations[2] = [2, 3]
     routes_and_stations[3] = [3, 1]
 
-    nx.set_node_attributes(subway_map, SubwayParams.NODE_TYPE_STATION, 'type')
+    nx.set_node_attributes(subway_map, EnvParams.NODE_TYPE_STATION, 'type')
     nx.set_node_attributes(subway_map, 0, 'viral_load')
     nx.set_node_attributes(subway_map, 0, 'flow')
 
@@ -425,11 +425,10 @@ def generate_fake_world_map():
     air_graph.nodes[2]['flow'] = 100
     air_graph.nodes[3]['flow'] = 100
 
-    nx.set_node_attributes(air_graph, SubwayParams.NODE_TYPE_STATION, 'type') #LOL?
+    nx.set_node_attributes(air_graph, EnvParams.NODE_TYPE_STATION, 'type') #LOL?
     nx.set_node_attributes(air_graph, 0, 'viral_load')
 
     return AirGraph(air_graph, 300)
-
 
 def generate_wan_map():
     """1,"Goroka Airport","Goroka","Papua New Guinea","GKA","AYGA",-6.081689834590001,145.391998291,5282,10,"U","Pacific/Port_Moresby","airport","OurAirports"""
@@ -443,7 +442,7 @@ def generate_wan_map():
             airport_name = wan_data[1]  # airport name
             _ = wan_data[2]  # airport region??
             _ = wan_data[3]  # airport country
-            _ = wan_data[4]  # airport IATA code
+            airport_iata_code = wan_data[4]  # airport IATA code
             _ = wan_data[5]  # other airport code
             airport_lat_y = float(wan_data[6])  # airport latitude
             airport_long_x = float(wan_data[7])  # airport longtitude
@@ -454,7 +453,7 @@ def generate_wan_map():
             airway_map.nodes[airport_id]['y'] = airport_lat_y
             airway_map.nodes[airport_id]['pos'] = (airport_long_x, airport_lat_y)
             airway_map.nodes[airport_id]['name'] = airport_name
-
+            airway_map.nodes[airport_id]['IATA'] = airport_iata_code
 
     # Build Edges (without weights)
     file_to_open = Path('Data/routes.dat')
@@ -464,20 +463,159 @@ def generate_wan_map():
             route_data = row.split(',')
             _ = route_data[0]
             _ = route_data[1]
-            _ = route_data[2]  # source name
+            src_iata_code = route_data[2]  # source name
             src_id = route_data[3]  # source uid
-            _ = route_data[4]  # destination name
-            dest_id = route_data[5]  # destination uid
-            if dest_id != r'\N' and src_id != r'\N' and \
-                airway_map.has_node(int(src_id)) and airway_map.has_node(int(dest_id)): # TODO: wow...
-                airway_map.add_edge(int(src_id), int(dest_id))
+            dst_iata_code = route_data[4]  # destination name
+            dst_id = route_data[5]  # destination uid
+            # TODO: omg... in the routing data, HYD is given no id, despite it having one in airports.dat...
+            # convert all IST routes to ISL routes. 1701 is labelled ISL and yet there are 1701,IST routes... whatever.
+            # HYD - 12087
+            # IST = 1701, ISL = 13696
+            if 'HYD' in src_iata_code:
+                src_id = 12087
+            if 'HYD' in dst_iata_code:
+                dst_id = 12087
+            if 'IST' in src_iata_code or 'ISL' in src_iata_code or src_id == '1701':
+                src_id = 13696
+            if 'IST' in dst_iata_code or 'ISL' in dst_iata_code or dst_id == '1701':
+                dst_id = 13696
+
+            if dst_id != r'\N' and src_id != r'\N' and \
+                airway_map.has_node(int(src_id)) and airway_map.has_node(int(dst_id)): # TODO: wow...
+
+                airway_map.add_edge(int(src_id), int(dst_id))
             #bunch of other fields i don't care about
 
     nx.set_node_attributes(airway_map, 0, 'flow')
-    nx.set_node_attributes(airway_map, SubwayParams.NODE_TYPE_STATION, 'type')  # LOL?
+    nx.set_node_attributes(airway_map, EnvParams.NODE_TYPE_STATION, 'type')  # LOL?
     nx.set_node_attributes(airway_map, 0, 'viral_load')
 
     return AirGraph(airway_map)
+
+def generate_curated_airway_map():
+    """IATA Code,Passengers,Municipality,Comments"""
+    """Really, if it doesn't have an IATA code, is it that important?"""
+
+    # TODO: this is also kind of a waste?
+    airway_map = generate_wan_map()
+    nx_graph = airway_map.graph
+    top_n_airports = 999  # TODO: this is a param
+
+    nodes_to_keep = []
+    #pare down the airports (nodes)
+    file_to_open = Path('Data/Airports_curated_HLC.csv')
+    with codecs.open(file_to_open, 'r', encoding='utf8') as f:
+        next(f)
+        i = 0
+        iata_to_id_reverse_lookup = {}
+        for row in f:
+            if i >= top_n_airports:
+                break
+            i += 1
+
+            airport_data = row.split(',')
+            airport_iata_code = airport_data[0]  # IATA Code
+            airport_flow = airport_data[1]  # Passengers
+            airport_city = airport_data[2]  # Municipality (City)
+
+            # TODO: this would have been better if you had made an id <> IATA dict
+            for node_id in nx_graph.nodes():
+                node = nx_graph.nodes[node_id]
+                if node['IATA'] == airport_iata_code:
+                    nodes_to_keep.append(node_id)
+                    node['flow'] = int(airport_flow)
+                    node['city'] = airport_city
+                    iata_to_id_reverse_lookup[airport_iata_code] = node_id
+                    break
+
+    curated_nx_graph = nx.Graph.copy(nx_graph.subgraph(nodes_to_keep))
+
+    # determine whether the flight is domestic
+    nx.set_edge_attributes(curated_nx_graph, False, 'domestic')
+    for u, v in curated_nx_graph.edges:
+        coordinates_u = tuple(reversed(curated_nx_graph.nodes[u]['pos']))
+        coordinates_v = tuple(reversed(curated_nx_graph.nodes[v]['pos']))
+        curated_nx_graph.edges[u, v]['domestic'] = flight_is_domestic(coordinates_u, coordinates_v)
+
+
+    # estimate all edge flows
+    file_to_open = Path('Data/Airport_pairs_curated_HLC.csv')
+    with codecs.open(file_to_open, 'r', encoding='utf8') as f:
+        '''IATA Airport 1,IATA Airport 2,,,Edge Flow,Comments'''
+        next(f)
+
+        nx.set_edge_attributes(curated_nx_graph, 0, 'pair_flow')
+        for row in f:
+            route_data = row.split(',')
+            src_iata_code = route_data[0]  # IATA 1
+            dst_iata_code = route_data[1]  # IATA 2
+            edge_flow = route_data[4]  # edge data
+
+            if src_iata_code in iata_to_id_reverse_lookup:
+                src_id = iata_to_id_reverse_lookup[src_iata_code]
+                if dst_iata_code in iata_to_id_reverse_lookup:
+                    dst_id = iata_to_id_reverse_lookup[dst_iata_code]
+                    # comment: man. I made this file. edge_flow is filled out for sure
+                    if src_id in curated_nx_graph.nodes and dst_id in curated_nx_graph.nodes:
+                        curated_nx_graph.add_edge(src_id, dst_id, pair_flow=int(edge_flow))
+
+        for u, v, flow in curated_nx_graph.edges.data('pair_flow'):
+            if flow == 0: #just take a random guess based on number of neighbors of both nodes
+                domestic_multiplier = 5 #TODO: a param I guess
+
+
+                #For u
+                neighbors_u = list(nx.neighbors(curated_nx_graph, u))
+                remaining_flow_u = curated_nx_graph.nodes[u]['flow']
+                remaining_neighbors_u = len(neighbors_u)  #remaining _empty_ neighbors
+                for neighbor_id in neighbors_u:
+                    flow_to_neighbor = curated_nx_graph[u][neighbor_id]['pair_flow']
+                    remaining_flow_u -= flow_to_neighbor
+                    if flow_to_neighbor > 0:
+                        remaining_neighbors_u -= 1
+                    else: #if the neighbor also has to be weighted
+                        if curated_nx_graph.edges[u, neighbor_id]['domestic']:
+                            remaining_neighbors_u += domestic_multiplier - 1
+
+                #For v TODO: copypasta
+                neighbors_v = list(nx.neighbors(curated_nx_graph, v))
+                remaining_flow_v = curated_nx_graph.nodes[v]['flow']
+                remaining_neighbors_v = len(neighbors_v)
+                for neighbor_id in neighbors_v:
+                    flow_to_neighbor = curated_nx_graph[v][neighbor_id]['pair_flow']
+                    remaining_flow_v -= flow_to_neighbor
+                    if flow_to_neighbor > 0:
+                        remaining_neighbors_v -= 1
+                    else: #if the neighbor also has to be weighted
+                        coordinates_n = tuple(reversed(curated_nx_graph.nodes[neighbor_id]['pos']))
+                        if curated_nx_graph.edges[v, neighbor_id]['domestic']:
+                            remaining_neighbors_v += domestic_multiplier - 1
+
+                #The actual flow estimating
+                if curated_nx_graph.edges[u, v]['domestic']: #your flight also has a multiplier of 5
+                    flow_estimate = min(5*remaining_flow_u/remaining_neighbors_u, 5*remaining_flow_v/remaining_neighbors_v)
+                else:
+                    flow_estimate = min(remaining_flow_u/remaining_neighbors_u, remaining_flow_v/remaining_neighbors_v)
+                if False: #TODO: some debug code to look at flow
+                    if u == 3376 or v == 3376:
+                        print('u:', u, remaining_flow_u, remaining_neighbors_u)
+                        print('v:', v, remaining_flow_v, remaining_neighbors_v)
+                        print('domestic:', curated_nx_graph.edges[u, v]['domestic'])
+                        print('assigning flow', flow_estimate, 'to', u,v)
+                if flow_estimate < 10000:
+                    print('warning! low flow between', u, v, flow_estimate, 'automatically setting to 10k')
+                    flow_estimate = 10000
+                curated_nx_graph.edges[u, v]['pair_flow'] = flow_estimate
+
+    return AirGraph(curated_nx_graph)
+
+def flight_is_domestic(coordinates_u, coordinates_v):
+    coordinates = coordinates_u,coordinates_v
+    coord_data = reverse_geocoder.search(coordinates, mode=1)
+    if coord_data[0]['cc'] == coord_data[1]['cc']:
+        return True
+    return False
+
 
 def get_airway_map(map_type):
     airway_map = nx.Graph()
@@ -485,6 +623,8 @@ def get_airway_map(map_type):
         return generate_wan_map()
     if map_type == SimulationParams.MAP_TYPE_FAKE_WORLD:
         return generate_fake_world_map()
+    if map_type == SimulationParams.MAP_TYPE_HLC_CURATED_WAN:
+        return generate_curated_airway_map()
     return AirGraph(airway_map)
 
 def make_exit_nodes(subway_map):
@@ -495,7 +635,7 @@ def make_exit_nodes(subway_map):
     for node in subway_map.nodes():
         subway_with_exits.add_node(node_index)
         #TODO: is there a way to do this in one line?
-        subway_with_exits.nodes[node_index]['type'] = SubwayParams.NODE_TYPE_STREET
+        subway_with_exits.nodes[node_index]['type'] = EnvParams.NODE_TYPE_STREET
         subway_with_exits.nodes[node_index]['routes'] = ""
         #TODO: probably not the best way to create a shadow
         subway_with_exits.nodes[node_index]['x'] = subway_map.nodes[node]['x'] + 0.01 #create a 'shadow'
