@@ -2,31 +2,41 @@ from mpl_toolkits.basemap import Basemap as Basemap
 from itertools import count
 import matplotlib.pyplot as plt
 import networkx as nx
-from Parameters import SimulationParams
+from Parameters import SimulationParams, DisplayParams
 import math
-#TODO: when this gets fleshed out, it might belong in its own directory
+# TODO: when this gets fleshed out, it might belong in its own directory
 
-#recommended NYC settings
+# recommended NYC settings
 # latitude:     40.5744     40.903
 # longtitude:   -74.0445    -73.836
 
-#recommended World settings
+# recommended World settings
 # latitude:     -55         65
 # longtitude    -180        180
 
-#TODO: okay. this is now only working for airlines
-#TODO: timespan (ok this is a main.py issue) needs to be set based on model
-#TODO: we can proooobably draw the map once and keep it around. this will cut down on runtime.
+
+# TODO: timespan (ok this is a main.py issue) needs to be set based on model
+# TODO: we can proooobably draw the map once and keep it around. this will cut down on runtime.
+# A quick note that the suggested way to save a basemap is to pickle/unpickle it. ookkk... maybe later.
+
+
 def draw_graph(nx_graph, node_attr="type", timestamp="", vmin=0, vmax=0.11, map_type = SimulationParams.MAP_TYPE_WORLD):
     has_background_map = True
-    if map_type == SimulationParams.MAP_TYPE_HLC_CURATED_WAN:
-        m = Basemap(projection='merc', llcrnrlon=-180, llcrnrlat=-55, urcrnrlon=180,
-                urcrnrlat=65, lat_ts=0, resolution='l', suppress_ticks=True)
-    elif map_type == SimulationParams.MAP_TYPE_NYC:
-        m = Basemap(projection='merc', llcrnrlon=-74.1, llcrnrlat=40.57, urcrnrlon=-73.8,
-                urcrnrlat=40.91, lat_ts=0, resolution='h', suppress_ticks=True)
+    if DisplayParams.DRAW_MAP:
+        if map_type == SimulationParams.MAP_TYPE_HLC_CURATED_WAN:
+            m = Basemap(projection='merc', llcrnrlon=-180, llcrnrlat=-55, urcrnrlon=180,
+                    urcrnrlat=65, lat_ts=0, resolution='l', suppress_ticks=True)
+            m.drawcountries(linewidth=1)
+            m.drawcoastlines(linewidth=1)
+        elif map_type == SimulationParams.MAP_TYPE_NYC:
+            m = Basemap(projection='merc', llcrnrlon=-74.1, llcrnrlat=40.57, urcrnrlon=-73.8,
+                    urcrnrlat=40.91, lat_ts=0, resolution='h', suppress_ticks=True)
+            m.drawcountries(linewidth=1)
+            m.drawcoastlines(linewidth=1)
+        else:
+            print('no background map found')
+            has_background_map = False
     else:
-        print('no background map')
         has_background_map = False
 
     groups = set(nx.get_node_attributes(nx_graph, node_attr).values())
@@ -41,8 +51,6 @@ def draw_graph(nx_graph, node_attr="type", timestamp="", vmin=0, vmax=0.11, map_
         if has_background_map:
             mx, my = m(nodes[n]['x'], nodes[n]['y'])
             nodes[n]['pos'] = (mx, my)
-            m.drawcountries(linewidth=1)
-            m.drawcoastlines(linewidth=1)
 
     colors = [mapping[nx_graph.nodes[n][node_attr]] for n in nodes]
     if 'normalized' in node_attr:
