@@ -19,19 +19,23 @@ As for the overall flow of the code, the only extra thing is that there is, of c
 ### A look at the NYC Subway
 Let's look at what we did for the NYC Subway. We have a lot of data for NYC, but not enough that we can see when and where every single commuter enters and exits the subway or if they are infected. We do have turnstile data (passenger flow) and tons of mapping data.
 
-####Preprocessing
+#### Preprocessing
 Essentially, we just preprocess NYC subway data into environment data. There's a lot of work and things to complain about here. For example, service S is actually 3 different shuttle services. But perhaps the other key point is that besides the basic network, we store away some key data unique to subways as a transportation system (services, or routes) to use later.
 
-####Agent (population)
+#### Agent (population)
 * The population of each station is simply the aggregated passenger flow from the period March 1 to March 21. 
 * The agent updates its own SEIR numbers at each timestep based on:
 ** SEIR numbers at previous step
 ** 'viral load' representing exposure from an outside source.
 How this 'viral load' is key. From literature, we think the two major factors are the services coming to the station and the average commute distance from this station. We'll try to model it with this viral load.
 
-####Environment
+#### Environment
 It adds node labels describing what route the node is on
 It adds node labels describing the passenger flow in and out of the station
 It adds node labels describing what complex the node is part of.
 For faster lookup, it also has a dictionary of route to nodes on the route
 
+## Demo
+For our demo, we choose to show the WAN instead of on the NYC Subway to demonstrate the extensibility of our work. We would like to note that while all models are wrong (For example, it's highly likely that intercity spread in China was due to trains), some are useful (or at least pretty).
+
+![WAN](https://github.com/cheung-ho-lum/NS_Epidemics_ABM_Approach/blob/master/Repository/Visualizations/infection_timelapse_world.gif)
