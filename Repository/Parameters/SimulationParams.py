@@ -11,5 +11,5 @@ MAP_TYPE_WORLD = 'world'
 MAP_TYPE_FAKE_WORLD = 'test_world'
 MAP_TYPE_HLC_CURATED_WAN = "hlc_curated_world"
 # Researcher Adjustable. Recommended: 50 + Subway or 120 + Air
-RUN_SPAN = 120
-SIMULATION_TYPE = AIR_SIM
+RUN_SPAN = 40
+SIMULATION_TYPE = SUBWAY_SIM

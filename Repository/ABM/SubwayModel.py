@@ -22,8 +22,10 @@ class SubwayModel(TransportationModel):
                 loc_passenger_flow = 10000
             a = SubwayAgent(agent_id, self, loc, loc_passenger_flow)
             if loc == AgentParams.MAP_LOCATION_JUNCTION_BLVD: #TODO: this method of seeding is actually quite bad.
-                a.population[AgentParams.STATUS_INFECTED] += 1
-                a.population[AgentParams.STATUS_SUSCEPTIBLE] -= 1
+                a.population[AgentParams.STATUS_EXPOSED] += 16300
+                a.population[AgentParams.STATUS_INFECTED] += 4200
+                a.population[AgentParams.STATUS_RECOVERED] += 5500
+                a.population[AgentParams.STATUS_SUSCEPTIBLE] -= 26000
             self.schedule.add(a)
 
     # Decay the viral loads in the environment. just wipes them for now.
@@ -34,9 +36,6 @@ class SubwayModel(TransportationModel):
     def increment_viral_loads(self):
         for a in self.schedule.agents:
             a.infect()
-        for loc in list(self.subway_graph.graph.nodes()):
-            viral_load = self.subway_graph.graph.nodes[loc]['viral_load']
-            self.subway_graph.graph.nodes[loc]['viral_load'] = min(viral_load, 1e6) #Let's top it out at 1e6
         return None
 
     def step(self):

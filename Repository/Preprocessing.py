@@ -134,6 +134,8 @@ def generate_NYC_subway_map():
     #TODO: some thinking needs to be done about station 167. We need to change it to a complex.
     #TODO: as it stands, 2nd node overwrites first node. by luck or good programming, all routes are preserved.
     #TODO: (line would be overwritten)
+    #TODO: NYC-specific eccentricity calculation should be generalized.
+
     """Station ID,Complex ID,GTFS Stop ID,Division,Line,Stop Name,Borough,Daytime Routes,Structure,GTFS Latitude,GTFS Longitude,North Direction Label,South Direction Label"""
     subway_map = nx.Graph()
     file_to_open = Path('Data/Stations.csv')
@@ -321,8 +323,19 @@ def generate_NYC_subway_map():
     date_start = datetime.datetime(2020, 3, 1, 0, 0)  # inclusive
     date_end = datetime.datetime(2020, 3, 21, 0, 0)  # inclusive
 
-    #I suppose the nice thing about python is I don't have too much to update if I need to return something new.
-    total_flow = update_flow_data(subway_map, 'Turnstile_Data.csv', complex_to_station_dict, date_start, date_end)
+    # I suppose the nice thing about python is I don't have too much to update if I need to return something new.
+    update_flow_data(subway_map, 'Turnstile_Data.csv', complex_to_station_dict, date_start, date_end)
+
+    NYC_TIMES_SQUARE = [11, 317, 467, 468]
+    NYC_GRAND_CENTRAL = [465, 469, 402, ]
+
+    for station_id in subway_map:
+        station_shortest_path = 999999
+        for dest_id in NYC_GRAND_CENTRAL + NYC_TIMES_SQUARE:
+            path_len = nx.algorithms.shortest_path_length(subway_map, station_id, dest_id)
+            if path_len < station_shortest_path:
+                station_shortest_path = path_len
+        subway_map.nodes[station_id]['commute_time'] = station_shortest_path + 1 #TODO: for central stations
 
     return subway_map, routes_and_stations
 
