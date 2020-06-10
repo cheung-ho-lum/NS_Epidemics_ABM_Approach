@@ -10,6 +10,7 @@ class AirModel(TransportationModel):
     def __init__(self, air_graph):
         self._air_graph = air_graph
         self._agent_loc_dictionary = {}  # a dictionary of locations with lists of agents at each location
+        self.countermeasures = []
         self.schedule = RandomActivation(self)
         # Create agents
         agent_id = 0

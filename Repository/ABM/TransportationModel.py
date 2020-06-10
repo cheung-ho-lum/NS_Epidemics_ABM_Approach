@@ -11,6 +11,7 @@ class TransportationModel(Model):
     def __init__(self, transportation_graph):
         self.schedule = RandomActivation(self)
         self._transportation_graph = transportation_graph
+        self._countermeasures = []  # a list of active countermeasures. tp model will not update this.
         # Create agents
         agent_id = 0
         # TODO: Seeding..., if not known, is random for now
@@ -28,6 +29,9 @@ class TransportationModel(Model):
                 a.population[AgentParams.STATUS_SUSCEPTIBLE] -= 1
             self.schedule.add(a)
 
+    def update_countermeasures(self):
+        return None
+
     # Decay the viral loads in the environment. just wipes them for now.
     def decay_viral_loads(self):
         nx.set_node_attributes(self._transportation_graph.graph, 0, 'viral_load')
@@ -43,6 +47,7 @@ class TransportationModel(Model):
         self.increment_viral_loads()
         self.schedule.step()
         self._transportation_graph.update_hotspots(self.schedule.agents) #TODO: repair this later
+        self.update_countermeasures()
 
     def calculate_SEIR(self, print_results=False):
         sick, exposed, infected, recovered = 0, 0, 0, 0
@@ -63,3 +68,10 @@ class TransportationModel(Model):
     def transportation_graph(self, value):
         self._transportation_graph = value
 
+    @property
+    def countermeasures(self):
+        return self._countermeasures
+
+    @countermeasures.setter
+    def countermeasures(self, value):
+        self._countermeasures = value

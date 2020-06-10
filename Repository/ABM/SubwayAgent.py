@@ -40,17 +40,27 @@ class SubwayAgent(SEIR_Agent):
         # beta is increased by viral load
         # self._epi_characteristics['beta'] #TODO... think we need something later like a beta_initial
         # (TODO: in order to model countermeasures)
-        beta = AgentParams.DEFAULT_BETA + viral_load / 1e7 #100 sick people ~= viral load 5000
-        self._epi_characteristics['beta'] = min(8, beta) #limit beta to 4
+        if EnvParams.ISOLATION_COUNTERMEASURE in self.model.countermeasures and False:
+            self._epi_characteristics['beta'] = AgentParams.DEFAULT_BETA / 1.5  # People are infected slower
+            self._epi_characteristics['gamma'] = AgentParams.DEFAULT_GAMMA * 1.5  # People are found faster
+        elif EnvParams.RECOMMENDATION_COUNTERMEASURE in self.model.countermeasures and False:
+            self._epi_characteristics['beta'] = AgentParams.DEFAULT_BETA / 1.1  # People are infected slower
+            self._epi_characteristics['gamma'] = AgentParams.DEFAULT_GAMMA * 1.1  # People are found faster
+        else:
+        #if EnvParams.ISOLATION_COUNTERMEASURE not in self.model.countermeasures:
+            beta = AgentParams.DEFAULT_BETA + viral_load / 1e7 #100 sick people ~= viral load 5000
+            self._epi_characteristics['beta'] = min(8, beta) #limit beta to 8
 
-        # give a chance to convert purely based on viral load
-        susceptible = self._population[AgentParams.STATUS_SUSCEPTIBLE]
-        if viral_load >= 1e5:
-            outside_infection_chance_roll = (viral_load - 1e5) / 1e9  # TODO: also made up stuff
-            self._population[AgentParams.STATUS_SUSCEPTIBLE] -= susceptible * outside_infection_chance_roll
-            self._population[AgentParams.STATUS_EXPOSED] += susceptible * outside_infection_chance_roll
+            # give a chance to convert purely based on viral load
+            susceptible = self._population[AgentParams.STATUS_SUSCEPTIBLE]
+            if viral_load >= 1e5:
+                outside_infection_chance_roll = (viral_load - 1e5) / 1e9  # TODO: also made up stuff
+                self._population[AgentParams.STATUS_SUSCEPTIBLE] -= susceptible * outside_infection_chance_roll
+                self._population[AgentParams.STATUS_EXPOSED] += susceptible * outside_infection_chance_roll
+
 
         super().update_agent_health()
+
 
     def step(self):
         self.move()

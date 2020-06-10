@@ -1,7 +1,7 @@
 from ABM.SubwayAgent import SubwayAgent
 from mesa.time import RandomActivation
 from ABM.SubwayGraph import SubwayGraph
-from Parameters import AgentParams
+from Parameters import AgentParams, EnvParams
 import networkx as nx
 from ABM.TransportationModel import TransportationModel
 
@@ -11,6 +11,7 @@ class SubwayModel(TransportationModel):
     def __init__(self, subway_map, routing_dict):
         self._subway_graph = SubwayGraph(subway_map, routing_dict)
         self._agent_loc_dictionary = {}  # a dictionary of locations with lists of agents at each location
+        self.countermeasures = []
         self.schedule = RandomActivation(self)
         # Create agents
         agent_id = 0
@@ -43,6 +44,19 @@ class SubwayModel(TransportationModel):
         self.increment_viral_loads()
         self.schedule.step()
         self.subway_graph.update_hotspots(self.schedule.agents) #TODO: repair this later
+        self.update_countermeasures()
+
+    def update_countermeasures(self):
+        active = self.countermeasures
+        infected = 0
+        for a in self.schedule.agents:
+            infected += a.population[AgentParams.STATUS_INFECTED]
+        if EnvParams.ISOLATION_COUNTERMEASURE not in active:
+            if infected >= 500000 * 20:  # we have 20x the size of NYC atm
+                active.append(EnvParams.ISOLATION_COUNTERMEASURE)
+        if EnvParams.RECOMMENDATION_COUNTERMEASURE not in active:
+            if infected >= 50000 * 20:  # we have 20x the size of NYC atm
+                active.append(EnvParams.RECOMMENDATION_COUNTERMEASURE)
 
     def calculate_SEIR(self, print_results=False):
         sick, exposed, infected, recovered = 0, 0, 0, 0
@@ -62,3 +76,4 @@ class SubwayModel(TransportationModel):
     @subway_graph.setter
     def subway_graph(self, value):
         self._subway_graph = value
+
