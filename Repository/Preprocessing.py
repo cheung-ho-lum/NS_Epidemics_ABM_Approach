@@ -12,8 +12,8 @@ import reverse_geocoder
 
 def generate_geometric_map(type="sierpinski"):
     file_to_open = Path('Data/ss_' + type + '.csv')
-    #TODO: catch in case of stupidity?
-    #Our simplified subway has no complexes. Routes and stations only.
+    # TODO: catch in case of stupidity?
+    # Our simplified subway has no complexes. Routes and stations only.
     routes_and_stations = {}
     subway_map = nx.Graph()
     with open(file_to_open, 'r') as f:
@@ -80,8 +80,7 @@ def generate_moskva_subway_map():
             station_long_x = float(station_data[5])
             station_order = int(station_data[6])
 
-
-            if(subway_map.has_node(station_id)):
+            if subway_map.has_node(station_id):
                 subway_map.nodes[station_id]['routes'].append(line_name)
             else:
                 # Add Station if it does not exist.
@@ -142,12 +141,12 @@ def generate_NYC_subway_map():
     routes_and_stations = {}
     complex_to_station_dict = {}
     with open(file_to_open, 'r') as f:
-        next(f) #skip header row
-        complex_dict = {} #dictionary of complexes. values = stations at that complex
+        next(f)  # skip header row
+        complex_dict = {}  # dictionary of complexes. values = stations at that complex
         for row in f:
             station_data = row.split(',')
-            station_id = int(station_data[0])  # TODO: We're making this an int as early as possible!
-            complex_id = station_data[1]  # Complex ID. A string! If stations are part of the same complex, they need to be connected
+            station_id = int(station_data[0])  # station id as int (we'll try to keep this convention)
+            complex_id = station_data[1]  # complex
             _ = station_data[2]  # GTFS Stop ID
             division_id = station_data[3]  # Division. These are not ints!
             _ = station_data[4]  # Line Caution!! Lines != Routes, not what you think it is!
@@ -161,7 +160,7 @@ def generate_NYC_subway_map():
             #TODO: turns out complexID + divid is not a unique identifier! see 467, 468
             complex_to_station_dict[(complex_id, division_id)] = station_id
 
-            # We're not counting Staten Island. I already duplicated Stations.csv in expectation of removing this trolly data
+            # We're not counting Staten Island
             if 'SIR' in routes:
                 continue
 
@@ -199,7 +198,7 @@ def generate_NYC_subway_map():
     # Builds the edges between stations based on our own listing of correct edges between stations
     # The first column in each row is the route name or a fake route name
     # successor columns are consecutive stations. just link em up
-    #TODO: note that in ods, racepark or aqueduct or something is not fixed.
+    # TODO: note that in ods, racepark or aqueduct or something is not fixed.
     if build_edges_from_file:
         file_fixed_routings = Path('Data/Fixed_Routings.csv')
         with open(file_fixed_routings, 'r') as f_routes:
@@ -226,7 +225,7 @@ def generate_NYC_subway_map():
             maxX = -75
             minY = 42
             maxY = 38
-            # TODO after thinking some more, just do something readable and logical and make an actual edge list later if needed.
+            # TODO Just do something readable and logical and make an actual edge list later if needed.
             # TODO after writing this and still having to hack in some lines, I 100% approve of that idea.
             for station in routes_and_stations[route]:
                 x_coord = subway_map.nodes[station]['x']
@@ -280,10 +279,10 @@ def generate_NYC_subway_map():
             y_coord_last = subway_map.nodes[last_station]['y']
             uncombined_stations.remove(terminal_station)
 
-            while(len(uncombined_stations) > 0):
+            while len(uncombined_stations) > 0:
                 best_distance = 100
                 best_candidate = -1
-                #Find the closest station to our current endpoint
+                # Find the closest station to our current endpoint
                 for station_candidate in uncombined_stations:
                     candidate_distance = math.hypot(
                         x_coord_last - subway_map.nodes[station_candidate]['x'],
@@ -335,11 +334,11 @@ def generate_NYC_subway_map():
             path_len = nx.algorithms.shortest_path_length(subway_map, station_id, dest_id)
             if path_len < station_shortest_path:
                 station_shortest_path = path_len
-        subway_map.nodes[station_id]['commute_time'] = station_shortest_path + 1 #TODO: for central stations
+        subway_map.nodes[station_id]['commute_time'] = station_shortest_path + 1 # TODO: for central stations
 
     return subway_map, routes_and_stations
 
-#for NYC, total passenger flow was about 124975642
+# for NYC, 3 week total passenger flow was about 124975642
 def update_flow_data(subway_map, flow_files, complex_to_station_dict, date_start, date_end):
     """this will look substantially different from our geographically/train based map.
     we will look at the turnstile data from Mar 1 - Mar 21 when the pandemic was starting
@@ -375,12 +374,13 @@ def update_flow_data(subway_map, flow_files, complex_to_station_dict, date_start
                         subway_map.nodes[station_id]['flow'] += flow_in + flow_out
                         total_flow += flow_in + flow_out
 
-    #TODO: HACK ALERT! DUE TO ISSUES WITH COMPLEX/STATION DATA. REFERENCE COMPLEX_TO_STATION_DICT TODO:
+    # TODO: HACK ALERT! DUE TO ISSUES WITH COMPLEX/STATION DATA. REFERENCE COMPLEX_TO_STATION_DICT TODO:
     for station_id in subway_map.nodes():
         if subway_map.nodes[station_id]['flow'] == 0:
             subway_map.nodes[station_id]['flow'] = 600000
             total_flow += 600000
     return total_flow
+
 
 def generate_simple_triangle_map():
     """A fake subway. We'll need a naming convention for stations in the real one"""
@@ -459,7 +459,7 @@ def generate_wan_map():
             _ = wan_data[5]  # other airport code
             airport_lat_y = float(wan_data[6])  # airport latitude
             airport_long_x = float(wan_data[7])  # airport longtitude
-            #bunch of other fields i don't care about
+            # bunch of other fields i don't care about
 
             airway_map.add_node(airport_id)
             airway_map.nodes[airport_id]['x'] = airport_long_x

@@ -14,7 +14,7 @@ if SimulationParams.SIMULATION_TYPE == SimulationParams.SUBWAY_SIM:
 
     print('Total order:', len(g_subway_map.nodes()))
     num_connected_components = nx.algorithms.components.number_connected_components(g_subway_map)
-    print('NCC:', num_connected_components) #if this is >1, we have a problem
+    print('NCC:', num_connected_components)  # if this is >1, we have a problem
 
     if num_connected_components > 1:  # TODO: this goes in preprocessing
         print("Warning: graph not connected. Picking GCC")
@@ -32,7 +32,7 @@ elif SimulationParams.SIMULATION_TYPE == SimulationParams.AIR_SIM:
 
     if num_connected_components > 1:
         print("Warning: graph not connected. Picking GCC")
-        cc_list = sorted(nx.connected_components(g_airway_map.graph), key=len, reverse=True)  # largest first, for further debugging
+        cc_list = sorted(nx.connected_components(g_airway_map.graph), key=len, reverse=True)  # largest first
         g_airway_map.graph = g_airway_map.graph.subgraph((cc_list[0]))
         for cc in cc_list:
             if len(cc) < 10:
@@ -41,9 +41,9 @@ elif SimulationParams.SIMULATION_TYPE == SimulationParams.AIR_SIM:
     model = AirModel.AirModel(g_airway_map)
 
 
-SEIR_Statistics = np.zeros(shape=(SimulationParams.RUN_SPAN + 1, 5)) #reminder: np is zero indexed
+SEIR_Statistics = np.zeros(shape=(SimulationParams.RUN_SPAN + 1, 5)) # reminder: np is zero indexed
 SEIR_Statistics[0, 0] = 0
-SEIR_Statistics[0, 1:5] = model.calculate_SEIR(True)  #reminder: but ranges are exclusive or something.
+SEIR_Statistics[0, 1:5] = model.calculate_SEIR(True)
 
 # Run the simulation. Set DRAW_GRAPHS to false to make this run faster
 for i in range(1, SimulationParams.RUN_SPAN + 1):
@@ -60,6 +60,8 @@ for i in range(1, SimulationParams.RUN_SPAN + 1):
     elif SimulationParams.SIMULATION_TYPE == SimulationParams.AIR_SIM:
         nx_graph = model.airway_graph.graph
         map_type = SimulationParams.MAP_TYPE_HLC_CURATED_WAN
+    else:
+        print('Error: Unknown Simulation Type')
 
     if DisplayParams.DRAW_GRAPHS:
         Graphics.draw_graph(nx_graph, DisplayParams.GRAPH_BY_FEATURE, timestamp=str(i),
