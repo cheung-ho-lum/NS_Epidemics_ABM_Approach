@@ -8,7 +8,33 @@ from transliterate import translit
 import codecs
 import csv
 import reverse_geocoder
+import numpy as np
 
+def get_benchmark_statistics(location, start_date):
+    '''https://www1.nyc.gov/site/doh/covid/covid-19-data.page'''
+    if location == 'NYC':
+        # TODO: and the kludging starts here (by ignoring start date and just pulling data)
+        file_to_open = Path('Data/covid_nyc_simple.csv')
+        benchmark_stats = np.zeros(shape=(SimulationParams.RUN_SPAN + 1, 5))
+        with open(file_to_open, 'r') as f:
+            next(f) #skip header row
+            time = 0
+            total_infected = 0
+            for row in f:
+                if time == SimulationParams.RUN_SPAN + 1:
+                    break
+                infection_data = row.strip().split(',')
+                date = infection_data[0]
+                infected =  int(infection_data[1])
+                total_infected += infected
+                benchmark_stats[time, 0] = time
+                benchmark_stats[time, 2] = infected
+                benchmark_stats[time, 3] = total_infected
+                time += 1
+        return benchmark_stats
+    else:
+        print('what statistics?')
+    return None
 
 def generate_geometric_map(type="sierpinski"):
     file_to_open = Path('Data/ss_' + type + '.csv')

@@ -21,12 +21,13 @@ class SubwayModel(TransportationModel):
             if loc_passenger_flow == 0:
                 print('making up passenger flow (10000) for location', loc)
                 loc_passenger_flow = 10000
-            a = SubwayAgent(agent_id, self, loc, loc_passenger_flow)
+            population = loc_passenger_flow / 30  #TODO: population is currently just flow / 30 when we could do better
+            a = SubwayAgent(agent_id, self, loc, population)
             if loc == AgentParams.MAP_LOCATION_JUNCTION_BLVD: #TODO: this method of seeding is actually quite bad.
-                a.population[AgentParams.STATUS_EXPOSED] += 16300
-                a.population[AgentParams.STATUS_INFECTED] += 4200
-                a.population[AgentParams.STATUS_RECOVERED] += 5500
-                a.population[AgentParams.STATUS_SUSCEPTIBLE] -= 26000
+                a.population[AgentParams.STATUS_EXPOSED] += 10
+                a.population[AgentParams.STATUS_INFECTED] += 10
+                a.population[AgentParams.STATUS_RECOVERED] += 0
+                a.population[AgentParams.STATUS_SUSCEPTIBLE] -= 20
             self.schedule.add(a)
 
     # Decay the viral loads in the environment. just wipes them for now.
@@ -52,11 +53,13 @@ class SubwayModel(TransportationModel):
         for a in self.schedule.agents:
             infected += a.population[AgentParams.STATUS_INFECTED]
         if EnvParams.ISOLATION_COUNTERMEASURE not in active:
-            if infected >= 500000 * 20:  # we have 20x the size of NYC atm
+            if infected >= 5000:  # we have 20x the size of NYC atm
                 active.append(EnvParams.ISOLATION_COUNTERMEASURE)
+                print('isolation countermeasure taken!')
         if EnvParams.RECOMMENDATION_COUNTERMEASURE not in active:
-            if infected >= 50000 * 20:  # we have 20x the size of NYC atm
+            if infected >= 500:  # we have 20x the size of NYC atm
                 active.append(EnvParams.RECOMMENDATION_COUNTERMEASURE)
+                print('recommendation countermeasure taken!')
 
     def calculate_SEIR(self, print_results=False):
         sick, exposed, infected, recovered = 0, 0, 0, 0

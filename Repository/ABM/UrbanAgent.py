@@ -40,10 +40,10 @@ class SubwayAgent(SEIR_Agent):
         # beta is increased by viral load
         # self._epi_characteristics['beta'] #TODO... think we need something later like a beta_initial
         # (TODO: in order to model countermeasures)
-        if EnvParams.ISOLATION_COUNTERMEASURE in self.model.countermeasures:
+        if EnvParams.ISOLATION_COUNTERMEASURE in self.model.countermeasures and False:
             self._epi_characteristics['beta'] = AgentParams.DEFAULT_BETA / 3  # People are infected slower
             self._epi_characteristics['gamma'] = AgentParams.DEFAULT_GAMMA * 3  # People are found faster
-        elif EnvParams.RECOMMENDATION_COUNTERMEASURE in self.model.countermeasures:
+        elif EnvParams.RECOMMENDATION_COUNTERMEASURE in self.model.countermeasures and False:
             self._epi_characteristics['beta'] = AgentParams.DEFAULT_BETA / 1.5  # People are infected slower
             self._epi_characteristics['gamma'] = AgentParams.DEFAULT_GAMMA * 1.5  # People are found faster
         else:
@@ -58,17 +58,6 @@ class SubwayAgent(SEIR_Agent):
                 self._population[AgentParams.STATUS_SUSCEPTIBLE] -= susceptible * outside_infection_chance_roll
                 self._population[AgentParams.STATUS_EXPOSED] += susceptible * outside_infection_chance_roll
 
-        # TODO: instead of commenting this section in and out, build it into an urban agent
-        # complete exposure to outside world!
-        susceptible = self._population[AgentParams.STATUS_SUSCEPTIBLE]
-        SEIR_numbers = self.model.calculate_SEIR()
-        outside_infected = SEIR_numbers[2] - self.population[AgentParams.STATUS_INFECTED]
-        normalization_factor = sum(SEIR_numbers)
-
-        self._population[AgentParams.STATUS_SUSCEPTIBLE] -= \
-            self._epi_characteristics['beta'] * susceptible * outside_infected / normalization_factor
-        self._population[AgentParams.STATUS_EXPOSED] += \
-            self._epi_characteristics['beta'] * susceptible * outside_infected / normalization_factor
 
         super().update_agent_health()
 

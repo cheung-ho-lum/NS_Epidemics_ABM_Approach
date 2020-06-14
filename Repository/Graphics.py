@@ -4,6 +4,8 @@ import matplotlib.pyplot as plt
 import networkx as nx
 from Parameters import SimulationParams, DisplayParams
 import math
+import numpy as np
+
 # TODO: when this gets fleshed out, it might belong in its own directory
 
 # recommended NYC settings
@@ -20,7 +22,8 @@ import math
 # A quick note that the suggested way to save a basemap is to pickle/unpickle it. ookkk... maybe later.
 
 
-def draw_graph(nx_graph, node_attr="type", timestamp="", vmin=0, vmax=0.11, map_type = SimulationParams.MAP_TYPE_WORLD):
+def draw_graph(nx_graph, node_attr="type", timestamp="", vmin=0, vmax=0.11,
+               map_type=SimulationParams.MAP_TYPE_WORLD):
     has_background_map = True
     if DisplayParams.DRAW_MAP:
         if map_type == SimulationParams.MAP_TYPE_HLC_CURATED_WAN:
@@ -55,7 +58,7 @@ def draw_graph(nx_graph, node_attr="type", timestamp="", vmin=0, vmax=0.11, map_
     colors = [mapping[nx_graph.nodes[n][node_attr]] for n in nodes]
     if 'normalized' in node_attr:
         colors = list(nx.get_node_attributes(nx_graph, node_attr).values())
-        # print(max(colors)) #use to get an idea what vmax is.
+        #print(max(colors)) #use to get an idea what vmax is.
     pos = nx.get_node_attributes(nx_graph, 'pos')
     if len(pos) == 0:
         pos = nx.spring_layout(nx_graph, seed=SimulationParams.GRAPH_SEED)
@@ -68,19 +71,40 @@ def draw_graph(nx_graph, node_attr="type", timestamp="", vmin=0, vmax=0.11, map_
     return None
 
 
-def draw_SEIR_curve(statistics, fig):
+def draw_SEIR_curve(statistics, fig, benchmark_SEIR=None):
     """It's questionable to keep statistics in a non-descript matrix because we might want more, but for now:
     rows = timestamp, cols(5) = t,S,E,I,R"""
     #time_span = np.shape(statistics)[1] #should match run timespan
 
     ax = fig.add_subplot(111, facecolor='#dddddd', axisbelow=True)
-    ax.plot(statistics[..., 0], statistics[..., 1], 'blue', alpha=0.5, lw=2, label='Susceptible')
-    ax.plot(statistics[..., 0], statistics[..., 2], 'orange', alpha=0.5, lw=2, label='Exposed')
-    ax.plot(statistics[..., 0], statistics[..., 3], 'red', alpha=0.5, lw=2, label='Infected')
-    ax.plot(statistics[..., 0], statistics[..., 4], 'green', alpha=0.5, lw=2, label='Recovered')
+    time_col = statistics[..., 0]
+    ax.plot(time_col, statistics[..., 1], 'blue', alpha=0.5, lw=2, label='Susceptible')
+    ax.plot(time_col, statistics[..., 2], 'orange', alpha=0.5, lw=2, label='Exposed')
+    ax.plot(time_col, statistics[..., 3], 'red', alpha=0.5, lw=2, label='Infected')
+    ax.plot(time_col, statistics[..., 4], 'green', alpha=0.5, lw=2, label='Recovered')
+
+    #also show cumulative infections. TODO: kludgy
+    infected_total = np.zeros(shape=(SimulationParams.RUN_SPAN + 1, 1))
+    for i in range(0, SimulationParams.RUN_SPAN + 1):
+        infected_total[i] = statistics[i, 3] + statistics[i, 4]
+
+    if len(benchmark_SEIR) > 0:
+        bench_time_col = benchmark_SEIR[..., 0]
+        ax.plot(time_col, statistics[..., 3] + statistics[..., 4], 'black', alpha=0.5, lw=2, label='Total Cases')
+        ax.plot(bench_time_col, benchmark_SEIR[..., 2], 'gray', alpha=0.5, lw=2, label='New Cases (Actual)', linestyle='dashed')
+        ax.plot(bench_time_col, benchmark_SEIR[..., 3], 'black', alpha=0.5, lw=2, label='Total Cases (Actual)', linestyle='dashed')
     ax.set_xlabel('Time')
     ax.set_ylabel('Patients')
-    ax.set_ylim(0, sum(statistics[0, 1:]))
+    benchmark_max = 0
+    if len(benchmark_SEIR) > 0:
+        benchmark_max = np.max(benchmark_SEIR[..., 3])
+        y_lim = max(np.max(statistics[0, 3:]),
+                    np.max(statistics[0, 4:]),
+                    benchmark_max
+                    )  # y lim now based on maximum of a few possible statistics.
+    else:
+        y_lim = np.max(statistics[0, 1:5])
+    ax.set_ylim(0, y_lim)
     ax.yaxis.set_tick_params(length=0)
     ax.xaxis.set_tick_params(length=0)
     ax.grid(b=True, which='major', c='w', lw=2, ls='-')
