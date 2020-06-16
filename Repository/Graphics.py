@@ -36,6 +36,7 @@ def draw_graph(nx_graph, node_attr="type", timestamp="", vmin=0, vmax=0.11,
                     urcrnrlat=40.91, lat_ts=0, resolution='h', suppress_ticks=True)
             m.drawcountries(linewidth=1)
             m.drawcoastlines(linewidth=1)
+            m.readshapefile('Data/NYC/Geographical/NYC_modzcta', 'NYC')
         else:
             print('no background map found')
             has_background_map = False
@@ -81,7 +82,7 @@ def draw_SEIR_curve(statistics, fig, benchmark_SEIR=None):
     ax.plot(time_col, statistics[..., 1], 'blue', alpha=0.5, lw=2, label='Susceptible')
     ax.plot(time_col, statistics[..., 2], 'orange', alpha=0.5, lw=2, label='Exposed')
     ax.plot(time_col, statistics[..., 3], 'red', alpha=0.5, lw=2, label='Infected')
-    ax.plot(time_col, statistics[..., 4], 'green', alpha=0.5, lw=2, label='Recovered')
+    ax.plot(time_col, statistics[..., 4], 'green', alpha=0.5, lw=2, label='Removed')
 
     #also show cumulative infections. TODO: kludgy
     infected_total = np.zeros(shape=(SimulationParams.RUN_SPAN + 1, 1))

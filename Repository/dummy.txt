@@ -36,9 +36,17 @@
 # Refactor and clean up data folder.
 # Code cleanup: Model should really handle more of its own graphics
 # Stage 4:
+# Implement Basic quarantine modelling
+# Distinguish between population and flow
+# Stage 4.1:
+# Generalize the idea of eccentricity
+# Check Moscow Metro for validity of this idea
+# Stage 4.2
+# Get real population numbers living at each metro station (vs. ridership)
+# Draw zip-level (or borough) detail onto the map
+# Get zip-level (or borough) data of the spread of coronavirus
+# Stage 4.2
+# Fit the model.
+# Stage 6:
 # Give agents some work data
-
-
-# Open TODO modeling parameters. Note that all parameters beyond basic abstraction should be optional!
-# Currently, viral load is not diminished by distance.
-# Currently, viral load is not diminished by number of routes
+# Spread of viral load should be diminished by number of routes
