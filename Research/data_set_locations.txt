@@ -77,3 +77,10 @@ https://gist.github.com/altsoph/6d3bfc97e26a4614d07fa74657739163
 routes_data.tsv
 
 https://gist.github.com/altsoph/56c38e76bae853655b962979346d194e
+
+NYC shapefile
+https://data.cityofnewyork.us/Health/Modified-Zip-Code-Tabulation-Areas-MODZCTA-/pri4-ifjk
+
+NYC modzcta data
+https://github.com/nychealth/coronavirus-data/blob/master/data-by-modzcta.csv
+

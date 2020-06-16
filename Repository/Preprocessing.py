@@ -14,7 +14,7 @@ def get_benchmark_statistics(location, start_date):
     '''https://www1.nyc.gov/site/doh/covid/covid-19-data.page'''
     if location == 'NYC':
         # TODO: and the kludging starts here (by ignoring start date and just pulling data)
-        file_to_open = Path('Data/covid_nyc_simple.csv')
+        file_to_open = Path('Data/NYC/Case_Death_Recovery/covid_nyc_simple.csv')
         benchmark_stats = np.zeros(shape=(SimulationParams.RUN_SPAN + 1, 5))
         with open(file_to_open, 'r') as f:
             next(f) #skip header row
@@ -37,7 +37,7 @@ def get_benchmark_statistics(location, start_date):
     return None
 
 def generate_geometric_map(type="sierpinski"):
-    file_to_open = Path('Data/ss_' + type + '.csv')
+    file_to_open = Path('Data/Theory/ss_' + type + '.csv')
     # TODO: catch in case of stupidity?
     # Our simplified subway has no complexes. Routes and stations only.
     routes_and_stations = {}
@@ -89,7 +89,7 @@ def generate_moskva_subway_map():
     # TODO: circular lines are not closed (they are incorrect)
     # TODO: these stations are not part of gcc  #{86, 23, 186, 28, 189, 190, 31} <-- due to missing ped. links
     subway_map = nx.Graph()
-    file_to_open = Path('Data/list_of_moscow_metro_stations.csv')
+    file_to_open = Path('Data/Moscow/Subway/list_of_moscow_metro_stations.csv')
     routes_and_stations = {}
     with codecs.open(file_to_open, 'r', encoding='utf8') as f:
         next(f)  # skip header row
@@ -163,7 +163,7 @@ def generate_NYC_subway_map():
 
     """Station ID,Complex ID,GTFS Stop ID,Division,Line,Stop Name,Borough,Daytime Routes,Structure,GTFS Latitude,GTFS Longitude,North Direction Label,South Direction Label"""
     subway_map = nx.Graph()
-    file_to_open = Path('Data/Stations.csv')
+    file_to_open = Path('Data/NYC/Subway/Stations.csv')
     routes_and_stations = {}
     complex_to_station_dict = {}
     with open(file_to_open, 'r') as f:
@@ -226,7 +226,7 @@ def generate_NYC_subway_map():
     # successor columns are consecutive stations. just link em up
     # TODO: note that in ods, racepark or aqueduct or something is not fixed.
     if build_edges_from_file:
-        file_fixed_routings = Path('Data/Fixed_Routings.csv')
+        file_fixed_routings = Path('Data/NYC/Subway/Fixed_Routings.csv')
         with open(file_fixed_routings, 'r') as f_routes:
             for row in f_routes:
                 route_data = row.split(',')[1:]
@@ -241,8 +241,8 @@ def generate_NYC_subway_map():
     if make_best_guess_routes:
         "Adding Edges, a more logical approach (but still possibly crap, also might not matter)"
         "Best theoretical mathy approach would be to find the shortest hamiltonian path. but i am lazy"
-        file_routing_by_id = Path('Data/Our_Routing_By_Id.csv')
-        file_routing_by_name = Path('Data/Our_Routing_By_Name.csv')
+        file_routing_by_id = Path('Data/NYC/Subway/Our_Routing_By_Id.csv')
+        file_routing_by_name = Path('Data/NYC/Subway/Our_Routing_By_Name.csv')
         f_route_ids = open(file_routing_by_id, 'w')
         f_route_names = open(file_routing_by_name, 'w')
 
@@ -374,7 +374,7 @@ def update_flow_data(subway_map, flow_files, complex_to_station_dict, date_start
     """Astoria - Ditmars Blvd,N W,BMT,Astoria,Q,Elevated,-73.912034,40.775036,1,2020-01-01,7024,7060"""
     # So we filter down by date, sum up the entrance and exits, and call it 'passenger flow' node attribute.
     # Remember that complex id and div id are strings!
-    file_to_open = Path('Data/' + flow_files)
+    file_to_open = Path('Data/NYC/Subway/' + flow_files)
     total_flow = 0
 
     with open(file_to_open, 'r') as f:
@@ -473,7 +473,7 @@ def generate_wan_map():
     """1,"Goroka Airport","Goroka","Papua New Guinea","GKA","AYGA",-6.081689834590001,145.391998291,5282,10,"U","Pacific/Port_Moresby","airport","OurAirports"""
     airway_map = nx.Graph()
     # Build Nodes
-    file_to_open = Path('Data/airports.dat')
+    file_to_open = Path('Data/World/Air_Routes/airports.dat')
     with codecs.open(file_to_open, 'r', encoding='utf8') as f:
         csv_reader = csv.reader(f, delimiter=',', quotechar='"') #TODO, really this should be done everywhere
         for wan_data in csv_reader:
@@ -495,7 +495,7 @@ def generate_wan_map():
             airway_map.nodes[airport_id]['IATA'] = airport_iata_code
 
     # Build Edges (without weights)
-    file_to_open = Path('Data/routes.dat')
+    file_to_open = Path('Data/World/Air_Routes/routes.dat')
     with codecs.open(file_to_open, 'r', encoding='utf8') as f:
         """2B,410,AER,2965,KZN,2990,,0,CR2"""
         for row in f:
@@ -542,7 +542,7 @@ def generate_curated_airway_map():
 
     nodes_to_keep = []
     #pare down the airports (nodes)
-    file_to_open = Path('Data/Airports_curated_HLC.csv')
+    file_to_open = Path('Data/World/Air_Routes/Airports_curated_HLC.csv')
     with codecs.open(file_to_open, 'r', encoding='utf8') as f:
         next(f)
         i = 0
@@ -578,7 +578,7 @@ def generate_curated_airway_map():
 
 
     # estimate all edge flows
-    file_to_open = Path('Data/Airport_pairs_curated_HLC.csv')
+    file_to_open = Path('Data/World/Air_Routes/Airport_pairs_curated_HLC.csv')
     with codecs.open(file_to_open, 'r', encoding='utf8') as f:
         '''IATA Airport 1,IATA Airport 2,,,Edge Flow,Comments'''
         next(f)
