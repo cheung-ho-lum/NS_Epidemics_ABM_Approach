@@ -177,7 +177,7 @@ def generate_NYC_subway_map():
             division_id = station_data[3]  # Division. These are not ints!
             _ = station_data[4]  # Line Caution!! Lines != Routes, not what you think it is!
             stop_name = station_data[5]  # Stop Name
-            _ = station_data[6]  # Borough
+            station_borough = station_data[6]  # Borough
             routes = station_data[7] # daytime(?) Routes
             _ = station_data[8]  #
             station_lat_y = float(station_data[9])  # Latitude
@@ -198,6 +198,7 @@ def generate_NYC_subway_map():
             subway_map.nodes[station_id]['pos'] = (station_long_x, station_lat_y)
             subway_map.nodes[station_id]['div'] = division_id
             subway_map.nodes[station_id]['name'] = stop_name
+            subway_map.nodes[station_id]['region'] = station_borough
 
             #Adding any transfers
             if complex_id in complex_dict:
@@ -350,17 +351,21 @@ def generate_NYC_subway_map():
 
     # I suppose the nice thing about python is I don't have too much to update if I need to return something new.
     update_flow_data(subway_map, 'Turnstile_Data.csv', complex_to_station_dict, date_start, date_end)
+    update_population_data(subway_map, location='NYC')
 
     NYC_TIMES_SQUARE = [11, 317, 467, 468]
     NYC_GRAND_CENTRAL = [465, 469, 402, ]
 
     for station_id in subway_map:
-        station_shortest_path = 999999
-        for dest_id in NYC_GRAND_CENTRAL + NYC_TIMES_SQUARE:
-            path_len = nx.algorithms.shortest_path_length(subway_map, station_id, dest_id)
-            if path_len < station_shortest_path:
-                station_shortest_path = path_len
-        subway_map.nodes[station_id]['commute_time'] = station_shortest_path + 1 # TODO: for central stations
+        #station_shortest_path = 999999
+        #for dest_id in NYC_GRAND_CENTRAL + NYC_TIMES_SQUARE:
+        #    path_len = nx.algorithms.shortest_path_length(subway_map, station_id, dest_id)
+        #    if path_len < station_shortest_path:
+        #        station_shortest_path = path_len
+
+        # subway_map.nodes[station_id]['commute_time'] = station_shortest_path + 1 # TODO: for central stations
+        sqrt_eccentricity = math.sqrt(nx.algorithms.distance_measures.eccentricity(subway_map,station_id))
+        subway_map.nodes[station_id]['commute_time'] = sqrt_eccentricity
 
     return subway_map, routes_and_stations
 
@@ -402,11 +407,48 @@ def update_flow_data(subway_map, flow_files, complex_to_station_dict, date_start
 
     # TODO: HACK ALERT! DUE TO ISSUES WITH COMPLEX/STATION DATA. REFERENCE COMPLEX_TO_STATION_DICT TODO:
     for station_id in subway_map.nodes():
+        station_name = subway_map.nodes[station_id]['name']
         if subway_map.nodes[station_id]['flow'] == 0:
-            subway_map.nodes[station_id]['flow'] = 600000
-            total_flow += 600000
+            estimated_flow = estimate_feature_from_nn(subway_map, 'flow', station_id, ignore_zeros=True)
+            subway_map.nodes[station_id]['flow'] = estimated_flow
+            total_flow += estimated_flow
+            #print('Flow estimate:', station_id, station_name, subway_map.nodes[station_id]['flow'])
+
     return total_flow
 
+def update_population_data(network, location='NYC', pop_files=None):
+    if location == 'NYC':
+        total_population = 0
+        #Just modify passenger flow by borough modifier pulled from [my @$$], I mean...
+        """https://psplvv-ctwprtla.nyc.gov/assets/planning/download/pdf/planning-level/housing-economy/nyc-ins-and-out-of-commuting.pdf"""
+        for n in network.nodes():
+            borough = network.nodes[n]['region']
+            if borough == EnvParams.BOROUGH_BRONX:
+                network.nodes[n]['population'] = network.nodes[n]['flow'] * 1.00
+            elif borough == EnvParams.BOROUGH_BROOKLYN:
+                network.nodes[n]['population'] = network.nodes[n]['flow'] * 1.00
+            elif borough == EnvParams.BOROUGH_MANHATTAN:
+                network.nodes[n]['population'] = network.nodes[n]['flow'] * 1.00
+            elif borough == EnvParams.BOROUGH_QUEENS:
+                network.nodes[n]['population'] = network.nodes[n]['flow'] * 1.00
+            else:
+                print('Borough ID error',n, borough)
+
+            total_population += network.nodes[n]['population']
+
+    print(total_population)
+
+def estimate_feature_from_nn(network, feature, node, ignore_zeros=True):
+    neighbors = list(nx.Graph.neighbors(network, node))
+    total_feature_value = 0
+    total_neighbors_counted = 0
+    for nn in neighbors:
+        feature_value = network.nodes[nn][feature]
+        if feature_value == 0 and ignore_zeros:
+            total_neighbors_counted -= 1  # discounts the counted neighbor TODO: kluuudgy
+        total_neighbors_counted += 1
+        total_feature_value += feature_value
+    return total_feature_value / total_neighbors_counted
 
 def generate_simple_triangle_map():
     """A fake subway. We'll need a naming convention for stations in the real one"""

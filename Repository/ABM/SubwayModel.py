@@ -11,7 +11,7 @@ class SubwayModel(TransportationModel):
     def __init__(self, subway_map, routing_dict):
         self._subway_graph = SubwayGraph(subway_map, routing_dict)
         self._agent_loc_dictionary = {}  # a dictionary of locations with lists of agents at each location
-        self.countermeasures = []
+        self.countermeasures = {}
         self.schedule = RandomActivation(self)
         # Create agents
         agent_id = 0
@@ -52,14 +52,18 @@ class SubwayModel(TransportationModel):
         infected = 0
         for a in self.schedule.agents:
             infected += a.population[AgentParams.STATUS_INFECTED]
-        if EnvParams.ISOLATION_COUNTERMEASURE not in active:
+        if EnvParams.ISOLATION_COUNTERMEASURE not in active.keys():
             if infected >= 5000:  # we have 20x the size of NYC atm
-                active.append(EnvParams.ISOLATION_COUNTERMEASURE)
+                active[EnvParams.ISOLATION_COUNTERMEASURE] = self.schedule.time
                 print('isolation countermeasure taken!')
-        if EnvParams.RECOMMENDATION_COUNTERMEASURE not in active:
+        if EnvParams.RECOMMENDATION_COUNTERMEASURE not in active.keys():
             if infected >= 500:  # we have 20x the size of NYC atm
-                active.append(EnvParams.RECOMMENDATION_COUNTERMEASURE)
+                active[EnvParams.RECOMMENDATION_COUNTERMEASURE] = self.schedule.time
                 print('recommendation countermeasure taken!')
+        if EnvParams.AWARENESS_COUNTERMEASURE not in active.keys():
+            if infected >= 500: # start awareness campaign
+                active[EnvParams.AWARENESS_COUNTERMEASURE] = self.schedule.time
+                print('awareness countermeasure taken!')
 
     def calculate_SEIR(self, print_results=False):
         sick, exposed, infected, recovered = 0, 0, 0, 0

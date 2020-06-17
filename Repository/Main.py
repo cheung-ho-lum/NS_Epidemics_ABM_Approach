@@ -73,7 +73,7 @@ for i in range(1, SimulationParams.RUN_SPAN + 1):
     if DisplayParams.DRAW_GRAPHS:
         vmax = 0.11  # TODO: minor, clean this up. it's color map encoding
         if SimulationParams.SIMULATION_TYPE == SimulationParams.SUBWAY_SIM:
-            vmax = 0.003
+            vmax = 0.004
 
         Graphics.draw_graph(nx_graph, DisplayParams.GRAPH_BY_FEATURE, timestamp=str(i),
                             map_type=map_type, vmax=0.003)

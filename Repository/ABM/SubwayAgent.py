@@ -1,3 +1,5 @@
+import math
+
 from ABM.SEIR_Agent import SEIR_Agent
 from Parameters import AgentParams
 from Parameters import EnvParams
@@ -42,16 +44,21 @@ class SubwayAgent(SEIR_Agent):
         # (TODO: in order to model countermeasures)
         infected = self._population[AgentParams.STATUS_INFECTED]
         #infected used temporarily to model non-compliance or self initiative
-        if EnvParams.ISOLATION_COUNTERMEASURE in self.model.countermeasures and infected > 10 or infected > 20:
+        if EnvParams.ISOLATION_COUNTERMEASURE in self.model.countermeasures.keys() and infected > 10 or infected > 20:
             self._epi_characteristics['beta'] = AgentParams.DEFAULT_BETA / 4  # People are infected slower
             self._epi_characteristics['gamma'] = AgentParams.DEFAULT_GAMMA * 2  # People are found faster
-        elif EnvParams.RECOMMENDATION_COUNTERMEASURE in self.model.countermeasures and infected > 1 or infected > 2:
+        elif EnvParams.RECOMMENDATION_COUNTERMEASURE in self.model.countermeasures.keys() and infected > 1 or infected > 2:
             self._epi_characteristics['beta'] = AgentParams.DEFAULT_BETA / 1.4  # People are infected slower
             self._epi_characteristics['gamma'] = AgentParams.DEFAULT_GAMMA * 1.4  # People are found faster
         else:
         #if EnvParams.ISOLATION_COUNTERMEASURE not in self.model.countermeasures:
             beta = AgentParams.DEFAULT_BETA + viral_load / 1e4  #
             self._epi_characteristics['beta'] = min(10, beta)  # limit beta to 10. This one should be from princess cruise number.
+
+        if EnvParams.AWARENESS_COUNTERMEASURE in self.model.countermeasures.keys():
+            elapsed_time = self.model.schedule.time - self.model.countermeasures[EnvParams.AWARENESS_COUNTERMEASURE]
+            awareness_modifier = max(15, 50 - elapsed_time) / 50 #originally 1 - e^(-x)
+            self._epi_characteristics['beta'] *= awareness_modifier  # And yet more random params from me
 
         # TODO: instead of commenting this section in and out, build it into an urban agent
         # complete exposure to outside world!
