@@ -73,10 +73,12 @@ for i in range(1, SimulationParams.RUN_SPAN + 1):
     if DisplayParams.DRAW_GRAPHS:
         vmax = 0.11  # TODO: minor, clean this up. it's color map encoding
         if SimulationParams.SIMULATION_TYPE == SimulationParams.SUBWAY_SIM:
-            vmax = 0.004
+            vmax = 0.0011
 
+        #Draws the graph. figure and model required if you want to draw the map as well
         Graphics.draw_graph(nx_graph, DisplayParams.GRAPH_BY_FEATURE, timestamp=str(i),
-                            map_type=map_type, vmax=0.003)
+                            map_type=map_type, figure=f, model=model, vmax=vmax)
+
         f.savefig("Visualizations/time" + f'{i:03}')
         if DisplayParams.ALWAYS_SHOW_GRAPH or (math.log2(i).is_integer() and DisplayParams.SHOW_EVERY_2X):
             plt.show()

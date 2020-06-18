@@ -34,6 +34,9 @@ https://experience.arcgis.com/experience/6f649c27b114410a8973ad671df707eb
 a REALLY detailed look at commuting statistics in NYC
 https://psplvv-ctwprtla.nyc.gov/assets/planning/download/pdf/planning-level/housing-economy/nyc-ins-and-out-of-commuting.pdf
 
+nyc turnstile statistics displayed
+https://toddwschneider.com/dashboards/nyc-subway-turnstiles/
+
 nyc pop data
 https://github.com/nychealth/coronavirus-data
 

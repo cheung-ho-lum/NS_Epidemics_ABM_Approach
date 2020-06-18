@@ -1,3 +1,5 @@
+from matplotlib.collections import PatchCollection
+from matplotlib.patches import Polygon
 from mpl_toolkits.basemap import Basemap as Basemap
 from itertools import count
 import matplotlib.pyplot as plt
@@ -23,9 +25,10 @@ import numpy as np
 
 
 def draw_graph(nx_graph, node_attr="type", timestamp="", vmin=0, vmax=0.11,
-               map_type=SimulationParams.MAP_TYPE_WORLD):
+               map_type=SimulationParams.MAP_TYPE_WORLD, figure=None, model=None):
     has_background_map = True
     if DisplayParams.DRAW_MAP:
+        ax = figure.add_subplot(111)
         if map_type == SimulationParams.MAP_TYPE_HLC_CURATED_WAN:
             m = Basemap(projection='merc', llcrnrlon=-180, llcrnrlat=-55, urcrnrlon=180,
                     urcrnrlat=65, lat_ts=0, resolution='l', suppress_ticks=True)
@@ -37,6 +40,41 @@ def draw_graph(nx_graph, node_attr="type", timestamp="", vmin=0, vmax=0.11,
             m.drawcountries(linewidth=1)
             m.drawcoastlines(linewidth=1)
             m.readshapefile('Data/NYC/Geographical/NYC_modzcta', 'NYC')
+
+            # Color the patches
+            patches = []
+            color_list = []
+
+            for info, shape in zip(m.NYC_info, m.NYC):
+                norm_hotspot = -1
+                #print(info)
+                modzcta = int(info['modzcta'])
+                zcta = info['zcta']
+                #print(modzcta, zcta) #zcta has multipe entries
+                patches.append(Polygon(np.array(shape), True))
+                zip2s = model.zip_to_station_dictionary
+                stations = []
+                if modzcta in zip2s:
+                    stations = zip2s[modzcta]
+                    norm_hotspot = nx_graph.nodes[stations[0]]['normalized_hotspot']
+
+                if norm_hotspot >= 0:
+                    vmax = 0.0011
+                    vmin - 0
+                    gradient = max(0, (vmax - norm_hotspot) / vmax)
+
+                    r_value = round(153 - 153 * (1 - gradient))
+                    g_value = round(255 - 153 * (1 - gradient))
+                    b_value = round(153 - 153 * (1 - gradient))
+                    hex_code = "#{0:02x}{1:02x}{2:02x}".format(r_value, g_value, b_value)
+                    color_list.append(hex_code)
+
+                else:  # coloring for staten island and other things like it
+                    color_list.append(r"#99FF99")
+
+            # colors go from ffffff to 660066
+            ax.add_collection(PatchCollection(patches, facecolor=color_list, edgecolor='k', linewidths=1., zorder=2))
+
         else:
             print('no background map found')
             has_background_map = False

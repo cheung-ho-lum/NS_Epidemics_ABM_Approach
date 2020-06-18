@@ -11,32 +11,44 @@ class SubwayModel(TransportationModel):
     def __init__(self, subway_map, routing_dict):
         self._subway_graph = SubwayGraph(subway_map, routing_dict)
         self._agent_loc_dictionary = {}  # a dictionary of locations with lists of agents at each location
+        self._zip_to_station_dictionary = {}
         self.countermeasures = {}
         self.schedule = RandomActivation(self)
         # Create agents
         agent_id = 0
         for loc in list(self.subway_graph.graph.nodes()):
+            # Add Agents
             agent_id += 1  # we will keep agent ids different from location for now.
             population = subway_map.nodes[loc]['population']
             a = SubwayAgent(agent_id, self, loc, population)
-            if loc == AgentParams.MAP_LOCATION_JUNCTION_BLVD or \
-                loc == AgentParams.MAP_LOCATION_55_ST or \
-                loc == AgentParams.MAP_LOCATION_98_BEACH: #TODO: this method of seeding is actually quite bad.
-                a.population[AgentParams.STATUS_EXPOSED] += 18
-                a.population[AgentParams.STATUS_INFECTED] += 2
+            if loc == AgentParams.MAP_LOCATION_JUNCTION_BLVD \
+                    or loc == AgentParams.MAP_LOCATION_55_ST \
+                    or loc == AgentParams.MAP_LOCATION_98_BEACH:  # TODO: this method of seeding is actually quite bad.
+                a.population[AgentParams.STATUS_EXPOSED] += population * 0.0002
+                a.population[AgentParams.STATUS_INFECTED] += population * 0.0001
                 a.population[AgentParams.STATUS_RECOVERED] += 0
-                a.population[AgentParams.STATUS_SUSCEPTIBLE] -= 20
+                a.population[AgentParams.STATUS_SUSCEPTIBLE] -= population * 0.0003
 
             self.schedule.add(a)
 
+            # Fill Zip-to-station dictionary
+            station_zip = subway_map.nodes[loc]['zip']
+            if station_zip in self._zip_to_station_dictionary:
+                self._zip_to_station_dictionary[station_zip].append(loc)
+            else:
+                self._zip_to_station_dictionary[station_zip] = [loc]
+
+
     # Decay the viral loads in the environment. just wipes them for now.
     def decay_viral_loads(self):
+        for a in self.schedule.agents:
+            self.subway_graph.graph.nodes[a.location]['infected'] = a.population[AgentParams.STATUS_INFECTED]
         nx.set_node_attributes(self.subway_graph.graph, 0, 'viral_load')
         return None
 
     def increment_viral_loads(self):
         for a in self.schedule.agents:
-            a.infect()
+            a.infect()  # Really, the model could do all this itself, but calling agents keeps with ABM philosophy
         return None
 
     def step(self):
@@ -82,4 +94,13 @@ class SubwayModel(TransportationModel):
     @subway_graph.setter
     def subway_graph(self, value):
         self._subway_graph = value
+
+    # TODO: I think this might actually be better at the graph level.
+    @property
+    def zip_to_station_dictionary(self):
+        return self._zip_to_station_dictionary
+
+    @zip_to_station_dictionary.setter
+    def zip_to_station_dictionary(self, value):
+        self._zip_to_station_dictionary = value
 

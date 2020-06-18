@@ -35,6 +35,8 @@ class TransportationModel(Model):
     # Decay the viral loads in the environment. just wipes them for now.
     def decay_viral_loads(self):
         nx.set_node_attributes(self._transportation_graph.graph, 0, 'viral_load')
+        for a in self.schedule.agents:
+            self._transportation_graph.graph.nodes[a.location]['infected'] = a.population[AgentParams.STATUS_INFECTED]
         return None
 
     def increment_viral_loads(self):

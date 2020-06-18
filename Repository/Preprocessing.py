@@ -1,4 +1,6 @@
 import datetime
+import random
+
 import networkx as nx
 from ABM.AirGraph import AirGraph
 from Parameters import EnvParams, SimulationParams
@@ -9,6 +11,9 @@ import codecs
 import csv
 import reverse_geocoder
 import numpy as np
+import geopy
+from geopy.geocoders import Nominatim
+from geopy.extra.rate_limiter import RateLimiter
 
 def get_benchmark_statistics(location, start_date):
     '''https://www1.nyc.gov/site/doh/covid/covid-19-data.page'''
@@ -182,6 +187,18 @@ def generate_NYC_subway_map():
             _ = station_data[8]  #
             station_lat_y = float(station_data[9])  # Latitude
             station_long_x = float(station_data[10])  # Longtitude
+            _ = station_data[11] #north label
+            _ = station_data[12] #south label
+            station_zip = int(station_data[13])
+
+            #done once to get the zip codes for all routes. Keeping this code for... posterity I guess.
+            #station 225, 315, 328, 330, 466, 468 errors. no zip code.
+            #some zips are weird and I went back and fixed them (station 115)
+            if station_id >= 700:
+                coordinates = (station_lat_y, station_long_x)
+                locator = Nominatim(user_agent='myGeocoder')
+                location = locator.reverse(coordinates)
+                print(station_id, location.raw['address']['postcode'])
 
             #TODO: turns out complexID + divid is not a unique identifier! see 467, 468
             complex_to_station_dict[(complex_id, division_id)] = station_id
@@ -199,6 +216,7 @@ def generate_NYC_subway_map():
             subway_map.nodes[station_id]['div'] = division_id
             subway_map.nodes[station_id]['name'] = stop_name
             subway_map.nodes[station_id]['region'] = station_borough
+            subway_map.nodes[station_id]['zip'] = station_zip
 
             #Adding any transfers
             if complex_id in complex_dict:
@@ -432,26 +450,41 @@ def update_population_flow_data(network, location='NYC', pop_files=None):
         # Manhattan 0.2074  0.60    0.34
         # Queens    0.2894  0.13    2.30
 
+        # total commuters should be about 3 million
         nyc_population = 7853000  # Population NOT on Staten Island
 
         multiplier = nyc_population / get_feature_sum(network, 'flow')
+        total_commuters = 0
         for n in network.nodes():
             #Update flow data
             flow = network.nodes[n]['flow'] * multiplier
             network.nodes[n]['flow'] = flow
 
-            #Write population data
+            #Write population and commuter data
+            # TODO: population data should be independent of flow data
+            # commuter ratio too...
+
             borough = network.nodes[n]['region']
             if borough == EnvParams.BOROUGH_BRONX:
                 network.nodes[n]['population'] = flow * 2.53
+                network.nodes[n]['commuter_ratio'] = 0.45 + 0.1 * random.random()
+                total_commuters += 0.5 * 2.53 * flow
             elif borough == EnvParams.BOROUGH_BROOKLYN:
                 network.nodes[n]['population'] = flow * 1.61
+                network.nodes[n]['commuter_ratio'] = 0.45 + 0.1 * random.random()
+                total_commuters += 0.5 * 1.61 * flow
             elif borough == EnvParams.BOROUGH_MANHATTAN:
                 network.nodes[n]['population'] = flow * 0.34
+                network.nodes[n]['commuter_ratio'] = 0.15 + 0.1 * random.random()
+                total_commuters += 0.1 * 0.34 * flow
             elif borough == EnvParams.BOROUGH_QUEENS:
                 network.nodes[n]['population'] = flow * 2.30
+                network.nodes[n]['commuter_ratio'] = 0.35 + 0.1 * random.random()
+                total_commuters += 0.5 * 2.30 * flow
             else:
                 print('Borough ID error', n, borough)
+
+        #print(total_commuters) #this should be about 3 million, total ridership should be 7 million
 
 def get_feature_sum(network, feature):
     feature_total = 0
