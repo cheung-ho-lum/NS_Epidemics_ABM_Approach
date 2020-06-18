@@ -351,21 +351,23 @@ def generate_NYC_subway_map():
 
     # I suppose the nice thing about python is I don't have too much to update if I need to return something new.
     update_flow_data(subway_map, 'Turnstile_Data.csv', complex_to_station_dict, date_start, date_end)
-    update_population_data(subway_map, location='NYC')
+    update_population_flow_data(subway_map, location='NYC')
 
     NYC_TIMES_SQUARE = [11, 317, 467, 468]
     NYC_GRAND_CENTRAL = [465, 469, 402, ]
 
     for station_id in subway_map:
-        #station_shortest_path = 999999
-        #for dest_id in NYC_GRAND_CENTRAL + NYC_TIMES_SQUARE:
-        #    path_len = nx.algorithms.shortest_path_length(subway_map, station_id, dest_id)
-        #    if path_len < station_shortest_path:
-        #        station_shortest_path = path_len
+        station_shortest_path = 999999
+        for dest_id in NYC_GRAND_CENTRAL + NYC_TIMES_SQUARE:
+            path_len = nx.algorithms.shortest_path_length(subway_map, station_id, dest_id)
+            if path_len < station_shortest_path:
+                station_shortest_path = path_len
 
-        # subway_map.nodes[station_id]['commute_time'] = station_shortest_path + 1 # TODO: for central stations
-        sqrt_eccentricity = math.sqrt(nx.algorithms.distance_measures.eccentricity(subway_map,station_id))
-        subway_map.nodes[station_id]['commute_time'] = sqrt_eccentricity
+        subway_map.nodes[station_id]['commute_time'] = station_shortest_path + 1
+
+        #TODO: this sucks a bit.
+        #sqrt_eccentricity = math.sqrt(nx.algorithms.distance_measures.eccentricity(subway_map,station_id))
+        #subway_map.nodes[station_id]['commute_time'] = sqrt_eccentricity
 
     return subway_map, routes_and_stations
 
@@ -416,27 +418,46 @@ def update_flow_data(subway_map, flow_files, complex_to_station_dict, date_start
 
     return total_flow
 
-def update_population_data(network, location='NYC', pop_files=None):
+def update_population_flow_data(network, location='NYC', pop_files=None):
+    """creates population data, normalizes flow to population"""
     if location == 'NYC':
-        total_population = 0
+        population_bx, population_bk, population_m, population_q = 0, 0, 0, 0
+
         #Just modify passenger flow by borough modifier pulled from [my @$$], I mean...
         """https://psplvv-ctwprtla.nyc.gov/assets/planning/download/pdf/planning-level/housing-economy/nyc-ins-and-out-of-commuting.pdf"""
+
+        # Percentage of total population and flow percentage
+        # Bronx     0.1806  0.07    2.53
+        # Brooklyn  0.3226  0.20    1.61
+        # Manhattan 0.2074  0.60    0.34
+        # Queens    0.2894  0.13    2.30
+
+        nyc_population = 7853000  # Population NOT on Staten Island
+
+        multiplier = nyc_population / get_feature_sum(network, 'flow')
         for n in network.nodes():
+            #Update flow data
+            flow = network.nodes[n]['flow'] * multiplier
+            network.nodes[n]['flow'] = flow
+
+            #Write population data
             borough = network.nodes[n]['region']
             if borough == EnvParams.BOROUGH_BRONX:
-                network.nodes[n]['population'] = network.nodes[n]['flow'] * 1.00
+                network.nodes[n]['population'] = flow * 2.53
             elif borough == EnvParams.BOROUGH_BROOKLYN:
-                network.nodes[n]['population'] = network.nodes[n]['flow'] * 1.00
+                network.nodes[n]['population'] = flow * 1.61
             elif borough == EnvParams.BOROUGH_MANHATTAN:
-                network.nodes[n]['population'] = network.nodes[n]['flow'] * 1.00
+                network.nodes[n]['population'] = flow * 0.34
             elif borough == EnvParams.BOROUGH_QUEENS:
-                network.nodes[n]['population'] = network.nodes[n]['flow'] * 1.00
+                network.nodes[n]['population'] = flow * 2.30
             else:
-                print('Borough ID error',n, borough)
+                print('Borough ID error', n, borough)
 
-            total_population += network.nodes[n]['population']
-
-    print(total_population)
+def get_feature_sum(network, feature):
+    feature_total = 0
+    for n in network.nodes():
+        feature_total += network.nodes[n][feature]
+    return feature_total
 
 def estimate_feature_from_nn(network, feature, node, ignore_zeros=True):
     neighbors = list(nx.Graph.neighbors(network, node))

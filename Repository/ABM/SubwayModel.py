@@ -17,17 +17,16 @@ class SubwayModel(TransportationModel):
         agent_id = 0
         for loc in list(self.subway_graph.graph.nodes()):
             agent_id += 1  # we will keep agent ids different from location for now.
-            loc_passenger_flow = self.subway_graph.graph.nodes[loc]['flow']
-            if loc_passenger_flow == 0:
-                print('making up passenger flow (10000) for location', loc)
-                loc_passenger_flow = 10000
-            population = loc_passenger_flow / 30  #TODO: population is currently just flow / 30 when we could do better
+            population = subway_map.nodes[loc]['population']
             a = SubwayAgent(agent_id, self, loc, population)
-            if loc == AgentParams.MAP_LOCATION_JUNCTION_BLVD: #TODO: this method of seeding is actually quite bad.
-                a.population[AgentParams.STATUS_EXPOSED] += 10
-                a.population[AgentParams.STATUS_INFECTED] += 10
+            if loc == AgentParams.MAP_LOCATION_JUNCTION_BLVD or \
+                loc == AgentParams.MAP_LOCATION_55_ST or \
+                loc == AgentParams.MAP_LOCATION_98_BEACH: #TODO: this method of seeding is actually quite bad.
+                a.population[AgentParams.STATUS_EXPOSED] += 18
+                a.population[AgentParams.STATUS_INFECTED] += 2
                 a.population[AgentParams.STATUS_RECOVERED] += 0
                 a.population[AgentParams.STATUS_SUSCEPTIBLE] -= 20
+
             self.schedule.add(a)
 
     # Decay the viral loads in the environment. just wipes them for now.
@@ -61,7 +60,7 @@ class SubwayModel(TransportationModel):
                 active[EnvParams.RECOMMENDATION_COUNTERMEASURE] = self.schedule.time
                 print('recommendation countermeasure taken!')
         if EnvParams.AWARENESS_COUNTERMEASURE not in active.keys():
-            if infected >= 500: # start awareness campaign
+            if infected >= 500:  # start awareness campaign
                 active[EnvParams.AWARENESS_COUNTERMEASURE] = self.schedule.time
                 print('awareness countermeasure taken!')
 

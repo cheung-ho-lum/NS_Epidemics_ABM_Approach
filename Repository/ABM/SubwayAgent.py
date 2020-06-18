@@ -48,30 +48,38 @@ class SubwayAgent(SEIR_Agent):
             self._epi_characteristics['beta'] = AgentParams.DEFAULT_BETA / 4  # People are infected slower
             self._epi_characteristics['gamma'] = AgentParams.DEFAULT_GAMMA * 2  # People are found faster
         elif EnvParams.RECOMMENDATION_COUNTERMEASURE in self.model.countermeasures.keys() and infected > 1 or infected > 2:
-            self._epi_characteristics['beta'] = AgentParams.DEFAULT_BETA / 1.4  # People are infected slower
-            self._epi_characteristics['gamma'] = AgentParams.DEFAULT_GAMMA * 1.4  # People are found faster
-        else:
-        #if EnvParams.ISOLATION_COUNTERMEASURE not in self.model.countermeasures:
-            beta = AgentParams.DEFAULT_BETA + viral_load / 1e4  #
-            self._epi_characteristics['beta'] = min(10, beta)  # limit beta to 10. This one should be from princess cruise number.
+            self._epi_characteristics['beta'] = AgentParams.DEFAULT_BETA / 1.5  # People are infected slower
+            self._epi_characteristics['gamma'] = AgentParams.DEFAULT_GAMMA * 1.5  # People are found faster
 
         if EnvParams.AWARENESS_COUNTERMEASURE in self.model.countermeasures.keys():
             elapsed_time = self.model.schedule.time - self.model.countermeasures[EnvParams.AWARENESS_COUNTERMEASURE]
-            awareness_modifier = max(15, 50 - elapsed_time) / 50 #originally 1 - e^(-x)
+            """ (1/(1+exp(-kx))^a """
+            param_k = 0.06 #Bigger = faster
+            param_a = 5.00 # Smaller = steeper
+            param_cap = 0.90
+            awareness_modifier = 1 - param_cap * pow((1 / (1 + math.exp(- param_k * elapsed_time))), param_a)
+            # print(elapsed_time, awareness_modifier)
             self._epi_characteristics['beta'] *= awareness_modifier  # And yet more random params from me
 
-        # TODO: instead of commenting this section in and out, build it into an urban agent
-        # complete exposure to outside world!
-        FULL_SPREAD_FACTOR = 0.7
+        beta = self._epi_characteristics['beta']
+        beta_subway_commuters = min(8, beta + viral_load / 1e4) #limit beta to 8 from princess
+        subway_map = self.model.subway_graph.graph
+        commuter_fraction = subway_map.nodes[self.location]['flow'] / subway_map.nodes[self.location]['population']
+        weighted_beta = beta * (1 - commuter_fraction) + beta_subway_commuters * (commuter_fraction)
+
+        #else:
+        #if EnvParams.ISOLATION_COUNTERMEASURE not in self.model.countermeasures:
+        #    beta = AgentParams.DEFAULT_BETA + viral_load / 1e4  #
+        #    self._epi_characteristics['beta'] = min(10, beta)  # limit beta to 10. This one should be from princess cruise number.
 
         susceptible = self._population[AgentParams.STATUS_SUSCEPTIBLE]
         SEIR_numbers = self.model.calculate_SEIR()
         outside_infected = SEIR_numbers[2] - self.population[AgentParams.STATUS_INFECTED]
         normalization_factor = sum(SEIR_numbers)
 
-        self._population[AgentParams.STATUS_SUSCEPTIBLE] -= FULL_SPREAD_FACTOR * \
+        self._population[AgentParams.STATUS_SUSCEPTIBLE] -= AgentParams.GLOBAL_FACTOR_NYC_SUBWAY * \
             self._epi_characteristics['beta'] * susceptible * outside_infected / normalization_factor
-        self._population[AgentParams.STATUS_EXPOSED] += FULL_SPREAD_FACTOR * \
+        self._population[AgentParams.STATUS_EXPOSED] += AgentParams.GLOBAL_FACTOR_NYC_SUBWAY * \
             self._epi_characteristics['beta'] * susceptible * outside_infected / normalization_factor
 
         super().update_agent_health()
