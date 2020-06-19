@@ -85,9 +85,9 @@ class SubwayAgent(SEIR_Agent):
         if EnvParams.AWARENESS_COUNTERMEASURE in self.model.countermeasures.keys():
             elapsed_time = self.model.schedule.time - self.model.countermeasures[EnvParams.AWARENESS_COUNTERMEASURE]
             """ (1/(1+exp(-kx))^a """
-            param_k = 0.20  # Bigger = faster
+            param_k = 0.16  # Bigger = faster, shallower?
             param_a = 1.5  # Smaller = more shallow
-            param_cap = 0.75
+            param_cap = 0.77
             awareness_modifier = 1 - param_cap * pow((1 / (1 + math.exp(- param_k * elapsed_time))), param_a)
             # print(elapsed_time, awareness_modifier)
             self._epi_characteristics['beta'] *= awareness_modifier  # And yet more random params from me
