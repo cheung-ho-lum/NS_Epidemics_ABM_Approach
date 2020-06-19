@@ -46,7 +46,19 @@ elif SimulationParams.SIMULATION_TYPE == SimulationParams.AIR_SIM:
                 print(cc)
 
     model = AirModel.AirModel(g_airway_map)
+elif SimulationParams.SIMULATION_TYPE == SimulationParams.TRAIN_SIM:
+    g_subway_map, routing_dict = Preprocessing.get_subway_map(SimulationParams.MAP_TYPE_TREN_MADRID)
 
+    print('Total order:', len(g_subway_map.nodes()))
+    num_connected_components = nx.algorithms.components.number_connected_components(g_subway_map)
+    print('NCC:', num_connected_components)  # if this is >1, we have a problem
+
+    if num_connected_components > 1:  # TODO: this goes in preprocessing
+        print("Warning: graph not connected. Picking GCC")
+        cc_list = sorted(nx.connected_components(g_subway_map), key=len, reverse=True)  # largest first
+        g_subway_map = g_subway_map.subgraph((cc_list[0]))
+
+    model = SubwayModel.SubwayModel(g_subway_map, routing_dict)
 
 SEIR_Statistics = np.zeros(shape=(SimulationParams.RUN_SPAN + 1, 5))  # reminder: np is zero indexed
 SEIR_Statistics[0, 0] = 0
@@ -67,6 +79,9 @@ for i in range(1, SimulationParams.RUN_SPAN + 1):
     elif SimulationParams.SIMULATION_TYPE == SimulationParams.AIR_SIM:
         nx_graph = model.airway_graph.graph
         map_type = SimulationParams.MAP_TYPE_HLC_CURATED_WAN
+    elif SimulationParams.SIMULATION_TYPE == SimulationParams.TRAIN_SIM:
+        nx_graph = model.subway_graph.graph
+        map_type = SimulationParams.MAP_TYPE_TREN_MADRID
     else:
         print('Error: Unknown Simulation Type')
 
@@ -74,6 +89,8 @@ for i in range(1, SimulationParams.RUN_SPAN + 1):
         vmax = 0.11  # TODO: minor, clean this up. it's color map encoding
         if SimulationParams.SIMULATION_TYPE == SimulationParams.SUBWAY_SIM:
             vmax = 0.0011
+        elif SimulationParams.SIMULATION_TYPE == SimulationParams.TRAIN_SIM:
+            vmax = 0.0007
 
         #Draws the graph. figure and model required if you want to draw the map as well
         Graphics.draw_graph(nx_graph, DisplayParams.GRAPH_BY_FEATURE, timestamp=str(i),

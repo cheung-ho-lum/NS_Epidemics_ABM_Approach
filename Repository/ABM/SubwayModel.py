@@ -29,6 +29,13 @@ class SubwayModel(TransportationModel):
                 a.population[AgentParams.STATUS_RECOVERED] += 0
                 a.population[AgentParams.STATUS_SUSCEPTIBLE] -= population * 0.0003
 
+            elif loc == AgentParams.MAP_LOCATION_COLMENAR_VIEJO:
+                a.population[AgentParams.STATUS_EXPOSED] += population * 0.0002
+                a.population[AgentParams.STATUS_INFECTED] += population * 0.0001
+                a.population[AgentParams.STATUS_RECOVERED] += 0
+                a.population[AgentParams.STATUS_SUSCEPTIBLE] -= population * 0.0003
+
+
             self.schedule.add(a)
 
             # Fill Zip-to-station dictionary

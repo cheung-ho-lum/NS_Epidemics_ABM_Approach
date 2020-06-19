@@ -74,6 +74,23 @@ def draw_graph(nx_graph, node_attr="type", timestamp="", vmin=0, vmax=0.11,
 
             # colors go from ffffff to 660066
             ax.add_collection(PatchCollection(patches, facecolor=color_list, edgecolor='k', linewidths=1., zorder=2))
+        elif map_type == SimulationParams.MAP_TYPE_TREN_MADRID:
+            print('mapping madrid')
+            m = Basemap(projection='merc', llcrnrlon=-4.14, llcrnrlat=40.15, urcrnrlon=-3.29,
+                    urcrnrlat=40.83, lat_ts=0, resolution='h', suppress_ticks=True)
+
+            m.readshapefile('Data/madrid/Geographical/espania', 'Madrid')
+
+            # Color the patches
+            patches = []
+            color_list = []
+
+            for info, shape in zip(m.Madrid_info, m.Madrid):
+                patches.append(Polygon(np.array(shape), True))
+                color_list.append(r"#99FF99")
+
+            # colors go from ffffff to 660066
+            ax.add_collection(PatchCollection(patches, facecolor=color_list, edgecolor='k', linewidths=1., zorder=2))
 
         else:
             print('no background map found')
@@ -97,12 +114,17 @@ def draw_graph(nx_graph, node_attr="type", timestamp="", vmin=0, vmax=0.11,
     colors = [mapping[nx_graph.nodes[n][node_attr]] for n in nodes]
     if 'normalized' in node_attr:
         colors = list(nx.get_node_attributes(nx_graph, node_attr).values())
-        #print(max(colors)) #use to get an idea what vmax is.
+        print(max(colors)) #use to get an idea what vmax is.
     pos = nx.get_node_attributes(nx_graph, 'pos')
     if len(pos) == 0:
         pos = nx.spring_layout(nx_graph, seed=SimulationParams.GRAPH_SEED)
+
+    edgelist = []
+    if SimulationParams.SIMULATION_TYPE == SimulationParams.TRAIN_SIM:
+        edgelist = list(nx_graph.edges)
+
     nx.draw_networkx(nx_graph, node_size=node_sizes, with_labels=False, width=0.1, node_color=colors, pos=pos,
-                     cmap=plt.cm.jet, vmin=vmin, vmax=vmax, edgelist=[]) #edgelist = none for airports for now.
+                     cmap=plt.cm.jet, vmin=vmin, vmax=vmax, edgelist=edgelist) #edgelist = none for airports for now.
 
     if len(timestamp) > 0:
         plt.title(node_attr + ' t=' + timestamp)
@@ -137,12 +159,12 @@ def draw_SEIR_curve(statistics, fig, benchmark_SEIR=None):
     benchmark_max = 0
     if len(benchmark_SEIR) > 0:
         benchmark_max = np.max(benchmark_SEIR[..., 3])
-        y_lim = max(np.max(statistics[0, 3:]),
-                    np.max(statistics[0, 4:]),
+        y_lim = max(np.max(statistics[..., 3:]),
+                    np.max(statistics[..., 4:]),
                     benchmark_max
                     )  # y lim now based on maximum of a few possible statistics.
     else:
-        y_lim = np.max(statistics[0, 1:5])
+        y_lim = np.max(statistics[..., 2:5])  # *HLC 19.06 - y lim now ignores S statistic
     ax.set_ylim(0, y_lim)
     ax.yaxis.set_tick_params(length=0)
     ax.xaxis.set_tick_params(length=0)

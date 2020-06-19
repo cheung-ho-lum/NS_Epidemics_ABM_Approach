@@ -44,121 +44,93 @@ def get_benchmark_statistics(location, start_date):
 
 def generate_cercanias_map():
 
-    file_to_open = Path('Data/madrid/station_coords.csv')
+    file_to_open = Path('Data/madrid/trains/station_list.csv')
     subway_map = nx.Graph()
 
     routes_and_stations = {}
     complex_to_station_dict = {}
-    """"""
+    """ CÓDIGO	DESCRIPCION	LATITUD	LONGITUD	DIRECCIÓN	C.P.	POBLACION	PROVINCIA	Fichas	Túneles lavado"""
     with open(file_to_open, 'r') as f:
         next(f)  # skip header row
         for row in f:
-            station_data = row.split(',')
-            station_id = int(station_data[0])  # station id as int (we'll try to keep this convention)
-            complex_id = station_data[1]  # complex
-            _ = station_data[2]  # GTFS Stop ID
-            division_id = station_data[3]  # Division. These are not ints!
-            _ = station_data[4]  # Line Caution!! Lines != Routes, not what you think it is!
-            stop_name = station_data[5]  # Stop Name
-            station_borough = station_data[6]  # Borough
-            routes = station_data[7] # daytime(?) Routes
-            _ = station_data[8]  #
-            station_lat_y = float(station_data[9])  # Latitude
-            station_long_x = float(station_data[10])  # Longtitude
-            _ = station_data[11] #north label
-            _ = station_data[12] #south label
-            station_zip = int(station_data[13])
+            station_data = row.split(';')
+            station_id = int(station_data[0])  # station code
+            station_name = station_data[1]  # description
+            station_lat_y = float(station_data[2])  # Latitude
+            station_long_x = float(station_data[3])  # Longtitude
+            _ = station_data[4]  # Direction? ??
+            station_zip = int(station_data[5])  # probably codigo postal (postal code). Wish NYC did this.
+            station_region = station_data[6]  # poblacion? probably region
+            _ = station_data[7]  # province (pretty much madrid with a few exceptions)
 
-            #done once to get the zip codes for all routes. Keeping this code for... posterity I guess.
-            #station 225, 315, 328, 330, 466, 468 errors. no zip code.
-            #some zips are weird and I went back and fixed them (station 115)
-            if station_id >= 700:
+
+            if station_id >= 9999999:
                 coordinates = (station_lat_y, station_long_x)
                 locator = Nominatim(user_agent='myGeocoder')
                 location = locator.reverse(coordinates)
-                print(station_id, location.raw['address']['postcode'])
-
-            #TODO: turns out complexID + divid is not a unique identifier! see 467, 468
-            complex_to_station_dict[(complex_id, division_id)] = station_id
-
-            # We're not counting Staten Island
-            if 'SIR' in routes:
-                continue
+                print(station_id, location.raw['address']['postcode'], station_zip, station_region)
 
             #Adding Station
             subway_map.add_node(station_id)
-            subway_map.nodes[station_id]['routes'] = routes.split()
+            subway_map.nodes[station_id]['routes'] = []
             subway_map.nodes[station_id]['x'] = station_long_x
             subway_map.nodes[station_id]['y'] = station_lat_y
             subway_map.nodes[station_id]['pos'] = (station_long_x, station_lat_y)
-            subway_map.nodes[station_id]['div'] = division_id
-            subway_map.nodes[station_id]['name'] = stop_name
-            subway_map.nodes[station_id]['region'] = station_borough
+            subway_map.nodes[station_id]['div'] = 'nodiv'
+            subway_map.nodes[station_id]['name'] = station_name
+            subway_map.nodes[station_id]['region'] = station_region
             subway_map.nodes[station_id]['zip'] = station_zip
 
-            #Adding any transfers
-            if complex_id in complex_dict:
-                for transfer_station_id in complex_dict[complex_id]:
-                    subway_map.add_edge(transfer_station_id, station_id)
-                complex_dict[complex_id].append(station_id)
-            else:
-                complex_dict[complex_id] = [station_id]
+    #Adding routes and edges
+    file_to_open = Path('Data/madrid/parsed/madrid_our_routing_simple.csv')
+    with open(file_to_open, 'r') as f:
+        """Station Id,Station Name,Route,Stop Order,CIVIS Stop Order,Reverse Order,CIVIS Reverse"""
+        next(f)
+        previous_station = -1
+        for row in f:
+            station_data = row.split(',')
+            station_id = int(station_data[0])
+            station_name = station_data[1]
+            station_route = station_data[2]
+            station_stop_order = station_data[3]
+            station_civis_order = station_data[4]  # TODO? we won't build CIVIS routes for now
 
-            #Adding edges between stations
-            # TODO: this is crappy programming, but, besides geolocation, there's no good way to discover direct connections
-            """ok here's what we actually do: we add the station and their xy coords to a list by route
-            we order the routes by xy position (look up how to, but euclidean probably suffices) 
-            we build those and only those edges"""
-            # you know, this doesn't even guarantee correctness. just logical correctness.
+            routes_and_stations.setdefault(station_route, []).append(station_id)
 
-            for route in routes.split():
-                if route not in routes_and_stations:
-                    routes_and_stations[route] = [station_id]
-                else:
-                    routes_and_stations[route].append(station_id)
+            #ignore stations not on the route for linkage?
+            if len(station_stop_order) > 0:
+                station_stop_order = int(station_stop_order)
+                if station_stop_order > 0:  # not a terminal station (or rather the terminal at 0)
+                    subway_map.add_edge(previous_station, station_id)
 
-    build_edges_from_file = True
-    # Builds the edges between stations based on our own listing of correct edges between stations
-    # The first column in each row is the route name or a fake route name
-    # successor columns are consecutive stations. just link em up
-    # TODO: note that in ods, racepark or aqueduct or something is not fixed.
-    if build_edges_from_file:
-        file_fixed_routings = Path('Data/NYC/Subway/Fixed_Routings.csv')
-        with open(file_fixed_routings, 'r') as f_routes:
-            for row in f_routes:
-                route_data = row.split(',')[1:]
-                previous_station = -1
-                for station in route_data:
-                    if previous_station != -1:
-                        subway_map.add_edge(int(previous_station), int(station))
-                    previous_station = station
+                previous_station = station_id
 
-
-
-
+    #Setting some default node attributes
     nx.set_node_attributes(subway_map, EnvParams.NODE_TYPE_STATION, 'type')
     nx.set_node_attributes(subway_map, 0, 'viral_load')
     nx.set_node_attributes(subway_map, 0, 'flow')
 
-    # TODO: Of course these should be model params, but we haven't the least  idea how to use them yet.
-    date_start = datetime.datetime(2020, 3, 1, 0, 0)  # inclusive
-    date_end = datetime.datetime(2020, 3, 21, 0, 0)  # inclusive
 
-    # I suppose the nice thing about python is I don't have too much to update if I need to return something new.
-    update_flow_data(subway_map, 'Turnstile_Data.csv', complex_to_station_dict, date_start, date_end)
-    update_population_flow_data(subway_map, location='NYC')
 
-    NYC_TIMES_SQUARE = [11, 317, 467, 468]
-    NYC_GRAND_CENTRAL = [465, 469, 402, ]
+    #update flow and population data
+    # TODO: actually do
+    nx.set_node_attributes(subway_map, 100000, 'flow')
+    nx.set_node_attributes(subway_map, 100000, 'population')
+    nx.set_node_attributes(subway_map, 0.5, 'commuter_ratio')
+
+
+    #update_flow_data(subway_map, 'Turnstile_Data.csv', complex_to_station_dict, date_start, date_end)
+    #update_population_flow_data(subway_map, location='NYC')
+
+    MADRID_CENTER = [18000] # Cercanias central stations. atocha only.
 
     for station_id in subway_map:
         station_shortest_path = 999999
-        for dest_id in NYC_GRAND_CENTRAL + NYC_TIMES_SQUARE:
+        for dest_id in MADRID_CENTER:
             path_len = nx.algorithms.shortest_path_length(subway_map, station_id, dest_id)
             if path_len < station_shortest_path:
                 station_shortest_path = path_len
-
-        subway_map.nodes[station_id]['commute_time'] = station_shortest_path + 1
+        subway_map.nodes[station_id]['commute_time'] = (station_shortest_path + 1)*(station_shortest_path + 1)
 
     return subway_map, routes_and_stations
 
@@ -668,6 +640,9 @@ def get_subway_map(map_type):
         return generate_geometric_map('grid')
     if map_type == SimulationParams.MAP_TYPE_MOSCOW:
         return generate_moskva_subway_map()
+    if map_type == SimulationParams.MAP_TYPE_TREN_MADRID:
+        return generate_cercanias_map()
+
     return subway_map
 
 def generate_fake_world_map():
