@@ -76,25 +76,43 @@ Our findings that [insert findings here] should interest public health officials
 \subsection*{Epidemics and COVID-19}
 Coronavirus disease 2019 (COVID-19) is a disease caused by the SARS-CoV-2 coronavirus. Since being identified in December 2019, it has been labelled by the WHO as a pandemic, and spread around the world. Epidemics such as the 'coronavirus' have been a subject of research for centuries, and is of special interest to those working in public health. Recent waves of new research came in 2002 (SARS), 2009 (H1N1), and 2014 (Ebola). However, in these prior epidemics, researchers did not have access to as much data as we have currently. In recent years, the state of data science research tools have also greatly improved, allowing researchers to answer questions in novel ways, but following the scientific method. In this paper, we will try to respect the expertise of public health researchers, medical professionals, and the general public by being conservative when making conclusions.
 
-\subsection*{The Seeding of COVID-19 in NYC}
-\textit{Writer's note... ok. calling it seeding is overly negative about the original article\\}
+\subsection*{COVID-19 in NYC}
 In addition to general background knowledge about COVID-19, it would behoove the reader to know about the early spread of the disease in New York. Analysis of viral RNA in patients at the Mount Sinai Health System[\textbf{citation}] has lead researchers to conclude that the virus first came into the community through "multiple, independent but isolated introductions" from Europe and elsewhere in the USA. Below we have also given an approximate timeline of some of the most relevant events as of June 1st, 2020. We would also like to note that as forensic researchers begin examining the data, some significant new dates or corrections may arise:\\ 
-\textit{Writer's Note: not working so hard on this because we might not need it.}\\
-Feb 25 - Some guy came back from Iran\\
-Mar 3 - First P2P spread\\
-Mar 9 - 16 confirmed cases\\
-Mar 9 (Approx.) - Metro ridership starts decreasing\\
-Mar 16 - schools close. Measures already taken.\\
-\textit{Writer's note: i.e. I'm uninterested, but depending on what research route we take (i.e. quarantine measures), this all may be relevant. }\\
-Mar 18? - PAUSE government order to shelter in place\\
+\begin{itemize}
+	\item February 25 - First positive test in NYC from a 39 year-old female healthcare worker flying back from Iran.
+	\item March 3 - First confirmed P2P spread in NYC.
+	\item March 9 - Mayor holds press conference and notes that there have been 16 confirmed cases.
+	\item March 12 - Mayor declares a local state of emergency.
+	\item March 15 - Schools officially close.
+	\item March 22 - State order (PAUSE) to shelter in place comes into effect.
+\end{itemize}
+\subsection*{COVID-19 and NYC Public Transportation}
+Meanwhile, here is a graphic of the metro ridership from scheider.com...
+
 \subsection*{Epidemic Modeling}
-\textit{Blah blah blah. I would like to briefly acknowledge the superiority of statistical modeling for the purpose of forecasting.}
+There are two basic types of modeling for epidemics. Statistical and Mechanistic. While statistical modeling has typically given more accurate forecasts for a well-known situation [citation needed], mechanistic models such as the SIR and SEIR compartmental models help to explain why phenomena such as epidemics spread the way they do, and what impact various policy decisions will have on the result.
 \subsection*{SEIR Model}
-[Some explanation of SEIR goes here]\\
-\textit{Writer's note: I think SEIR is not great for covid. But it's somewhat useful for modeling interventions. Also the fact that poop has already hit the fan when you detect patient zero}
+As we will be using the SEIR model in our research, we will cover it briefly here. The SEIR compartmental model is a mathematical modeling of infectious diseases where a closed population of people move successively from compartments suspected to exposed to infected and to removed. We briefly provide an explanation of each compartment and leave the equations below.
+\begin{itemize}
+	\item Susceptible - These people are susceptible to getting the disease from someone infected.
+	\item Exposed - These people are no longer susceptible to the disease, and do not infect others. After a latent period, they become infectious.
+	\item Infected - These people will spread the disease to susceptible people. After a period of time they are removed by recovery, hospitalization, death.
+	\item Removed - Sometimes known as resistant or recovered. We will do our modeling with the term 'removed'. These people are no longer spreading the disease.
+\end{itemize}
+\textit{Writer's note: just take the equations from someone's overleaf}
+\begin{align*}
+dS/dt \\
+ds/dt = - beta * s(t) * i(t) \\
+de/dt = beta * s(t) * i(t) - alpha * e(t) \\
+di/dt = alpha * e(t) - gamma * i(t) \\
+dr/dt = gamma * i(t) \\
+S + E + I + R = 1 \\
+\end{align*}
 \subsection*{Newer Compartmental Models}
-\textit{Writer's note: We're looking into more advanced models (see bibliography). The key additions are 'super-spreaders' and 'asymptomatic'. At the end of the day, we just need pure mathematically modeling to provide some parameters for how agents should behave.} 
-\subsection*{Epidemics on Networks}
+While we have done some research into more advanced models and are interested in cases such as super-spreaders, we believe the SEIR model to be sufficient for the modeling done in this paper. Basic SIR is insufficient because public health officials often make policy decisions based on positive case numbers. For example, an official may decide to impose strict isolation only after 100 positive cases. But by the time there are 100 cases of 'infected' people, there may be 1000 exposed people who will meaningfully impact epidemic statistics.
+\subsection*{Epidemics on Transportation Networks}
+\textit{Writer's Note: epidemics on social networks blah blah linear threshold}
+\textit{epidemics on transportation networks a little different, passenger flow is one of the most important numbers}
 \subsection*{Agent Based Models}
 It's just a tool. like any model. Simulating agents in an environment. Key parameters are agent, model, and environment parameters. For example, we have the following list thus far:\\
 \begin{verbatim}
@@ -110,8 +128,9 @@ It's just a tool. like any model. Simulating agents in an environment. Key param
 \end{verbatim}
 The environment is new york subway mapped as a network.\\ 
 All of this is still being discussed.\\
-\subsection*{Urban Transportation Networks and Epidemics}
-\subsection*{Subways and subway nomenclature}
+\subsection*{Transportation Networks and Epidemics}
+\subsection*{Airlines}
+\subsection*{Subways and Subway Nomenclature}
 This guy is indispensable for figuring out how to parse some of this data:\\
 \url{https://en.wikipedia.org/wiki/New_York_City_Subway_nomenclature}\\
 \textbf{The key is lines and routes}\\
@@ -126,7 +145,7 @@ This guy is indispensable for figuring out how to parse some of this data:\\
 \textit{making edges. GTFS Data... no we do it ourselves\\}
 \subsection*{MTA Turnstile Data}
 \textit{discuss format. every 4 hours, every machine. aggregation.\\}
-\section*{Results}
+\section*{Fitting the data}
 \includegraphics[width = 1.0\textwidth]{Scratch_Visuals/Preliminary_Modeling.png}
 \section*{Conclusion}
 \textbf{\textit{Writer's Note: All Models are Wrong, Some are Useful}}
