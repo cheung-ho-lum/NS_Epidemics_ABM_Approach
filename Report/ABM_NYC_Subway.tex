@@ -56,20 +56,20 @@ By Dummies \\
 \end{center}
 
 \section*{Abstract}
-On April 24th, 2020, a researcher at MIT released a working paper finding that "The Subways Seeded the Massive Coronavirus Epidemic in New York City". While the analysis in the paper has been called into question, it remains true that the role of public transportation in the spread of COVID-19 is still unknown. In this paper, we introduce an agent-based model of the New York City subway and analyze how well it can predict the spread of COVID-19 through the boroughs of New York City.\\
+Public transportation plays a vital role connecting people with each other. International trade and tourism is reliant on commercial aviation. And the most successful cities all have buses, trams, or subways connecting workers to their workplaces. However, the speed and connectivity of these transportation networks leave us vulnerable to disease propagation.
 
-Our findings that [insert findings here] should interest public health officials looking to make policy decisions about public transportation.
+In this paper, we introduce a general agent-based framework for modeling disease spread on transportation networks. We use it to build models of major transportation networks, and take a special look at the New York City subway to see how well it can predict infection rate and infection hotspots during the 2020 COVID-19 epidemic.\\
 
-[Writer's Note: Of course, this is the ideal final result. We will focus on the early infection period and I give it a 50/50 that we even get to taking into account countermeasures and ridership losses. We will make a preliminary model, improve it, and see how far we can get.]
+We found that countermeasures significantly impacted the spread of coronavirus and that there is a correlation between infection hotspots and subway lines as well as commute time.
 
-\section*{Competencies Briefing}
+\section*{Competencies Briefing (for other NS teams)}
 \textbf{Purpose: Brief others on competencies so we can discuss things\\}
 \textbf{Transportation Networks\\}
-\textit{specifically subways, the NYC subway. mapping, passenger flow\\}
+\textit{specifically NYC subway, world airline network, Madrid trains, Moscow metro. mapping, passenger flow\\}
 \textbf{python, networkx, mesa\\}
 \textit{we're working with these techs.\\}
 \textit{Writer's Note: Obviously to be removed before submission\\}
-\textit{This report was last pushed to OverLeaf on 30.05.2020. You will find our latest work at the link below:}
+\textit{This report was last pushed to OverLeaf on 20.06.2020. You will find our latest work at the link below:}
 \url{https://github.com/cheung-ho-lum/NS_Epidemics_ABM_Approach/blob/master/Report/ABM_NYC_Subway.pdf}
 
 \section*{Background}
@@ -86,18 +86,29 @@ In addition to general background knowledge about COVID-19, it would behoove the
 	\item March 15 - Schools officially close.
 	\item March 22 - State order (PAUSE) to shelter in place comes into effect.
 \end{itemize}
-\subsection*{COVID-19 and NYC Public Transportation}
-Meanwhile, here is a graphic of the metro ridership from scheider.com...
+\subsection*{COVID-19 and the NYC Subway}
+On April 24th, 2020, a researcher at MIT released a working paper finding that "The Subways Seeded the Massive Coronavirus Epidemic in New York City"[\textbf{citation needed}]. The paper received a lot of attention from the media. There is, at least, significant correlation between subway lines and severity of infection. But the factors involved are unknown and disputed. For example, high infection rate could be rated to dense housing, and housing is denser around subway stations[\textbf{citation needed}]. 
+
+From this paper, and other prior research into subways, we bring into our own work two major points about disease spread on subways:\\
+\begin{itemize}
+	\item Infection on a subway network depends much more strongly on the line than the geographical distance or network shortest path between stations.
+	\item Infection on a subway network depends on the average commute time of commuters using the station.
+\end{itemize}
+
+An another important piece of information is the subway ridership. The NYC Metropolitan Transit Authority (MTA) publicly releases turnstile data. Below we show a figure demonstrating the gradual shutdown of NYC between March 9th and March 23rd.
+\begin{figure}
+\includegraphics[width = 1.0\textwidth]{Scratch_Visuals/schneider_ridership.png}
+\end{figure}
 
 \subsection*{Epidemic Modeling}
 There are two basic types of modeling for epidemics. Statistical and Mechanistic. While statistical modeling has typically given more accurate forecasts for a well-known situation [citation needed], mechanistic models such as the SIR and SEIR compartmental models help to explain why phenomena such as epidemics spread the way they do, and what impact various policy decisions will have on the result.
 \subsection*{SEIR Model}
 As we will be using the SEIR model in our research, we will cover it briefly here. The SEIR compartmental model is a mathematical modeling of infectious diseases where a closed population of people move successively from compartments suspected to exposed to infected and to removed. We briefly provide an explanation of each compartment and leave the equations below.
 \begin{itemize}
-	\item Susceptible - These people are susceptible to getting the disease from someone infected.
-	\item Exposed - These people are no longer susceptible to the disease, and do not infect others. After a latent period, they become infectious.
-	\item Infected - These people will spread the disease to susceptible people. After a period of time they are removed by recovery, hospitalization, death.
-	\item Removed - Sometimes known as resistant or recovered. We will do our modeling with the term 'removed'. These people are no longer spreading the disease.
+	\item \textbf{Susceptible} - These people are susceptible to getting the disease from someone infected.
+	\item \textbf{Exposed} - These people are no longer susceptible to the disease, and do not infect others. After a latent period, they become infectious.
+	\item \textbf{Infected} - These people will spread the disease to susceptible people. After a period of time they are removed by recovery, hospitalization, death.
+	\item \textbf{Removed} - Sometimes known as resistant or recovered. We will do our modeling with the term 'removed'. These people are no longer spreading the disease.
 \end{itemize}
 \textit{Writer's note: just take the equations from someone's overleaf}
 \begin{align*}
@@ -137,7 +148,9 @@ This guy is indispensable for figuring out how to parse some of this data:\\
 \section*{Methodology}
 \subsection*{MESA(Or our ABM)}
 \textit{Writer's note: I'm a bit too lazy to learn tikz-uml. I'll just make a regular uml and... screenshot it\\}
+\begin{figure}
 \includegraphics[width = 1.0\textwidth]{Scratch_Visuals/covid_subway.png}
+\end{figure}
 \subsection*{NetworkX}
 \subsection*{MTA Station Data}
 \textbf{Station, Complex, Line, Route\\}
@@ -146,7 +159,15 @@ This guy is indispensable for figuring out how to parse some of this data:\\
 \subsection*{MTA Turnstile Data}
 \textit{discuss format. every 4 hours, every machine. aggregation.\\}
 \section*{Fitting the data}
-\includegraphics[width = 1.0\textwidth]{Scratch_Visuals/Preliminary_Modeling.png}
+\FloatBarrier
+\begin{figure}[htbp]
+\includegraphics[width = 1.0\textwidth]{Scratch_Visuals/SEIR_Curve_NYC_2.png}
+\end{figure}
+\begin{figure}[htbp]
+\includegraphics[width = 1.0\textwidth]{Scratch_Visuals/NYC_time018.png}
+\end{figure}
+\FloatBarrier
+\textit{Writer's note: compare this to positive case coloring}
 \section*{Conclusion}
 \textbf{\textit{Writer's Note: All Models are Wrong, Some are Useful}}
 \nocite{*}
