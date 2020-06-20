@@ -75,7 +75,6 @@ def draw_graph(nx_graph, node_attr="type", timestamp="", vmin=0, vmax=0.11,
             # colors go from ffffff to 660066
             ax.add_collection(PatchCollection(patches, facecolor=color_list, edgecolor='k', linewidths=1., zorder=2))
         elif map_type == SimulationParams.MAP_TYPE_TREN_MADRID:
-            print('mapping madrid')
             m = Basemap(projection='merc', llcrnrlon=-4.14, llcrnrlat=40.15, urcrnrlon=-3.29,
                     urcrnrlat=40.83, lat_ts=0, resolution='h', suppress_ticks=True)
 
@@ -121,7 +120,7 @@ def draw_graph(nx_graph, node_attr="type", timestamp="", vmin=0, vmax=0.11,
 
     edgelist = []
     if SimulationParams.SIMULATION_TYPE == SimulationParams.TRAIN_SIM:
-        edgelist = list(nx_graph.edges)
+        edgelist = list(nx_graph.edges) # TODO: that's weird. edgelist is hidden by map anyway. because of edge alpha?
 
     nx.draw_networkx(nx_graph, node_size=node_sizes, with_labels=False, width=0.1, node_color=colors, pos=pos,
                      cmap=plt.cm.jet, vmin=vmin, vmax=vmax, edgelist=edgelist) #edgelist = none for airports for now.

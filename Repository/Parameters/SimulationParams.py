@@ -14,4 +14,4 @@ MAP_TYPE_HLC_CURATED_WAN = "hlc_curated_world"
 MAP_TYPE_TREN_MADRID = "cercanias_madrid"
 # Researcher Adjustable. Recommended: 50 or 80 + Subway or 120 + Air
 RUN_SPAN = 100
-SIMULATION_TYPE = TRAIN_SIM
+SIMULATION_TYPE = SUBWAY_SIM
