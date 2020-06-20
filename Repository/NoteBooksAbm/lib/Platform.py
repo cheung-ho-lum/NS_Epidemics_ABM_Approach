@@ -7,11 +7,7 @@ class Platform():
         self.line = line
         self.station = station
         self.direction = direction
-        
         self.MAX_WAIT = 30
-        self.train = None
-        self.passengers = []
-        self.n_infections = 0
         
         # Weight of the platform based on the weight of the next stations
         line_name = line.get_name()
@@ -50,8 +46,7 @@ class Platform():
                     t_departure = self.departure_times.pop(0)
                     self.departure_times.append(t_departure)
         
-        self.next_arrival = 0
-        self.next_departure = 0
+        self.reset()
     
     def get_weight(self):
         """
@@ -116,11 +111,14 @@ class Platform():
         
         return not self.is_closed() and outcoming_train
 
+    def get_time_infections(self):
+        return self.time_infections
+
     def get_n_infections(self):
-        return self.n_infections
+        return len(self.time_infections)
     
     def add_infection(self):
-        self.n_infections = self.n_infections + 1
+        self.time_infections.append(self.network.get_time())
         return self
 
     def notify_train_arrival(self, train):
@@ -141,4 +139,4 @@ class Platform():
         self.passengers = []
         self.next_arrival = 0
         self.next_departure = 0
-        self.n_infections = 0
+        self.time_infections = []

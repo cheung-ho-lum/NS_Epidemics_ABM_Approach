@@ -47,7 +47,7 @@ class RailwayNetwork(Model):
 
         # Create passengers
         for i in range(self.n_passengers):
-            p = Passenger(i, self)
+            p = Passenger(i, self, self)
             self.passengers.append(p)
             self.schedule_passengers.add(p)
         

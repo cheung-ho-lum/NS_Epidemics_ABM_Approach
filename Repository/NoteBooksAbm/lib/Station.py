@@ -55,6 +55,13 @@ class Station():
                 passengers = passengers + p.pop_passengers()
         return passengers
 
+    def get_time_infections(self):
+        time_infections = []
+        for _, platforms in self.platforms.items():
+            for _, p in platforms.items():
+                time_infections = time_infections + p.get_time_infections()
+        return time_infections
+
     def get_n_infections(self):
         n_infections = 0
         for _, platforms in self.platforms.items():

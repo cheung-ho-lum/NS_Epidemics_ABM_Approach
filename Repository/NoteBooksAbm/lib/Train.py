@@ -107,15 +107,18 @@ class Train(Agent):
     def get_n_passengers(self):
         return len(self.passengers)
 
+    def get_time_infections(self):
+        return self.time_infections
+
     def get_n_infections(self):
-        return self.n_infections
+        return len(self.time_infections)
     
     def add_infection(self):
-        self.n_infections = self.n_infections + 1
+        self.time_infections.append(self.network.get_time())
         return self
 
     def reset(self):
         self.passengers = []
         self.station_number = 0
         self.has_finished = False
-        self.n_infections = 0
+        self.time_infections = []
