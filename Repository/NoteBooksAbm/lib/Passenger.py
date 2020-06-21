@@ -14,8 +14,9 @@ infected_status:
 """
 
 class Passenger(Agent):
-    def __init__(self, unique_id, model):
+    def __init__(self, unique_id, model, network):
         super().__init__(unique_id, model)
+        self.network = network
         self.reset()
     
     def set_origin(self, station):
@@ -73,18 +74,26 @@ class Passenger(Agent):
     def has_max_transfers(self):
         return self.n_transfers == self.MAX_TRANSFERS
 
+    def get_contact_passengers(self):
+        """
+        Returns the passengers who has been in contact with this one (initially status=0).
+        Note that it only returns data if the current passenger is infected (status=2).
+        """
+        return self.contact_passengers
+
+    def add_contact_passenger(self, passenger):
+        self.contact_passengers[passenger.get_id()] = passenger
+        return self
+
+    def get_time_infections(self):
+        return self.time_infections
+
     def get_n_infections(self):
-        return self.n_infections
+        return len(self.time_infections)
     
     def add_infection(self):
-        self.n_infections = self.n_infections + 1
+        self.time_infections.append(self.network.get_time())
         return self
-    
-    def get_r0(self):
-        if len(self.seen_passengers) == 0:
-            return 0
-        else:
-            return self.n_infections / len(self.seen_passengers)
     
     def step(self):
         """Activates the agent and stages any necessary changes, but does not apply them yet"""
@@ -100,23 +109,20 @@ class Passenger(Agent):
         p_random = random.choices([True, False], weights=[self.infection_p, 1 - self.infection_p], k=len(other_passengers))
         
         for i, p in enumerate(other_passengers):
-            # Notify as passenger seen
-            p.notify_passenger_seen(self)
-            self.notify_passenger_seen(p)
+            # Add seen passenger if it has not been infected yet
+            if p.get_infected_status() == 0:
+                p.add_contact_passenger(self)
+                self.add_contact_passenger(p)
 
-            # Infect passenger
-            if p.get_infected_status() == 0 and p_random[i]:
-                p.set_infected_status(1, self)
-                self.add_infection()
-                place.add_infection()
+                # Infect passenger
+                if p_random[i]:
+                    p.set_infected_status(1, self)
+                    self.add_infection()
+                    place.add_infection()
 
     def advance(self):
         """Applies the changes of step()"""
         pass
-
-    def notify_passenger_seen(self, passenger):
-        self.seen_passengers[passenger.get_id()] = passenger
-        return self
     
     def reset(self):
         self.origin = None
@@ -126,9 +132,9 @@ class Passenger(Agent):
         self.n_transfers = 0
         self.MAX_TRANSFERS = 1
         self.infected_status = 0
-        self.n_infections = 0
+        self.time_infections = []
         self.infection_p = 0
-        self.seen_passengers = {}
+        self.contact_passengers = {}
     
     def __eq__(self, other):
         """Checks if this agent is the same as other"""
