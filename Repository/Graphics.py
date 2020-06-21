@@ -51,10 +51,10 @@ def draw_geographical_hotspots(data_matrix="", zip_list="", date_list="", datafr
 
             if s_modzcta in zip_list:
                 modzcta = int(s_modzcta)
-                total_cases = data_matrix[zip_list.index(s_modzcta)][date_list.index(date)]
-                vmax = 4000
+                case_rate = data_matrix[zip_list.index(s_modzcta)][date_list.index(date)]
+                vmax = 0.02  # corona = 4643 / 111594.1 =
                 vmin = 0
-                gradient = max(0, (vmax - total_cases) / vmax)
+                gradient = max(0, (vmax - case_rate) / vmax)
 
                 #TOOD: why is the typecast to int necessary here? hmm...
                 r_value = int(round(153 - 153 * (1 - gradient)))
