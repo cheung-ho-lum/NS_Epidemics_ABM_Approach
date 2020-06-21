@@ -8,8 +8,12 @@ import matplotlib.pyplot as plt
 import math
 import numpy as np
 import imageio
+import Utilities
 
 benchmark_statistics = []
+# Draw NYC Case Map (currently cumulative test cases, not normalized by population)
+if DisplayParams.DRAW_NYC_CASES:
+    Utilities.draw_severity_by_region()
 
 # Subway Simulation Setup
 if SimulationParams.SIMULATION_TYPE == SimulationParams.SUBWAY_SIM:

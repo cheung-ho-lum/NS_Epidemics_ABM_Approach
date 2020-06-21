@@ -1,3 +1,4 @@
+import imageio
 from matplotlib.collections import PatchCollection
 from matplotlib.patches import Polygon
 from mpl_toolkits.basemap import Basemap as Basemap
@@ -22,6 +23,57 @@ import numpy as np
 # TODO: timespan (ok this is a main.py issue) needs to be set based on model
 # TODO: we can proooobably draw the map once and keep it around. this will cut down on runtime.
 # A quick note that the suggested way to save a basemap is to pickle/unpickle it. ookkk... maybe later.
+
+
+# TODO: ok, you should have definitely used a dataframe
+def draw_geographical_hotspots(data_matrix="", zip_list="", date_list="", dataframe=None,
+                               save_name='tests_by_modzcta_NYC_', ax=None, fig=None):
+    images = []
+    for date in date_list:
+        fig = plt.figure()
+        fig.suptitle(date)
+        ax = fig.add_subplot(111)
+        m = Basemap(projection='merc', llcrnrlon=-74.1, llcrnrlat=40.57, urcrnrlon=-73.8,
+                    urcrnrlat=40.91, lat_ts=0, resolution='h', suppress_ticks=True)
+        m.drawcountries(linewidth=1)
+        m.drawcoastlines(linewidth=1)
+        m.readshapefile('Data/NYC/Geographical/NYC_modzcta', 'NYC')
+
+        # Color the patches
+        patches = []
+        color_list = []
+
+        for info, shape in zip(m.NYC_info, m.NYC):
+            # print(info)
+            s_modzcta = info['modzcta']
+
+            patches.append(Polygon(np.array(shape), True))
+
+            if s_modzcta in zip_list:
+                modzcta = int(s_modzcta)
+                total_cases = data_matrix[zip_list.index(s_modzcta)][date_list.index(date)]
+                vmax = 4000
+                vmin = 0
+                gradient = max(0, (vmax - total_cases) / vmax)
+
+                #TOOD: why is the typecast to int necessary here? hmm...
+                r_value = int(round(153 - 153 * (1 - gradient)))
+                g_value = int(round(255 - 153 * (1 - gradient)))
+                b_value = int(round(153 - 153 * (1 - gradient)))
+                hex_code = "#{0:02x}{1:02x}{2:02x}".format(r_value, g_value, b_value)
+                color_list.append(hex_code)
+
+            else:  # coloring for staten island and other things like it
+                color_list.append(r"#99FF99")
+
+        # colors go from ffffff to 660066
+        ax.add_collection(PatchCollection(patches, facecolor=color_list, edgecolor='k', linewidths=1., zorder=2))
+        fig.savefig("Visualizations/" + save_name + date)
+        plt.close(fig)
+
+        images.append(imageio.imread("Visualizations/" + save_name + date + ".png"))
+    imageio.mimsave('Visualizations/infection_timelapse.gif', images, duration=DisplayParams.GIF_DELAY)
+    return None
 
 
 def draw_graph(nx_graph, node_attr="type", timestamp="", vmin=0, vmax=0.11,
@@ -122,8 +174,8 @@ def draw_graph(nx_graph, node_attr="type", timestamp="", vmin=0, vmax=0.11,
     if SimulationParams.SIMULATION_TYPE == SimulationParams.TRAIN_SIM:
         edgelist = list(nx_graph.edges) # TODO: that's weird. edgelist is hidden by map anyway. because of edge alpha?
 
-    nx.draw_networkx(nx_graph, node_size=node_sizes, with_labels=False, width=0.1, node_color=colors, pos=pos,
-                     cmap=plt.cm.jet, vmin=vmin, vmax=vmax, edgelist=edgelist) #edgelist = none for airports for now.
+    nx.draw_networkx(nx_graph, node_size=node_sizes, with_labels=False, width=0.2, node_color=colors, pos=pos,
+                     cmap=plt.cm.jet, vmin=vmin, vmax=vmax, edge_color='k', edgelist=edgelist) #edgelist = none for airports for now.
 
     if len(timestamp) > 0:
         plt.title(node_attr + ' t=' + timestamp)
