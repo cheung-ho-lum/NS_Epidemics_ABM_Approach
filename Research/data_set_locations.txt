@@ -69,6 +69,9 @@ http://datalytics.ru/all/kak-poluchit-spisok-stanciy-moskovskogo-metropolitena-p
 zip-code start areas:
 https://data.cityofnewyork.us/Health/Modified-Zip-Code-Tabulation-Areas-MODZCTA-/pri4-ifjk
 
+top 100 airport pairs. actually released by sabermetrics or someething
+https://www.routesonline.com/news/29/breaking-news/286313/busiest-routes-in-the-world-the-top-100/
+
 
 Moscow  stations_data.tsv
 
@@ -77,3 +80,10 @@ https://gist.github.com/altsoph/6d3bfc97e26a4614d07fa74657739163
 routes_data.tsv
 
 https://gist.github.com/altsoph/56c38e76bae853655b962979346d194e
+
+NYC shapefile
+https://data.cityofnewyork.us/Health/Modified-Zip-Code-Tabulation-Areas-MODZCTA-/pri4-ifjk
+
+NYC modzcta data
+https://github.com/nychealth/coronavirus-data/blob/master/data-by-modzcta.csv
+

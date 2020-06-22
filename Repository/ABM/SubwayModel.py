@@ -1,75 +1,98 @@
-from mesa import Model
-from ABM import SubwayAgent
+from ABM.SubwayAgent import SubwayAgent
 from mesa.time import RandomActivation
-from ABM import SubwayGraph
-import random
-from Parameters import AgentParams
+from ABM.SubwayGraph import SubwayGraph
+from Parameters import AgentParams, EnvParams
 import networkx as nx
+from ABM.TransportationModel import TransportationModel
 
-class Subway_Model(Model):
+
+class SubwayModel(TransportationModel):
     """This guy's constructor should probably have a few more params."""
-    def __init__(self, n, subway_map, routing_dict, passenger_flow=0):
-        self.num_agents = n
-        self._subway_graph = SubwayGraph.SubwayGraph(subway_map, routing_dict, passenger_flow)
+    def __init__(self, subway_map, routing_dict):
+        self._subway_graph = SubwayGraph(subway_map, routing_dict)
         self._agent_loc_dictionary = {}  # a dictionary of locations with lists of agents at each location
+        self._zip_to_station_dictionary = {}
+        self.countermeasures = {}
         self.schedule = RandomActivation(self)
         # Create agents
-        #FTry to place an appropriate number of agents at each location
-        if self.subway_graph.passenger_flow > 0:
-            agents_placed = 0
-            for loc in list(self.subway_graph.graph.nodes()):
-                loc_agents_placed = 0
-                loc_passenger_flow = self.subway_graph.graph.nodes[loc]['flow']
-                loc_flow_percentage = loc_passenger_flow / self.subway_graph.passenger_flow
-                num_agents_to_place = round(loc_flow_percentage * self.num_agents)
-                while loc_agents_placed < num_agents_to_place and agents_placed < self.num_agents:
-                    a = SubwayAgent.SubwayAgent(agents_placed, self, location=loc)
-                    if a.location in self._agent_loc_dictionary:
-                        self._agent_loc_dictionary[a.location].append(a)
-                    else:
-                        self._agent_loc_dictionary[a.location] = [a]
-                    self.schedule.add(a)
-                    loc_agents_placed += 1
-                    agents_placed += 1
-        else:
-            node_list = list(self._subway_graph.graph.nodes())
-            for i in range(self.num_agents):
-                start_location = random.choice(node_list)
-                a = SubwayAgent.SubwayAgent(i, self, location=start_location)
-                if a.location in self._agent_loc_dictionary:
-                    self._agent_loc_dictionary[a.location].append(a)
-                else:
-                    self._agent_loc_dictionary[a.location] = [a]
-                self.schedule.add(a)
+        agent_id = 0
+        for loc in list(self.subway_graph.graph.nodes()):
+            # Add Agents
+            agent_id += 1  # we will keep agent ids different from location for now.
+            population = subway_map.nodes[loc]['population']
+            a = SubwayAgent(agent_id, self, loc, population)
+            if loc == AgentParams.MAP_LOCATION_JUNCTION_BLVD \
+                    or loc == AgentParams.MAP_LOCATION_55_ST \
+                    or loc == AgentParams.MAP_LOCATION_98_BEACH:  # TODO: this method of seeding is actually quite bad.
+                a.population[AgentParams.STATUS_EXPOSED] += population * 0.0002
+                a.population[AgentParams.STATUS_INFECTED] += population * 0.0001
+                a.population[AgentParams.STATUS_RECOVERED] += 0
+                a.population[AgentParams.STATUS_SUSCEPTIBLE] -= population * 0.0003
 
-    #Decay the viral loads in the environment. just wipes them for now.
+            elif loc == AgentParams.MAP_LOCATION_COLMENAR_VIEJO:
+                a.population[AgentParams.STATUS_EXPOSED] += population * 0.0002
+                a.population[AgentParams.STATUS_INFECTED] += population * 0.0001
+                a.population[AgentParams.STATUS_RECOVERED] += 0
+                a.population[AgentParams.STATUS_SUSCEPTIBLE] -= population * 0.0003
+
+
+            self.schedule.add(a)
+
+            # Fill Zip-to-station dictionary
+            station_zip = subway_map.nodes[loc]['zip']
+            if station_zip in self._zip_to_station_dictionary:
+                self._zip_to_station_dictionary[station_zip].append(loc)
+            else:
+                self._zip_to_station_dictionary[station_zip] = [loc]
+
+
+    # Decay the viral loads in the environment. just wipes them for now.
     def decay_viral_loads(self):
+        for a in self.schedule.agents:
+            self.subway_graph.graph.nodes[a.location]['infected'] = a.population[AgentParams.STATUS_INFECTED]
         nx.set_node_attributes(self.subway_graph.graph, 0, 'viral_load')
         return None
 
-    def step(self):
-        self.decay_viral_loads()
-        self.schedule.step()
-        self.subway_graph.update_hotspots(self.schedule.agents)
+    def increment_viral_loads(self):
+        for a in self.schedule.agents:
+            a.infect()  # Really, the model could do all this itself, but calling agents keeps with ABM philosophy
+        return None
 
-    def calculate_SEIR(self, print_results = False):
+    def step(self):
+        self.decay_viral_loads() #TODO: yes, this belongs at the end of a step. but i need my snapshot to be mid-day
+        self.increment_viral_loads()
+        self.schedule.step()
+        self.subway_graph.update_hotspots(self.schedule.agents) #TODO: repair this later
+        self.update_countermeasures()
+
+    def update_countermeasures(self):
+        active = self.countermeasures
+        infected = 0
+        for a in self.schedule.agents:
+            infected += a.population[AgentParams.STATUS_INFECTED]
+        if EnvParams.ISOLATION_COUNTERMEASURE not in active.keys():
+            if infected >= 5000:  # we have 20x the size of NYC atm
+                active[EnvParams.ISOLATION_COUNTERMEASURE] = self.schedule.time
+                print('isolation countermeasure taken!')
+        if EnvParams.RECOMMENDATION_COUNTERMEASURE not in active.keys():
+            if infected >= 500:  # we have 20x the size of NYC atm
+                active[EnvParams.RECOMMENDATION_COUNTERMEASURE] = self.schedule.time
+                print('recommendation countermeasure taken!')
+        if EnvParams.AWARENESS_COUNTERMEASURE not in active.keys():
+            if infected >= 500:  # start awareness campaign
+                active[EnvParams.AWARENESS_COUNTERMEASURE] = self.schedule.time
+                print('awareness countermeasure taken!')
+
+    def calculate_SEIR(self, print_results=False):
         sick, exposed, infected, recovered = 0, 0, 0, 0
         for a in self.schedule.agents:
-            if a.infection_status == AgentParams.STATUS_SUSCEPTIBLE:
-                sick += 1
-            if a.infection_status == AgentParams.STATUS_EXPOSED:
-                exposed += 1
-            if a.infection_status == AgentParams.STATUS_INFECTED:
-                infected += 1
-            if a.infection_status == AgentParams.STATUS_RECOVERED:
-                recovered += 1
-        print('S,E,I,R:', sick, exposed, infected, recovered)
+            sick += a.population[AgentParams.STATUS_SUSCEPTIBLE]
+            exposed += a.population[AgentParams.STATUS_EXPOSED]
+            infected += a.population[AgentParams.STATUS_INFECTED]
+            recovered += a.population[AgentParams.STATUS_RECOVERED]
+        if print_results:
+            print('S,E,I,R:', sick, exposed, infected, recovered)
         return [sick, exposed, infected, recovered]
-
-    #Called by the agent class to update itself in the agent dictionary
-    def update_agent_location(self, agent, old_location, new_location):
-        self._agent_loc_dictionary[old_location].remove(agent)
-        self._agent_loc_dictionary[new_location].append(agent)
 
     @property
     def subway_graph(self):
@@ -79,11 +102,12 @@ class Subway_Model(Model):
     def subway_graph(self, value):
         self._subway_graph = value
 
-
+    # TODO: I think this might actually be better at the graph level.
     @property
-    def agent_loc_dictionary(self):
-        return self._agent_loc_dictionary
+    def zip_to_station_dictionary(self):
+        return self._zip_to_station_dictionary
 
-    @agent_loc_dictionary.setter
-    def agent_loc_dictionary(self, value):
-        self._agent_loc_dictionary = value
+    @zip_to_station_dictionary.setter
+    def zip_to_station_dictionary(self, value):
+        self._zip_to_station_dictionary = value
+

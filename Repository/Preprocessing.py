@@ -1,18 +1,144 @@
 import datetime
-import networkx as nx
+import random
 
+import networkx as nx
 from ABM.AirGraph import AirGraph
-from Parameters import SubwayParams, SimulationParams
+from Parameters import EnvParams, SimulationParams
 from pathlib import Path
 import math
 from transliterate import translit
 import codecs
 import csv
+import reverse_geocoder
+import numpy as np
+import geopy
+from geopy.geocoders import Nominatim
+from geopy.extra.rate_limiter import RateLimiter
+
+def get_benchmark_statistics(location, start_date):
+    '''https://www1.nyc.gov/site/doh/covid/covid-19-data.page'''
+    if location == 'NYC':
+        # TODO: and the kludging starts here (by ignoring start date and just pulling data)
+        file_to_open = Path('Data/NYC/Case_Death_Recovery/covid_nyc_simple.csv')
+        benchmark_stats = np.zeros(shape=(SimulationParams.RUN_SPAN + 1, 5))
+        with open(file_to_open, 'r') as f:
+            next(f) #skip header row
+            time = 0
+            total_infected = 0
+            for row in f:
+                if time == SimulationParams.RUN_SPAN + 1:
+                    break
+                infection_data = row.strip().split(',')
+                date = infection_data[0]
+                infected =  int(infection_data[1])
+                total_infected += infected
+                benchmark_stats[time, 0] = time
+                benchmark_stats[time, 2] = infected
+                benchmark_stats[time, 3] = total_infected
+                time += 1
+        return benchmark_stats
+    else:
+        print('what statistics?')
+    return None
+
+
+def generate_cercanias_map():
+
+    file_to_open = Path('Data/madrid/trains/station_list.csv')
+    subway_map = nx.Graph()
+
+    routes_and_stations = {}
+    complex_to_station_dict = {}
+    """ CÓDIGO	DESCRIPCION	LATITUD	LONGITUD	DIRECCIÓN	C.P.	POBLACION	PROVINCIA	Fichas	Túneles lavado"""
+    with open(file_to_open, 'r') as f:
+        next(f)  # skip header row
+        for row in f:
+            station_data = row.split(';')
+            station_id = int(station_data[0])  # station code
+            station_name = station_data[1]  # description
+            station_lat_y = float(station_data[2])  # Latitude
+            station_long_x = float(station_data[3])  # Longtitude
+            _ = station_data[4]  # Direction? ??
+            station_zip = int(station_data[5])  # probably codigo postal (postal code). Wish NYC did this.
+            station_region = station_data[6]  # poblacion? probably region
+            _ = station_data[7]  # province (pretty much madrid with a few exceptions)
+
+
+            if station_id >= 9999999:
+                coordinates = (station_lat_y, station_long_x)
+                locator = Nominatim(user_agent='myGeocoder')
+                location = locator.reverse(coordinates)
+                print(station_id, location.raw['address']['postcode'], station_zip, station_region)
+
+            #Adding Station
+            subway_map.add_node(station_id)
+            subway_map.nodes[station_id]['routes'] = []
+            subway_map.nodes[station_id]['x'] = station_long_x
+            subway_map.nodes[station_id]['y'] = station_lat_y
+            subway_map.nodes[station_id]['pos'] = (station_long_x, station_lat_y)
+            subway_map.nodes[station_id]['div'] = 'nodiv'
+            subway_map.nodes[station_id]['name'] = station_name
+            subway_map.nodes[station_id]['region'] = station_region
+            subway_map.nodes[station_id]['zip'] = station_zip
+
+    #Adding routes and edges
+    file_to_open = Path('Data/madrid/parsed/madrid_our_routing_simple.csv')
+    with open(file_to_open, 'r') as f:
+        """Station Id,Station Name,Route,Stop Order,CIVIS Stop Order,Reverse Order,CIVIS Reverse"""
+        next(f)
+        previous_station = -1
+        for row in f:
+            station_data = row.split(',')
+            station_id = int(station_data[0])
+            station_name = station_data[1]
+            station_route = station_data[2]
+            station_stop_order = station_data[3]
+            station_civis_order = station_data[4]  # TODO? we won't build CIVIS routes for now
+
+            routes_and_stations.setdefault(station_route, []).append(station_id)
+
+            #ignore stations not on the route for linkage?
+            if len(station_stop_order) > 0:
+                station_stop_order = int(station_stop_order)
+                if station_stop_order > 0:  # not a terminal station (or rather the terminal at 0)
+                    subway_map.add_edge(previous_station, station_id)
+
+                previous_station = station_id
+
+    #Setting some default node attributes
+    nx.set_node_attributes(subway_map, EnvParams.NODE_TYPE_STATION, 'type')
+    nx.set_node_attributes(subway_map, 0, 'viral_load')
+    nx.set_node_attributes(subway_map, 0, 'flow')
+
+
+
+    #update flow and population data
+    # TODO: actually do
+    nx.set_node_attributes(subway_map, 100000, 'flow')
+    nx.set_node_attributes(subway_map, 100000, 'population')
+    nx.set_node_attributes(subway_map, 0.5, 'commuter_ratio')
+
+
+    #update_flow_data(subway_map, 'Turnstile_Data.csv', complex_to_station_dict, date_start, date_end)
+    #update_population_flow_data(subway_map, location='NYC')
+
+    MADRID_CENTER = [18000] # Cercanias central stations. atocha only.
+
+    for station_id in subway_map:
+        station_shortest_path = 999999
+        for dest_id in MADRID_CENTER:
+            path_len = nx.algorithms.shortest_path_length(subway_map, station_id, dest_id)
+            if path_len < station_shortest_path:
+                station_shortest_path = path_len
+        subway_map.nodes[station_id]['commute_time'] = (station_shortest_path + 1)*(station_shortest_path + 1)
+
+    return subway_map, routes_and_stations
+
 
 def generate_geometric_map(type="sierpinski"):
-    file_to_open = Path('Data/ss_' + type + '.csv')
-    #TODO: catch in case of stupidity?
-    #Our simplified subway has no complexes. Routes and stations only.
+    file_to_open = Path('Data/Theory/ss_' + type + '.csv')
+    # TODO: catch in case of stupidity?
+    # Our simplified subway has no complexes. Routes and stations only.
     routes_and_stations = {}
     subway_map = nx.Graph()
     with open(file_to_open, 'r') as f:
@@ -45,10 +171,10 @@ def generate_geometric_map(type="sierpinski"):
                     subway_map.add_edge(int(previous_station_id), int(station_id))
                 previous_station_id = station_id
 
-    nx.set_node_attributes(subway_map, SubwayParams.NODE_TYPE_STATION, 'type')
+    nx.set_node_attributes(subway_map, EnvParams.NODE_TYPE_STATION, 'type')
     nx.set_node_attributes(subway_map, 0, 'viral_load')
     nx.set_node_attributes(subway_map, 0, 'flow')
-    return subway_map, routes_and_stations, 0
+    return subway_map, routes_and_stations
 
 def generate_moskva_subway_map():
     """This is even more straightforward, but we have to pull data from elsewhere and add interchange links ourselves"""
@@ -62,7 +188,7 @@ def generate_moskva_subway_map():
     # TODO: circular lines are not closed (they are incorrect)
     # TODO: these stations are not part of gcc  #{86, 23, 186, 28, 189, 190, 31} <-- due to missing ped. links
     subway_map = nx.Graph()
-    file_to_open = Path('Data/list_of_moscow_metro_stations.csv')
+    file_to_open = Path('Data/Moscow/Subway/list_of_moscow_metro_stations.csv')
     routes_and_stations = {}
     with codecs.open(file_to_open, 'r', encoding='utf8') as f:
         next(f)  # skip header row
@@ -79,8 +205,7 @@ def generate_moskva_subway_map():
             station_long_x = float(station_data[5])
             station_order = int(station_data[6])
 
-
-            if(subway_map.has_node(station_id)):
+            if subway_map.has_node(station_id):
                 subway_map.nodes[station_id]['routes'].append(line_name)
             else:
                 # Add Station if it does not exist.
@@ -115,11 +240,11 @@ def generate_moskva_subway_map():
     subway_map.add_edge(19, 109)  # koltsevaya
     subway_map.add_edge(113, 87)  # МЦК
 
-    nx.set_node_attributes(subway_map, SubwayParams.NODE_TYPE_STATION, 'type')
+    nx.set_node_attributes(subway_map, EnvParams.NODE_TYPE_STATION, 'type')
     nx.set_node_attributes(subway_map, 0, 'viral_load')
     nx.set_node_attributes(subway_map, 0, 'flow')
 
-    return subway_map, routes_and_stations, 0
+    return subway_map, routes_and_stations
 
 
 def generate_NYC_subway_map():
@@ -133,32 +258,46 @@ def generate_NYC_subway_map():
     #TODO: some thinking needs to be done about station 167. We need to change it to a complex.
     #TODO: as it stands, 2nd node overwrites first node. by luck or good programming, all routes are preserved.
     #TODO: (line would be overwritten)
+    #TODO: NYC-specific eccentricity calculation should be generalized.
+
     """Station ID,Complex ID,GTFS Stop ID,Division,Line,Stop Name,Borough,Daytime Routes,Structure,GTFS Latitude,GTFS Longitude,North Direction Label,South Direction Label"""
     subway_map = nx.Graph()
-    file_to_open = Path('Data/Stations.csv')
+    file_to_open = Path('Data/NYC/Subway/Stations.csv')
     routes_and_stations = {}
     complex_to_station_dict = {}
     with open(file_to_open, 'r') as f:
-        next(f) #skip header row
-        complex_dict = {} #dictionary of complexes. values = stations at that complex
+        next(f)  # skip header row
+        complex_dict = {}  # dictionary of complexes. values = stations at that complex
         for row in f:
             station_data = row.split(',')
-            station_id = int(station_data[0])  # TODO: We're making this an int as early as possible!
-            complex_id = station_data[1]  # Complex ID. A string! If stations are part of the same complex, they need to be connected
+            station_id = int(station_data[0])  # station id as int (we'll try to keep this convention)
+            complex_id = station_data[1]  # complex
             _ = station_data[2]  # GTFS Stop ID
             division_id = station_data[3]  # Division. These are not ints!
             _ = station_data[4]  # Line Caution!! Lines != Routes, not what you think it is!
             stop_name = station_data[5]  # Stop Name
-            _ = station_data[6]  # Borough
+            station_borough = station_data[6]  # Borough
             routes = station_data[7] # daytime(?) Routes
             _ = station_data[8]  #
             station_lat_y = float(station_data[9])  # Latitude
             station_long_x = float(station_data[10])  # Longtitude
+            _ = station_data[11] #north label
+            _ = station_data[12] #south label
+            station_zip = int(station_data[13])
+
+            #done once to get the zip codes for all routes. Keeping this code for... posterity I guess.
+            #station 225, 315, 328, 330, 466, 468 errors. no zip code.
+            #some zips are weird and I went back and fixed them (station 115)
+            if station_id >= 700:
+                coordinates = (station_lat_y, station_long_x)
+                locator = Nominatim(user_agent='myGeocoder')
+                location = locator.reverse(coordinates)
+                print(station_id, location.raw['address']['postcode'])
 
             #TODO: turns out complexID + divid is not a unique identifier! see 467, 468
             complex_to_station_dict[(complex_id, division_id)] = station_id
 
-            # We're not counting Staten Island. I already duplicated Stations.csv in expectation of removing this trolly data
+            # We're not counting Staten Island
             if 'SIR' in routes:
                 continue
 
@@ -170,6 +309,8 @@ def generate_NYC_subway_map():
             subway_map.nodes[station_id]['pos'] = (station_long_x, station_lat_y)
             subway_map.nodes[station_id]['div'] = division_id
             subway_map.nodes[station_id]['name'] = stop_name
+            subway_map.nodes[station_id]['region'] = station_borough
+            subway_map.nodes[station_id]['zip'] = station_zip
 
             #Adding any transfers
             if complex_id in complex_dict:
@@ -196,9 +337,9 @@ def generate_NYC_subway_map():
     # Builds the edges between stations based on our own listing of correct edges between stations
     # The first column in each row is the route name or a fake route name
     # successor columns are consecutive stations. just link em up
-    #TODO: note that in ods, racepark or aqueduct or something is not fixed.
+    # TODO: note that in ods, racepark or aqueduct or something is not fixed.
     if build_edges_from_file:
-        file_fixed_routings = Path('Data/Fixed_Routings.csv')
+        file_fixed_routings = Path('Data/NYC/Subway/Fixed_Routings.csv')
         with open(file_fixed_routings, 'r') as f_routes:
             for row in f_routes:
                 route_data = row.split(',')[1:]
@@ -213,8 +354,8 @@ def generate_NYC_subway_map():
     if make_best_guess_routes:
         "Adding Edges, a more logical approach (but still possibly crap, also might not matter)"
         "Best theoretical mathy approach would be to find the shortest hamiltonian path. but i am lazy"
-        file_routing_by_id = Path('Data/Our_Routing_By_Id.csv')
-        file_routing_by_name = Path('Data/Our_Routing_By_Name.csv')
+        file_routing_by_id = Path('Data/NYC/Subway/Our_Routing_By_Id.csv')
+        file_routing_by_name = Path('Data/NYC/Subway/Our_Routing_By_Name.csv')
         f_route_ids = open(file_routing_by_id, 'w')
         f_route_names = open(file_routing_by_name, 'w')
 
@@ -223,7 +364,7 @@ def generate_NYC_subway_map():
             maxX = -75
             minY = 42
             maxY = 38
-            # TODO after thinking some more, just do something readable and logical and make an actual edge list later if needed.
+            # TODO Just do something readable and logical and make an actual edge list later if needed.
             # TODO after writing this and still having to hack in some lines, I 100% approve of that idea.
             for station in routes_and_stations[route]:
                 x_coord = subway_map.nodes[station]['x']
@@ -277,10 +418,10 @@ def generate_NYC_subway_map():
             y_coord_last = subway_map.nodes[last_station]['y']
             uncombined_stations.remove(terminal_station)
 
-            while(len(uncombined_stations) > 0):
+            while len(uncombined_stations) > 0:
                 best_distance = 100
                 best_candidate = -1
-                #Find the closest station to our current endpoint
+                # Find the closest station to our current endpoint
                 for station_candidate in uncombined_stations:
                     candidate_distance = math.hypot(
                         x_coord_last - subway_map.nodes[station_candidate]['x'],
@@ -312,7 +453,7 @@ def generate_NYC_subway_map():
         f_route_ids.close()
         f_route_names.close()
 
-    nx.set_node_attributes(subway_map, SubwayParams.NODE_TYPE_STATION, 'type')
+    nx.set_node_attributes(subway_map, EnvParams.NODE_TYPE_STATION, 'type')
     nx.set_node_attributes(subway_map, 0, 'viral_load')
     nx.set_node_attributes(subway_map, 0, 'flow')
 
@@ -320,12 +461,29 @@ def generate_NYC_subway_map():
     date_start = datetime.datetime(2020, 3, 1, 0, 0)  # inclusive
     date_end = datetime.datetime(2020, 3, 21, 0, 0)  # inclusive
 
-    #I suppose the nice thing about python is I don't have too much to update if I need to return something new.
-    total_flow = update_flow_data(subway_map, 'Turnstile_Data.csv', complex_to_station_dict, date_start, date_end)
+    # I suppose the nice thing about python is I don't have too much to update if I need to return something new.
+    update_flow_data(subway_map, 'Turnstile_Data.csv', complex_to_station_dict, date_start, date_end)
+    update_population_flow_data(subway_map, location='NYC')
 
-    return subway_map, routes_and_stations, total_flow
+    NYC_TIMES_SQUARE = [11, 317, 467, 468]
+    NYC_GRAND_CENTRAL = [465, 469, 402, ]
 
-#for NYC, total passenger flow was about 124975642
+    for station_id in subway_map:
+        station_shortest_path = 999999
+        for dest_id in NYC_GRAND_CENTRAL + NYC_TIMES_SQUARE:
+            path_len = nx.algorithms.shortest_path_length(subway_map, station_id, dest_id)
+            if path_len < station_shortest_path:
+                station_shortest_path = path_len
+
+        subway_map.nodes[station_id]['commute_time'] = station_shortest_path + 1
+
+        #TODO: this sucks a bit.
+        #sqrt_eccentricity = math.sqrt(nx.algorithms.distance_measures.eccentricity(subway_map,station_id))
+        #subway_map.nodes[station_id]['commute_time'] = sqrt_eccentricity
+
+    return subway_map, routes_and_stations
+
+# for NYC, 3 week total passenger flow was about 124975642
 def update_flow_data(subway_map, flow_files, complex_to_station_dict, date_start, date_end):
     """this will look substantially different from our geographically/train based map.
     we will look at the turnstile data from Mar 1 - Mar 21 when the pandemic was starting
@@ -335,7 +493,7 @@ def update_flow_data(subway_map, flow_files, complex_to_station_dict, date_start
     """Astoria - Ditmars Blvd,N W,BMT,Astoria,Q,Elevated,-73.912034,40.775036,1,2020-01-01,7024,7060"""
     # So we filter down by date, sum up the entrance and exits, and call it 'passenger flow' node attribute.
     # Remember that complex id and div id are strings!
-    file_to_open = Path('Data/' + flow_files)
+    file_to_open = Path('Data/NYC/Subway/' + flow_files)
     total_flow = 0
 
     with open(file_to_open, 'r') as f:
@@ -361,12 +519,84 @@ def update_flow_data(subway_map, flow_files, complex_to_station_dict, date_start
                         subway_map.nodes[station_id]['flow'] += flow_in + flow_out
                         total_flow += flow_in + flow_out
 
-    #TODO: HACK ALERT! DUE TO ISSUES WITH COMPLEX/STATION DATA. REFERENCE COMPLEX_TO_STATION_DICT TODO:
+    # TODO: HACK ALERT! DUE TO ISSUES WITH COMPLEX/STATION DATA. REFERENCE COMPLEX_TO_STATION_DICT TODO:
     for station_id in subway_map.nodes():
+        station_name = subway_map.nodes[station_id]['name']
         if subway_map.nodes[station_id]['flow'] == 0:
-            subway_map.nodes[station_id]['flow'] = 600000
-            total_flow += 600000
+            estimated_flow = estimate_feature_from_nn(subway_map, 'flow', station_id, ignore_zeros=True)
+            subway_map.nodes[station_id]['flow'] = estimated_flow
+            total_flow += estimated_flow
+            #print('Flow estimate:', station_id, station_name, subway_map.nodes[station_id]['flow'])
+
     return total_flow
+
+def update_population_flow_data(network, location='NYC', pop_files=None):
+    """creates population data, normalizes flow to population"""
+    if location == 'NYC':
+        population_bx, population_bk, population_m, population_q = 0, 0, 0, 0
+
+        #Just modify passenger flow by borough modifier pulled from [my @$$], I mean...
+        """https://psplvv-ctwprtla.nyc.gov/assets/planning/download/pdf/planning-level/housing-economy/nyc-ins-and-out-of-commuting.pdf"""
+
+        # Percentage of total population and flow percentage
+        # Bronx     0.1806  0.07    2.53
+        # Brooklyn  0.3226  0.20    1.61
+        # Manhattan 0.2074  0.60    0.34
+        # Queens    0.2894  0.13    2.30
+
+        # total commuters should be about 3 million
+        nyc_population = 7853000  # Population NOT on Staten Island
+
+        multiplier = nyc_population / get_feature_sum(network, 'flow')
+        total_commuters = 0
+        for n in network.nodes():
+            #Update flow data
+            flow = network.nodes[n]['flow'] * multiplier
+            network.nodes[n]['flow'] = flow
+
+            #Write population and commuter data
+            # TODO: population data should be independent of flow data
+            # commuter ratio too...
+
+            borough = network.nodes[n]['region']
+            if borough == EnvParams.BOROUGH_BRONX:
+                network.nodes[n]['population'] = flow * 2.53
+                network.nodes[n]['commuter_ratio'] = 0.45 + 0.1 * random.random()
+                total_commuters += 0.5 * 2.53 * flow
+            elif borough == EnvParams.BOROUGH_BROOKLYN:
+                network.nodes[n]['population'] = flow * 1.61
+                network.nodes[n]['commuter_ratio'] = 0.45 + 0.1 * random.random()
+                total_commuters += 0.5 * 1.61 * flow
+            elif borough == EnvParams.BOROUGH_MANHATTAN:
+                network.nodes[n]['population'] = flow * 0.34
+                network.nodes[n]['commuter_ratio'] = 0.15 + 0.1 * random.random()
+                total_commuters += 0.1 * 0.34 * flow
+            elif borough == EnvParams.BOROUGH_QUEENS:
+                network.nodes[n]['population'] = flow * 2.30
+                network.nodes[n]['commuter_ratio'] = 0.35 + 0.1 * random.random()
+                total_commuters += 0.5 * 2.30 * flow
+            else:
+                print('Borough ID error', n, borough)
+
+        #print(total_commuters) #this should be about 3 million, total ridership should be 7 million
+
+def get_feature_sum(network, feature):
+    feature_total = 0
+    for n in network.nodes():
+        feature_total += network.nodes[n][feature]
+    return feature_total
+
+def estimate_feature_from_nn(network, feature, node, ignore_zeros=True):
+    neighbors = list(nx.Graph.neighbors(network, node))
+    total_feature_value = 0
+    total_neighbors_counted = 0
+    for nn in neighbors:
+        feature_value = network.nodes[nn][feature]
+        if feature_value == 0 and ignore_zeros:
+            total_neighbors_counted -= 1  # discounts the counted neighbor TODO: kluuudgy
+        total_neighbors_counted += 1
+        total_feature_value += feature_value
+    return total_feature_value / total_neighbors_counted
 
 def generate_simple_triangle_map():
     """A fake subway. We'll need a naming convention for stations in the real one"""
@@ -386,11 +616,11 @@ def generate_simple_triangle_map():
     routes_and_stations[2] = [2, 3]
     routes_and_stations[3] = [3, 1]
 
-    nx.set_node_attributes(subway_map, SubwayParams.NODE_TYPE_STATION, 'type')
+    nx.set_node_attributes(subway_map, EnvParams.NODE_TYPE_STATION, 'type')
     nx.set_node_attributes(subway_map, 0, 'viral_load')
     nx.set_node_attributes(subway_map, 0, 'flow')
 
-    return subway_map, routes_and_stations, 0
+    return subway_map, routes_and_stations
 
 
 def get_subway_map(map_type):
@@ -410,6 +640,9 @@ def get_subway_map(map_type):
         return generate_geometric_map('grid')
     if map_type == SimulationParams.MAP_TYPE_MOSCOW:
         return generate_moskva_subway_map()
+    if map_type == SimulationParams.MAP_TYPE_TREN_MADRID:
+        return generate_cercanias_map()
+
     return subway_map
 
 def generate_fake_world_map():
@@ -424,17 +657,16 @@ def generate_fake_world_map():
     air_graph.nodes[2]['flow'] = 100
     air_graph.nodes[3]['flow'] = 100
 
-    nx.set_node_attributes(air_graph, SubwayParams.NODE_TYPE_STATION, 'type') #LOL?
+    nx.set_node_attributes(air_graph, EnvParams.NODE_TYPE_STATION, 'type') #LOL?
     nx.set_node_attributes(air_graph, 0, 'viral_load')
 
     return AirGraph(air_graph, 300)
-
 
 def generate_wan_map():
     """1,"Goroka Airport","Goroka","Papua New Guinea","GKA","AYGA",-6.081689834590001,145.391998291,5282,10,"U","Pacific/Port_Moresby","airport","OurAirports"""
     airway_map = nx.Graph()
     # Build Nodes
-    file_to_open = Path('Data/airports.dat')
+    file_to_open = Path('Data/World/Air_Routes/airports.dat')
     with codecs.open(file_to_open, 'r', encoding='utf8') as f:
         csv_reader = csv.reader(f, delimiter=',', quotechar='"') #TODO, really this should be done everywhere
         for wan_data in csv_reader:
@@ -442,41 +674,180 @@ def generate_wan_map():
             airport_name = wan_data[1]  # airport name
             _ = wan_data[2]  # airport region??
             _ = wan_data[3]  # airport country
-            _ = wan_data[4]  # airport IATA code
+            airport_iata_code = wan_data[4]  # airport IATA code
             _ = wan_data[5]  # other airport code
             airport_lat_y = float(wan_data[6])  # airport latitude
             airport_long_x = float(wan_data[7])  # airport longtitude
-            #bunch of other fields i don't care about
+            # bunch of other fields i don't care about
 
             airway_map.add_node(airport_id)
             airway_map.nodes[airport_id]['x'] = airport_long_x
             airway_map.nodes[airport_id]['y'] = airport_lat_y
             airway_map.nodes[airport_id]['pos'] = (airport_long_x, airport_lat_y)
             airway_map.nodes[airport_id]['name'] = airport_name
-
+            airway_map.nodes[airport_id]['IATA'] = airport_iata_code
 
     # Build Edges (without weights)
-    file_to_open = Path('Data/routes.dat')
+    file_to_open = Path('Data/World/Air_Routes/routes.dat')
     with codecs.open(file_to_open, 'r', encoding='utf8') as f:
         """2B,410,AER,2965,KZN,2990,,0,CR2"""
         for row in f:
             route_data = row.split(',')
             _ = route_data[0]
             _ = route_data[1]
-            _ = route_data[2]  # source name
+            src_iata_code = route_data[2]  # source name
             src_id = route_data[3]  # source uid
-            _ = route_data[4]  # destination name
-            dest_id = route_data[5]  # destination uid
-            if dest_id != r'\N' and src_id != r'\N' and \
-                airway_map.has_node(int(src_id)) and airway_map.has_node(int(dest_id)): # TODO: wow...
-                airway_map.add_edge(int(src_id), int(dest_id))
+            dst_iata_code = route_data[4]  # destination name
+            dst_id = route_data[5]  # destination uid
+            # TODO: omg... in the routing data, HYD is given no id, despite it having one in airports.dat...
+            # convert all IST routes to ISL routes. 1701 is labelled ISL and yet there are 1701,IST routes... whatever.
+            # HYD - 12087
+            # IST = 1701, ISL = 13696
+            if 'HYD' in src_iata_code:
+                src_id = 12087
+            if 'HYD' in dst_iata_code:
+                dst_id = 12087
+            if 'IST' in src_iata_code or 'ISL' in src_iata_code or src_id == '1701':
+                src_id = 13696
+            if 'IST' in dst_iata_code or 'ISL' in dst_iata_code or dst_id == '1701':
+                dst_id = 13696
+
+            if dst_id != r'\N' and src_id != r'\N' and \
+                airway_map.has_node(int(src_id)) and airway_map.has_node(int(dst_id)): # TODO: wow...
+
+                airway_map.add_edge(int(src_id), int(dst_id))
             #bunch of other fields i don't care about
 
     nx.set_node_attributes(airway_map, 0, 'flow')
-    nx.set_node_attributes(airway_map, SubwayParams.NODE_TYPE_STATION, 'type')  # LOL?
+    nx.set_node_attributes(airway_map, EnvParams.NODE_TYPE_STATION, 'type')  # LOL?
     nx.set_node_attributes(airway_map, 0, 'viral_load')
 
-    return AirGraph(airway_map, 0)
+    return AirGraph(airway_map)
+
+def generate_curated_airway_map():
+    """IATA Code,Passengers,Municipality,Comments"""
+    """Really, if it doesn't have an IATA code, is it that important?"""
+
+    # TODO: this is also kind of a waste?
+    airway_map = generate_wan_map()
+    nx_graph = airway_map.graph
+    top_n_airports = 999  # TODO: this is a param
+
+    nodes_to_keep = []
+    #pare down the airports (nodes)
+    file_to_open = Path('Data/World/Air_Routes/Airports_curated_HLC.csv')
+    with codecs.open(file_to_open, 'r', encoding='utf8') as f:
+        next(f)
+        i = 0
+        iata_to_id_reverse_lookup = {}
+        for row in f:
+            if i >= top_n_airports:
+                break
+            i += 1
+
+            airport_data = row.split(',')
+            airport_iata_code = airport_data[0]  # IATA Code
+            airport_flow = airport_data[1]  # Passengers
+            airport_city = airport_data[2]  # Municipality (City)
+
+            # TODO: this would have been better if you had made an id <> IATA dict
+            for node_id in nx_graph.nodes():
+                node = nx_graph.nodes[node_id]
+                if node['IATA'] == airport_iata_code:
+                    nodes_to_keep.append(node_id)
+                    node['flow'] = int(airport_flow)
+                    node['city'] = airport_city
+                    iata_to_id_reverse_lookup[airport_iata_code] = node_id
+                    break
+
+    curated_nx_graph = nx.Graph.copy(nx_graph.subgraph(nodes_to_keep))
+
+    # determine whether the flight is domestic
+    nx.set_edge_attributes(curated_nx_graph, False, 'domestic')
+    for u, v in curated_nx_graph.edges:
+        coordinates_u = tuple(reversed(curated_nx_graph.nodes[u]['pos']))
+        coordinates_v = tuple(reversed(curated_nx_graph.nodes[v]['pos']))
+        curated_nx_graph.edges[u, v]['domestic'] = flight_is_domestic(coordinates_u, coordinates_v)
+
+
+    # estimate all edge flows
+    file_to_open = Path('Data/World/Air_Routes/Airport_pairs_curated_HLC.csv')
+    with codecs.open(file_to_open, 'r', encoding='utf8') as f:
+        '''IATA Airport 1,IATA Airport 2,,,Edge Flow,Comments'''
+        next(f)
+
+        nx.set_edge_attributes(curated_nx_graph, 0, 'pair_flow')
+        for row in f:
+            route_data = row.split(',')
+            src_iata_code = route_data[0]  # IATA 1
+            dst_iata_code = route_data[1]  # IATA 2
+            edge_flow = route_data[4]  # edge data
+
+            if src_iata_code in iata_to_id_reverse_lookup:
+                src_id = iata_to_id_reverse_lookup[src_iata_code]
+                if dst_iata_code in iata_to_id_reverse_lookup:
+                    dst_id = iata_to_id_reverse_lookup[dst_iata_code]
+                    # comment: man. I made this file. edge_flow is filled out for sure
+                    if src_id in curated_nx_graph.nodes and dst_id in curated_nx_graph.nodes:
+                        curated_nx_graph.add_edge(src_id, dst_id, pair_flow=int(edge_flow))
+
+        for u, v, flow in curated_nx_graph.edges.data('pair_flow'):
+            if flow == 0: #just take a random guess based on number of neighbors of both nodes
+                domestic_multiplier = 5 #TODO: a param I guess
+
+
+                #For u
+                neighbors_u = list(nx.neighbors(curated_nx_graph, u))
+                remaining_flow_u = curated_nx_graph.nodes[u]['flow']
+                remaining_neighbors_u = len(neighbors_u)  #remaining _empty_ neighbors
+                for neighbor_id in neighbors_u:
+                    flow_to_neighbor = curated_nx_graph[u][neighbor_id]['pair_flow']
+                    remaining_flow_u -= flow_to_neighbor
+                    if flow_to_neighbor > 0:
+                        remaining_neighbors_u -= 1
+                    else: #if the neighbor also has to be weighted
+                        if curated_nx_graph.edges[u, neighbor_id]['domestic']:
+                            remaining_neighbors_u += domestic_multiplier - 1
+
+                #For v TODO: copypasta
+                neighbors_v = list(nx.neighbors(curated_nx_graph, v))
+                remaining_flow_v = curated_nx_graph.nodes[v]['flow']
+                remaining_neighbors_v = len(neighbors_v)
+                for neighbor_id in neighbors_v:
+                    flow_to_neighbor = curated_nx_graph[v][neighbor_id]['pair_flow']
+                    remaining_flow_v -= flow_to_neighbor
+                    if flow_to_neighbor > 0:
+                        remaining_neighbors_v -= 1
+                    else: #if the neighbor also has to be weighted
+                        coordinates_n = tuple(reversed(curated_nx_graph.nodes[neighbor_id]['pos']))
+                        if curated_nx_graph.edges[v, neighbor_id]['domestic']:
+                            remaining_neighbors_v += domestic_multiplier - 1
+
+                #The actual flow estimating
+                if curated_nx_graph.edges[u, v]['domestic']: #your flight also has a multiplier of 5
+                    flow_estimate = min(5*remaining_flow_u/remaining_neighbors_u, 5*remaining_flow_v/remaining_neighbors_v)
+                else:
+                    flow_estimate = min(remaining_flow_u/remaining_neighbors_u, remaining_flow_v/remaining_neighbors_v)
+                if False: #TODO: some debug code to look at flow
+                    if u == 3376 or v == 3376:
+                        print('u:', u, remaining_flow_u, remaining_neighbors_u)
+                        print('v:', v, remaining_flow_v, remaining_neighbors_v)
+                        print('domestic:', curated_nx_graph.edges[u, v]['domestic'])
+                        print('assigning flow', flow_estimate, 'to', u,v)
+                if flow_estimate < 10000:
+                    print('warning! low flow between', u, v, flow_estimate, 'automatically setting to 10k')
+                    flow_estimate = 10000
+                curated_nx_graph.edges[u, v]['pair_flow'] = flow_estimate
+
+    return AirGraph(curated_nx_graph)
+
+def flight_is_domestic(coordinates_u, coordinates_v):
+    coordinates = coordinates_u,coordinates_v
+    coord_data = reverse_geocoder.search(coordinates, mode=1)
+    if coord_data[0]['cc'] == coord_data[1]['cc']:
+        return True
+    return False
+
 
 def get_airway_map(map_type):
     airway_map = nx.Graph()
@@ -484,7 +855,9 @@ def get_airway_map(map_type):
         return generate_wan_map()
     if map_type == SimulationParams.MAP_TYPE_FAKE_WORLD:
         return generate_fake_world_map()
-    return AirGraph(airway_map, 0)
+    if map_type == SimulationParams.MAP_TYPE_HLC_CURATED_WAN:
+        return generate_curated_airway_map()
+    return AirGraph(airway_map)
 
 def make_exit_nodes(subway_map):
     """Given a subway map, add a street-level exit node.
@@ -494,7 +867,7 @@ def make_exit_nodes(subway_map):
     for node in subway_map.nodes():
         subway_with_exits.add_node(node_index)
         #TODO: is there a way to do this in one line?
-        subway_with_exits.nodes[node_index]['type'] = SubwayParams.NODE_TYPE_STREET
+        subway_with_exits.nodes[node_index]['type'] = EnvParams.NODE_TYPE_STREET
         subway_with_exits.nodes[node_index]['routes'] = ""
         #TODO: probably not the best way to create a shadow
         subway_with_exits.nodes[node_index]['x'] = subway_map.nodes[node]['x'] + 0.01 #create a 'shadow'

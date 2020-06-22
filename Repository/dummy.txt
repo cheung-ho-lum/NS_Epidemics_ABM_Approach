@@ -1,1 +1,52 @@
-HLC 28.05 - I did not commit my venv files. packages are pretty straightforward (mesa, networkx, etc.). Let's reconsider commiting things later.
+# Stage 1:
+# Just the map and people
+# Create station map
+# Add an above-ground node for people in the zip. These people don't interact (for now)
+# Use MESA to make our Model
+# Have people move around the subway
+# End stage 1
+# Stage 2:
+# Introduce SEIR and add some numbers
+# Introduce the NYC Subway map and add attributes
+# Stage 2a:
+# Introduce a secondary mapping of weighted edges based on ridership
+# A sidenote that turnstiles don't count transfers. t.e. while we map ridership between nodes
+# They almost always take some specific path through the network
+# Although... the gridlike structure of nyc subway may make multiple choices viable. TBD
+# Stage 3:
+# make agents move based on commuting (give them a home)
+# make agents infect *stations* for an amount of time, and not directly infect other agents
+# fix the line data
+# Stage 3.5:
+# build some other subway maps.
+# Stage 3.6:
+# total passenger flow now calculated
+# riders spawned by ratio of their station to the total
+# Some code cleanup (give map types an enum, create DisplayParams)
+# Stage 3.6.5:
+# Evaluate and pull out what is common to agents on all types of transportation
+# Create Generic Transportation Model
+# Refactor SubwayModel to inherit from TransportationModel
+# Stage 3.6.6:
+# Redo agents to best mimic a population at a station.
+# Stage 3.7:
+# More code cleanup: It's time preprocessing just created an OurGraph
+# Clean up passenger flow calculations
+# Stage 3.9:
+# Refactor and clean up data folder.
+# Code cleanup: Model should really handle more of its own graphics
+# Stage 4:
+# Implement Basic quarantine modelling
+# Distinguish between population and flow
+# Stage 4.1:
+# Generalize the idea of eccentricity
+# Check Moscow Metro for validity of this idea
+# Stage 4.2
+# Get real population numbers living at each metro station (vs. ridership)
+# Draw zip-level (or borough) detail onto the map
+# Get zip-level (or borough) data of the spread of coronavirus
+# Stage 4.2
+# Fit the model.
+# Stage 6:
+# Give agents some work data
+# Spread of viral load should be diminished by number of routes
