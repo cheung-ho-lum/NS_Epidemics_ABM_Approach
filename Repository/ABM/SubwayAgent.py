@@ -112,7 +112,7 @@ class SubwayAgent(SEIR_Agent):
             self._epi_characteristics['beta'] * susceptible * outside_infected / normalization_factor
 
         super().update_agent_health()
-        if DisplayParams.PRINT_DEBUG or True:
+        if DisplayParams.PRINT_DEBUG:
             if self.location == AgentParams.MAP_LOCATION_98_BEACH \
                     or self.location == AgentParams.MAP_LOCATION_55_ST \
                     or self.location == AgentParams.MAP_LOCATION_JUNCTION_BLVD:

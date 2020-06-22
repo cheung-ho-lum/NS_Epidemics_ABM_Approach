@@ -153,29 +153,29 @@ def draw_graph(nx_graph, node_attr="type", timestamp="", vmin=0, vmax=0.11,
     mapping = dict(zip(sorted(groups), count()))
     nodes = nx_graph.nodes()
     node_sizes = []
+    if not DisplayParams.DRAW_MAP_ONLY:
+        for n in nodes:  # TODO: hmm... this needs some rethinking with different passenger flows.
+            size_of_n = math.sqrt(nodes[n]['flow'] / 1e6) #500 works well for subway, 1e6 for airports
+            node_sizes.append(min(100, max(10, size_of_n)))  # range from 10 - 100
+            #this changes pos to the mercator projection
+            if has_background_map:
+                mx, my = m(nodes[n]['x'], nodes[n]['y'])
+                nodes[n]['pos'] = (mx, my)
 
-    for n in nodes:  # TODO: hmm... this needs some rethinking with different passenger flows.
-        size_of_n = math.sqrt(nodes[n]['flow'] / 1e6) #500 works well for subway, 1e6 for airports
-        node_sizes.append(min(100, max(10, size_of_n)))  # range from 10 - 100
-        #this changes pos to the mercator projection
-        if has_background_map:
-            mx, my = m(nodes[n]['x'], nodes[n]['y'])
-            nodes[n]['pos'] = (mx, my)
+        colors = [mapping[nx_graph.nodes[n][node_attr]] for n in nodes]
+        if 'normalized' in node_attr:
+            colors = list(nx.get_node_attributes(nx_graph, node_attr).values())
+            print(max(colors)) #use to get an idea what vmax is.
+        pos = nx.get_node_attributes(nx_graph, 'pos')
+        if len(pos) == 0:
+            pos = nx.spring_layout(nx_graph, seed=SimulationParams.GRAPH_SEED)
 
-    colors = [mapping[nx_graph.nodes[n][node_attr]] for n in nodes]
-    if 'normalized' in node_attr:
-        colors = list(nx.get_node_attributes(nx_graph, node_attr).values())
-        print(max(colors)) #use to get an idea what vmax is.
-    pos = nx.get_node_attributes(nx_graph, 'pos')
-    if len(pos) == 0:
-        pos = nx.spring_layout(nx_graph, seed=SimulationParams.GRAPH_SEED)
+        edgelist = []
+        if SimulationParams.SIMULATION_TYPE == SimulationParams.TRAIN_SIM:
+            edgelist = list(nx_graph.edges) # TODO: that's weird. edgelist is hidden by map anyway. because of edge alpha?
 
-    edgelist = []
-    if SimulationParams.SIMULATION_TYPE == SimulationParams.TRAIN_SIM:
-        edgelist = list(nx_graph.edges) # TODO: that's weird. edgelist is hidden by map anyway. because of edge alpha?
-
-    nx.draw_networkx(nx_graph, node_size=node_sizes, with_labels=False, width=0.2, node_color=colors, pos=pos,
-                     cmap=plt.cm.jet, vmin=vmin, vmax=vmax, edge_color='k', edgelist=edgelist) #edgelist = none for airports for now.
+        nx.draw_networkx(nx_graph, node_size=node_sizes, with_labels=False, width=0.2, node_color=colors, pos=pos,
+                         cmap=plt.cm.jet, vmin=vmin, vmax=vmax, edge_color='k', edgelist=edgelist) #edgelist = none for airports for now.
 
     if len(timestamp) > 0:
         plt.title(node_attr + ' t=' + timestamp)

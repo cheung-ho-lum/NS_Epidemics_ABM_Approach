@@ -55,5 +55,9 @@ https://www.aviationfanatic.com/ent_list.php?ent=7&NN_AP_Passengers=1&so=22
 parsing cercanias data
 https://content.citymapper.com/news/1376/por-que-nadie-entiende-el-cercanias-de-madrid
 
-
+singapore bus guys
 https://www.researchgate.net/publication/340541290_Modeling_Epidemic_Spreading_through_Public_Transit_using_Time-Varying_Encounter_Network
+
+ABM background reading
+https://www.ncbi.nlm.nih.gov/books/NBK305917/
+

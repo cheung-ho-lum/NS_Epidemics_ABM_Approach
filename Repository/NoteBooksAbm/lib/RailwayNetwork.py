@@ -283,5 +283,5 @@ class RailwayNetwork(Model):
     def __del__(self):
         del self.passengers[:]
         del self.trains[:]
-        del self.stations[:]
-        del self.lines[:]
+        del self.stations
+        del self.lines
