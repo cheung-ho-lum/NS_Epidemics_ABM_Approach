@@ -65,7 +65,9 @@ class Platform():
         return self.direction
     
     def add_passengers(self, passengers):
+        self.count_in = self.count_in + len(passengers)
         if self.train is None:
+            self.count_wait_in_platform = self.count_wait_in_platform + len(passengers)
             self.passengers = self.passengers + passengers
             for p in passengers:
                 p.set_current_place(self)
@@ -117,9 +119,23 @@ class Platform():
     def get_n_infections(self):
         return len(self.time_infections)
     
+    def get_count_wait_in_platform(self):
+        """Returns the number of passengers who have been waiting for a train in a platform of the station"""
+        return self.count_wait_in_platform
+
+    def get_count_in(self):
+        return self.count_in
+    
+    def get_count_out(self):
+        return self.count_out
+
     def add_infection(self):
         self.time_infections.append(self.network.get_time())
         return self
+
+    def notify_arrived_passengers(self, passengers):
+        self.count_out = self.count_out + len(passengers)
+        self.network.notify_arrived_passengers(self.station, passengers)
 
     def notify_train_arrival(self, train):
         self.next_arrival = self.next_arrival + 1
@@ -140,3 +156,6 @@ class Platform():
         self.next_arrival = 0
         self.next_departure = 0
         self.time_infections = []
+        self.count_in = 0
+        self.count_out = 0
+        self.count_wait_in_platform = 0
