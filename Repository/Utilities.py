@@ -71,3 +71,18 @@ def draw_severity_by_region(location='NYC', file_location='Data/NYC/Case_Death_R
     Graphics.draw_geographical_hotspots(data_matrix=case_data, zip_list=zip_index, date_list=date_index)
 
     return None
+
+def calculate_MAPE(actual=[],forecast=[], forecast_2 = []): #TODO: very little validation
+    total_err = 0.00
+    interval = len(actual)
+    min_interval = 30
+    if interval >= min_interval:
+        for i in range(min_interval, interval):
+            val_actual = actual[i]
+            val_forecast = forecast[i] + forecast_2[i]
+            err = abs(val_actual - val_forecast) / val_actual
+            total_err += err
+
+        return total_err / (interval - min_interval)
+    else:
+        return 0.00

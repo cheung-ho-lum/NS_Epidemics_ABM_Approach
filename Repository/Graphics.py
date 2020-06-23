@@ -5,6 +5,8 @@ from mpl_toolkits.basemap import Basemap as Basemap
 from itertools import count
 import matplotlib.pyplot as plt
 import networkx as nx
+
+import Utilities
 from Parameters import SimulationParams, DisplayParams
 import math
 import numpy as np
@@ -214,6 +216,7 @@ def draw_SEIR_curve(statistics, fig, benchmark_SEIR=None):
                     np.max(statistics[..., 4:]),
                     benchmark_max
                     )  # y lim now based on maximum of a few possible statistics.
+        print(Utilities.calculate_MAPE(benchmark_SEIR[..., 3], statistics[..., 3], statistics[..., 4]))
     else:
         y_lim = np.max(statistics[..., 2:5])  # *HLC 19.06 - y lim now ignores S statistic
     ax.set_ylim(0, y_lim)

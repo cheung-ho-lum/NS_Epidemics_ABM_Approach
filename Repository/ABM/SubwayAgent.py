@@ -105,7 +105,7 @@ class SubwayAgent(SEIR_Agent):
         self.population[AgentParams.STATUS_EXPOSED] += awareness_modifier * \
             susceptible_commuters * beta_subway_commuters * outside_infected / normalization_factor
 
-        # Global spread
+        # Global spread TODO: this currently just acts as beta * 1.7 modifier
         self.population[AgentParams.STATUS_SUSCEPTIBLE] -= AgentParams.GLOBAL_FACTOR_NYC_SUBWAY * \
             self._epi_characteristics['beta'] * susceptible * outside_infected / normalization_factor
         self.population[AgentParams.STATUS_EXPOSED] += AgentParams.GLOBAL_FACTOR_NYC_SUBWAY * \

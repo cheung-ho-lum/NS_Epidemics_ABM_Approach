@@ -46,7 +46,14 @@
 # Draw zip-level (or borough) detail onto the map
 # Get zip-level (or borough) data of the spread of coronavirus
 # Stage 4.2
-# Fit the model.
+# Fit the model (SEIR)
+# Fit the model (ZIP)
+# Reportables
+# Stage 4.3
+- A suggestion to upgrade the WAN node sizes.
+# Stage 4.5
+# London
+
 # Stage 6:
 # Give agents some work data
 # Spread of viral load should be diminished by number of routes
