@@ -69,6 +69,9 @@ http://datalytics.ru/all/kak-poluchit-spisok-stanciy-moskovskogo-metropolitena-p
 zip-code start areas:
 https://data.cityofnewyork.us/Health/Modified-Zip-Code-Tabulation-Areas-MODZCTA-/pri4-ifjk
 
+top 100 airport pairs. actually released by sabermetrics or someething
+https://www.routesonline.com/news/29/breaking-news/286313/busiest-routes-in-the-world-the-top-100/
+
 
 Moscow  stations_data.tsv
 
@@ -84,5 +87,6 @@ https://data.cityofnewyork.us/Health/Modified-Zip-Code-Tabulation-Areas-MODZCTA-
 NYC modzcta data
 https://github.com/nychealth/coronavirus-data/blob/master/data-by-modzcta.csv
 
-cercanias station list
-https://data.renfe.com/dataset/estaciones-cercanias-madrid/resource/daa68d9b-77cf-4024-890f-285d31184c5a
+London borough covid data
+https://data.london.gov.uk/dataset/coronavirus--covid-19--cases
+

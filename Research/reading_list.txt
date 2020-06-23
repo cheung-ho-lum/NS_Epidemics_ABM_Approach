@@ -31,12 +31,6 @@ https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7094585/
 just some NYC visualizations
 https://experience.arcgis.com/experience/6f649c27b114410a8973ad671df707eb
 
-a REALLY detailed look at commuting statistics in NYC
-https://psplvv-ctwprtla.nyc.gov/assets/planning/download/pdf/planning-level/housing-economy/nyc-ins-and-out-of-commuting.pdf
-
-nyc turnstile statistics displayed
-https://toddwschneider.com/dashboards/nyc-subway-turnstiles/
-
 nyc pop data
 https://github.com/nychealth/coronavirus-data
 
@@ -58,5 +52,12 @@ https://towardsdatascience.com/social-distancing-to-slow-the-coronavirus-768292f
 airports by passenger flow.
 https://www.aviationfanatic.com/ent_list.php?ent=7&NN_AP_Passengers=1&so=22 
 
-check this out for another take on the subject:
-https://arxiv.org/pdf/2004.04602.pdf
+parsing cercanias data
+https://content.citymapper.com/news/1376/por-que-nadie-entiende-el-cercanias-de-madrid
+
+singapore bus guys
+https://www.researchgate.net/publication/340541290_Modeling_Epidemic_Spreading_through_Public_Transit_using_Time-Varying_Encounter_Network
+
+ABM background reading
+https://www.ncbi.nlm.nih.gov/books/NBK305917/
+
