@@ -87,3 +87,6 @@ https://data.cityofnewyork.us/Health/Modified-Zip-Code-Tabulation-Areas-MODZCTA-
 NYC modzcta data
 https://github.com/nychealth/coronavirus-data/blob/master/data-by-modzcta.csv
 
+London borough covid data
+https://data.london.gov.uk/dataset/coronavirus--covid-19--cases
+
