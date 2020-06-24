@@ -111,16 +111,45 @@ Base Classes: \href{https://github.com/cheung-ho-lum/NS_Epidemics_ABM_Approach/b
     \item \href{https://github.com/cheung-ho-lum/NS_Epidemics_ABM_Approach/blob/master/Repository/Visualizations/infection_timelapse_moscow.gif}{Moscow}
 \end{itemize}
 \end{frame}
+
+
 \begin{frame}
-\frametitle{World Airline Network (Passenger Flow)}
-Disease spread faster inside a country. Why?
-Data Source (openflights, articles)
-\href{https://github.com/cheung-ho-lum/NS_Epidemics_ABM_Approach/blob/master/Repository/Visualizations/infection_timelapse_world.gif}{World Airline Network}
-Methods (ABM)
+\frametitle{World Airline Network (Passenger Flow) - Challenges}
+Obtaining accurate data bout world passenger flow is a bit of callenge, one has 3 options:
+\begin{enumerate}
+	\item Pay for it
+	\item Using superior math to extrapolate or estimate
+	\item Extrapolate based on what I know; We obted for option 3 
+\end{enumerate}
 \end{frame}
 \begin{frame}
-\frametitle{World Airline Network (Passenger Flow)}
+\frametitle{Algorithm 1 to estimate WAN (Passenger Flow)}
+\begin{enumerate}
+	\item Find total number of passengers going through a specific airport
+	\item Total number of destinations from said airport
+	\item Ratio of traffic from each airport
+	\item Split population of passengers into various destinations based on ratio 
+\end{enumerate}
+Major challenge with this is the fact that we need to find data to answer each of these questions  in order to make an estimate (ratios data)
 \end{frame}
+
+\begin{frame}
+\frametitle{Algorithm 2 to estimate WAN (Passenger Flow)}
+Using Data from Wikipedia and Openflights
+\begin{enumerate}
+	\item Get the total population of data passengers that go through a specific airport.
+	\item Using HITS algorithm on airport pairs.
+	\item Split population of passengers into various destinations based on hubs obtained from HITS
+\end{enumerate}
+Major challenge with this is the fact that the graph is undirected hence the HITS results were unreliable. Also if the data was split into major known hubs the data returned the same value from HITS.
+\end{frame}
+
+\begin{frame}
+\frametitle{World Airline Network (Passenger Flow)  Algorithm}
+\end{frame}
+
+
+
 \begin{frame}
 \frametitle{Madrid Commuter Trains (Central Hubs)}
 How important are central transportation hubs to disease spread?
