@@ -22,6 +22,7 @@ class Train(Agent):
         try:
             current = self.route.iloc[self.station_number]
             station = self.network.get_stations()[current['STATION_NAME']]
+            platform = station.get_platform(self.line_name, self.direction)
         except Exception as e:
             print('number: ', self.station_number)
             print(self.route)
@@ -50,7 +51,7 @@ class Train(Agent):
                 drop_passengers = [p for i, p in enumerate(self.passengers) if p_random[i] == 1]
                 self.passengers = [p for i, p in enumerate(self.passengers) if p_random[i] == 0]
                 
-                self.network.notify_arrived_passengers(station, drop_passengers)
+                platform.notify_arrived_passengers(drop_passengers)
                 
                 # Notify train arrival to the station
                 station.notify_train_arrival(self, self.line_name, self.direction)
@@ -58,7 +59,7 @@ class Train(Agent):
             if is_end:
                 # Drop all passengers since it is the end of the route
                 passengers = self.pop_passengers()
-                self.network.notify_arrived_passengers(station, passengers)
+                platform.notify_arrived_passengers(passengers)
                 
                 # Notify to the network that the train has finished the route
                 self.network.notify_finish_route(self)

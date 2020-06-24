@@ -131,6 +131,17 @@ class Station():
     def get_name(self):
         return self.name
     
+    def get_platform(self, line_name, direction):
+        return self.platforms[line_name][direction]
+    
+    def get_count_in(self):
+        count_in = 0
+        for _, platforms in self.platforms.items():
+            for _, platform in platforms.items():
+                count_in = count_in + platform.get_count_in()
+        
+        return count_in
+    
     def get_n_passengers(self, count_train=True):
         n_passengers = 0
         for _, platforms in self.platforms.items():
