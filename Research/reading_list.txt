@@ -61,3 +61,5 @@ https://www.researchgate.net/publication/340541290_Modeling_Epidemic_Spreading_t
 ABM background reading
 https://www.ncbi.nlm.nih.gov/books/NBK305917/
 
+NYC commuting statistics
+https://psplvv-ctwprtla.nyc.gov/assets/planning/download/pdf/planning-level/housing-economy/nyc-ins-and-out-of-commuting.pdf

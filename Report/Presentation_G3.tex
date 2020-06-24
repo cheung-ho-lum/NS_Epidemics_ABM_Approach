@@ -8,14 +8,16 @@
 \usepackage{fancyhdr} 
 \usepackage{eurosym}  %To write a Euro symbol
 \usepackage[euler]{textgreek}
-\usepackage[english,main=russian,spanish]{babel}
+\usepackage[main=english,russian,spanish]{babel}
 \usepackage[utf8]{inputenc}
 \usepackage{graphicx}
 \usepackage{float}
 \usepackage{bbm}
 \usepackage{cite}
-\usepackage{movie15}
 \usepackage{listings}
+\usepackage[font=small,labelfont=bf]{caption}
+\usepackage{algorithm} 
+\usepackage{algpseudocode} 
 \lstset{
   basicstyle=\ttfamily,
   columns=fullflexible,
@@ -23,6 +25,8 @@
   breaklines=true,
 }
 \hypersetup{colorlinks,urlcolor=blue}
+\captionsetup[figure]{font=small}
+\setbeamerfont{caption}{size=tiny}
 
 %==================================================
 %My commands: Define your commands here:
@@ -31,11 +35,11 @@
 \title{Planes, Trains, and Afflictions}
 \subtitle{Agent-based modeling for the spread of disease through transportation networks}
 \author{NS Group 3}
-\institute[ВШЭ]
+\institute[HSE]
 {
   \inst{}%
   Faculty of Computer Science\\
-  Higher School of Economics (ВШЭ)\\
+  Higher School of Economics\\
   Moscow
 }
 \date{27 JUN 2020}
@@ -59,33 +63,32 @@
 \frametitle{Motivation}
 Why were certain areas of NYC more affected by COVID-19?\\
 How were the subways involved?\\
-\textbf{image here of NYC afflictions}\\
-credit: NYC DoH
-\textbf{image here of line analysis}\\
-credit: Jeffrey whoever mabob
-\textit{Speaker's note:\\
-- What is a transportation network? What is a subway?
-- How infections spread on transportation networks\\
-- Learn
+\begin{figure}
+\includegraphics[width=4cm]{Scratch_Visuals/NYC_COVID_Subways_Jeff.png}%
+\includegraphics[width=4cm]{Scratch_Visuals/NYC_COVID_Case_Rate.png}
+\caption{
+Left: Case Rate And Subway On April 12, 2020 \cite{subway_epidemic_seed}\\
+Right: NYC COVID Case Rate As Of June 23, 2020 \cite{nyc_health_covid_summary}
 }
+\end{figure}
 \end{frame}
 \begin{frame}
 \frametitle{Prior Research (London Underground)}
 Data: Oyster (Card), CASA (Timetable), PHE Data (Demographics)\\
-\includegraphics[width=0.5\textwidth]{London_Walking_time.png}%
-\includegraphics[width=0.5\textwidth]{London_Borough_Comparison.png}
+\includegraphics[width=0.5\textwidth]{Scratch_Visuals/London_Walking_time.png}%
+\includegraphics[width=0.5\textwidth]{Scratch_Visuals/London_Borough_Comparison.png}
 \textit{Results show a correlation between the use of the underground and ILI cases in London, specifically they show that higher numbers of ILI cases arise in those boroughs where the population spend more time in the Underground and/or incur in a higher number of contacts when travelling.}
  \cite{gosce_johansson_2018}
 \end{frame}
 \begin{frame}
 \frametitle{COVID in London}
-\includegraphics[width=0.7\textwidth]{London_Covid_Adapted.png}
+\includegraphics[width=0.7\textwidth]{Scratch_Visuals/London_Covid_Adapted.png}
 \textit{Speaker's Remark: Boroughs of NY != Boroughs of London}
 \end{frame}
 \begin{frame}
 \frametitle{Prior Research (Singapore Buses)}
-\includegraphics[width=0.5\textwidth]{Singapore_1.png}%
-\includegraphics[width=0.5\textwidth]{Singapore_2.png}
+\includegraphics[width=0.5\textwidth]{Scratch_Visuals/Singapore_1.png}%
+\includegraphics[width=0.5\textwidth]{Scratch_Visuals/Singapore_2.png}
 \textit{The direct contact in trains is, however, difficult to obtain from smart card data because the transactions are recorded at the station level}
 \cite{singapore_bus_2020}
 \textit{Speaker's note:\\
@@ -95,18 +98,13 @@ Data: Oyster (Card), CASA (Timetable), PHE Data (Demographics)\\
 \end{frame}
 \begin{frame}
 \frametitle{ABM Framework}
-\includegraphics[width=1.0\textwidth]{covid_framework_summary.png}
-Components: Python, MESA, Networkx
-
-Transportation Model\\
-SEIR Agent\\
-\textit{Speaker's Notes:\\
-Me no good math. me simulate.
-much result wow.}
+\includegraphics[width=1.0\textwidth]{Scratch_Visuals/covid_framework_summary.png}
+Components: Python, MESA, Networkx\\
+Base Classes: \href{https://github.com/cheung-ho-lum/NS_Epidemics_ABM_Approach/blob/master/Report/Design_doc_for_expansion_of_subway_model.pdf}{Transportation Model, SEIR Agent}
 \end{frame}
 \begin{frame}{Embedded Animation}
 \frametitle{Simple Geometries}
-\includegraphics[width=1.0\textwidth]{geometries_example.png}
+\includegraphics[width=1.0\textwidth]{Scratch_Visuals/geometries_example.png}
 \begin{itemize}
     \item \href{https://github.com/cheung-ho-lum/NS_Epidemics_ABM_Approach/blob/master/Repository/Visualizations/infection_timelapse_grid_01.gif}{Grid}
     \item \href{https://github.com/cheung-ho-lum/NS_Epidemics_ABM_Approach/blob/master/Repository/Visualizations/infection_timelapse_sierpinski_01.gif}{Sierpinski's Triangle}
@@ -115,7 +113,9 @@ much result wow.}
 \end{frame}
 \begin{frame}
 \frametitle{World Airline Network (Passenger Flow)}
+Disease spread faster inside a country. Why?
 Data Source (openflights, articles)
+\href{https://github.com/cheung-ho-lum/NS_Epidemics_ABM_Approach/blob/master/Repository/Visualizations/infection_timelapse_world.gif}{World Airline Network}
 Methods (ABM)
 \end{frame}
 \begin{frame}
@@ -123,43 +123,113 @@ Methods (ABM)
 \end{frame}
 \begin{frame}
 \frametitle{Madrid Commuter Trains (Central Hubs)}
+How important are central transportation hubs to disease spread?
 Data Source (madrid renfe gtfs)
+\end{frame}
+\begin{frame}
+\frametitle{Madrid Commuter Trains (Central Hubs)}
 Methods (ABM)
 \end{frame}
 \begin{frame}
 \frametitle{Results (Madrid)}
 \end{frame}
 \begin{frame}
-\frametitle{NYC COVID Demographics}
+\frametitle{NYC Demographics And COVID Timeline
+\includegraphics[width=1cm]{Scratch_Visuals/NYC_COVID_Case_Rate.png}
+}
+\textit{NYC residents working in Manhattan primarily travel by subway. This is
+also true for residents of the Bronx, Brooklyn, and Queens\cite{nyc_commuting}}
+\begin{itemize}
+	\item March 9 - Mayor holds press conference and notes that there have been 16 confirmed cases. (106 cases)
+	\item March 12 - Mayor declares a local state of emergency. (687 cases)
+	\item March 15 - Schools officially close. (2,986 cases)
+\end{itemize}
+Borough - A geographical region. NYC has 5 boroughs. \\
+MODZCTA - Modified Zip Code Tabulation Areas. $\propto$ postal codes.\\
 \end{frame}
 \begin{frame}
 \frametitle{Subway Systems}
+Complex, Station, Line, Route
+\begin{figure}
+    \includegraphics[width=6cm]{Scratch_Visuals/Novokuznetskaya.png}
+    \caption{Floor Plan of Novokuznetskaya Metro Station \cite{Novokuznetskaya}}
+\end{figure}
 \end{frame}
-\begin{frame}
+\begin{frame}[fragile, shrink=5]
 \frametitle{NYC Subway Data}
-\textit{90\% loss.}
+Stations, Map, Turnstiles (GTFS not considered)
+\begin{figure}
+    \includegraphics[width=6cm]{Scratch_Visuals/schneider_ridership.png}
+    \caption{NYC Subway daily turnstile entries for March 2020 \cite{toddwschneider}}
+\end{figure}
+\begin{verbatim}
+167,167,A32,IND,8th Av - Fulton St,W 4 St,M,A C E...
+167,167,D20,IND,6th Av - Culver,W 4 St,M,B D F M...
+\end{verbatim}
 \end{frame}
-\begin{frame}
+\begin{frame}[shrink=5]
 \frametitle{NYC Subway Modeling}
+\begin{algorithm}[H]
+\caption{Simulation of Disease Spread on Subways}\label{euclid}
+\begin{algorithmic}[1]
+\For{$i=1; i < TIMESPAN; i++$}
+    \State Check conditions (i, number of infected) to see if we should deploy COUNTERMEASURES
+    \For{Station in SubwayModel.Environment.Nodes}
+        \State Calculate 'Local Exposure' from infected and commute time.
+        \State Calculate 'Route Exposure' from infected on the same route.
+        \State Calculate 'General Exposure' due to city-wide infected.
+        \State Update 'Exposure' at station based on above conditions
+    \EndFor
+    \For{Agent in SubwayNetwork.Agents}
+        \State Get 'Exposure' At Location
+        \State Get City-wide COUNTERMEASURES
+        \State Get Percentage of commuters
+        \State Calculate SEIR beta and gamma based on conditions
+        \State Update SEIR numbers
+    \EndFor
+\EndFor
+\end{algorithmic}
+\end{algorithm}
+Subway Agent - SEIR Agent with additional exposure based on location. \\
+Subway Graph - Nodes $\propto$ Stations, Edges $\propto$ \textbf{Lines, Complex}, Route Lookup.
 \end{frame}
 \begin{frame}
-\frametitle{NYC Model Hyper-parameters}
+\frametitle{NYC Model Parameters, Hyper-parameters}
+Default SEIR Rates: $\beta,\alpha,\gamma$ = 1.75, 0.20, 0.50 \\
+Countermeasures: Isolation, Recommendation, Awareness: = 5000, 500, 500 \\
+\textit{Defiance}: 10\% Local, 25\% Global \\
+\textit{Global Exposure}: 0.7 \\
+\textit{Commute Time}: ~Squared shortest path from Grand Central or Times Square \\
 \end{frame}
 \begin{frame}
 \frametitle{Compartmental Modeling Results (NYC)}
+\begin{figure}
+\includegraphics[width=0.8\textwidth]{Scratch_Visuals/SEIR_Curve_NYC_3.png}
+\caption{SEIR Fitting to NYC Case Total. \textit{MAPE ($t \geq 30$): 0.0145}}
+\end{figure}
 \end{frame}
 \begin{frame}
 \frametitle{Results by MODZCTA (NYC)}
+\includegraphics[width=1.0\textwidth]{Scratch_Visuals/NYC_Geo_Fitting.png}
+\href{https://github.com/cheung-ho-lum/NS_Epidemics_ABM_Approach/blob/master/Repository/Visualizations/infection_timelapse_NYC_3.gif}{New York City Timelapse}
 \end{frame}
 \begin{frame}
 \frametitle{Discussion}
 All models are wrong!\\
-- Passenger Flow
-- Outer suburbs phenomenon exists
-- Simple GDP/capita data
+\begin{itemize}
+    \item Passenger Flow
+    \item Outer suburbs phenomenon exists
+    \item Simple GDP/capita data
+    \item Erase some of these stupid parameters
+\end{itemize}
 \end{frame}
 \begin{frame}
 \frametitle{Conclusions}
+\begin{itemize}
+    \item Determining passenger flow is a difficult problem for all transportation networks at all granularities.
+    \item 
+    \item 
+\end{itemize}
 \end{frame}
 \begin{frame}
 \frametitle{Credits, Links, References}
