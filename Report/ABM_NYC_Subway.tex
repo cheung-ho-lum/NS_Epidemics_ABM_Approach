@@ -200,7 +200,7 @@ Below is a simplified algorithm of our model.
 \caption{Simulation of Disease Spread on Subways}\label{euclid}
 \begin{algorithmic}[1]
 \For{$i=1; i < TIMESPAN; i++$}
-    Check conditions (i, number of infected) to see if we should deploy COUNTERMEASURES
+    \State Check conditions (i, number of infected) to see if we should deploy COUNTERMEASURES
     \For{Station in SubwayModel.Environment.Nodes}
         \State Calculate 'Local Exposure' from locally infected (and commute time).
         \State Calculate 'Route Exposure' from infected on the same route.
@@ -224,6 +224,7 @@ We first fit overall SEIR numbers to NYC case, death, and recovery numbers. We o
 \includegraphics[width = 1.0\textwidth]{Scratch_Visuals/SEIR_Curve_NYC_3.png}
 \end{figure}
 \FloatBarrier
+\textit{MAPE for t=30+ is 0.0145}\\
 We used the following hyper-parameters:\\
 \begin{itemize}
     \item RECOMMENDATION* - When 500 people are infected, divide $\beta$ and $\gamma$ by \textbf{1.5}
