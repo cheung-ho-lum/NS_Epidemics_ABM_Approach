@@ -1,21 +1,20 @@
-\begin{thebibliography}{1}
+\begin{thebibliography}{10}
+
+\bibitem{subway_epidemic_seed}
+Jeffrey~E. Harris.
+\newblock The subways seeded the massive coronavirus epidemic in new york city.
+\newblock
+  \url{http://web.mit.edu/jeffrey/harris/HarrisJE_WP2_COVID19_NYC_24-Apr-2020.pdf}.
 
 \bibitem{nyc_health_covid_summary}
 Covid-19: Data.
 \newblock \url{https://www1.nyc.gov/site/doh/covid/covid-19-data.page}.
 
-\bibitem{nyc_commuting}
-The ins and outs of nyc commuting.
-\newblock
-  \url{https://www1.nyc.gov/assets/planning/download/pdf/planning-level/housing-economy/nyc-ins-and-out-of-commuting.pdf}.
-
-\bibitem{toddwschneider}
-New york city subway usage.
-\newblock \url{https://toddwschneider.com/dashboards/nyc-subway-turnstiles/}.
-
-\bibitem{Novokuznetskaya}
-Plan of metro station novokuznetskaya.
-\newblock http://www.karta-metro.ru/stations/96/428/.
+\bibitem{gosce_johansson_2018}
+Lara Goscé and Anders Johansson.
+\newblock Analysing the link between public transport use and airborne
+  transmission: mobility and contagion in the london underground.
+\newblock {\em Environmental Health}, 17(1), 2018.
 
 \bibitem{singapore_bus_2020}
 Yu~Shen Clarence Tam Daqing Li Yafeng Yin Jinhua~Zhao Baichuan~Mo, Kairui~Feng.
@@ -25,16 +24,31 @@ Yu~Shen Clarence Tam Daqing Li Yafeng Yin Jinhua~Zhao Baichuan~Mo, Kairui~Feng.
 \newblock
   \url{https://www.researchgate.net/publication/340541290_Modeling_Epidemic_Spreading_through_Public_Transit_using_Time-Varying_Encounter_Network}.
 
-\bibitem{gosce_johansson_2018}
-Lara Goscé and Anders Johansson.
-\newblock Analysing the link between public transport use and airborne
-  transmission: mobility and contagion in the london underground.
-\newblock {\em Environmental Health}, 17(1), 2018.
+\bibitem{mao_wu_huang_tatem_2015}
+Liang Mao, Xiao Wu, Zhuojie Huang, and Andrew~J. Tatem.
+\newblock Modeling monthly flows of global air travel passengers: An
+  open-access data resource, Sep 2015.
 
-\bibitem{subway_epidemic_seed}
-Jeffrey~E. Harris.
-\newblock The subways seeded the massive coronavirus epidemic in new york city.
+\bibitem{openflights}
+\url{https://openflights.org/}.
+
+\bibitem{airport_traffic}
+\url{https://aci.aero/news/2019/03/13/preliminary-world-airport-traffic-rankings-released/}.
+
+\bibitem{airport_pairs}
+https://www.routesonline.com/news/29/breaking-news/286313/busiest-routes-in-the-world-the-top-100/.
+
+\bibitem{nyc_commuting}
+The ins and outs of nyc commuting.
 \newblock
-  \url{http://web.mit.edu/jeffrey/harris/HarrisJE_WP2_COVID19_NYC_24-Apr-2020.pdf}.
+  \url{https://www1.nyc.gov/assets/planning/download/pdf/planning-level/housing-economy/nyc-ins-and-out-of-commuting.pdf}.
+
+\bibitem{Novokuznetskaya}
+Plan of metro station novokuznetskaya.
+\newblock http://www.karta-metro.ru/stations/96/428/.
+
+\bibitem{toddwschneider}
+New york city subway usage.
+\newblock \url{https://toddwschneider.com/dashboards/nyc-subway-turnstiles/}.
 
 \end{thebibliography}

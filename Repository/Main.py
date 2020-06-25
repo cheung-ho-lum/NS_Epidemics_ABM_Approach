@@ -15,6 +15,9 @@ benchmark_statistics = []
 if DisplayParams.DRAW_NYC_CASES:
     Utilities.draw_severity_by_region()
 
+# Forecasting dictionary by modzcta. Starts from April 1 (t = 32)
+case_rates = Utilities.nyc_case_data_to_modzcta_forecast_dict()
+
 # Subway Simulation Setup
 if SimulationParams.SIMULATION_TYPE == SimulationParams.SUBWAY_SIM:
     g_subway_map, routing_dict = Preprocessing.get_subway_map('NYC')
@@ -68,12 +71,20 @@ SEIR_Statistics = np.zeros(shape=(SimulationParams.RUN_SPAN + 1, 5))  # reminder
 SEIR_Statistics[0, 0] = 0
 SEIR_Statistics[0, 1:5] = model.calculate_SEIR(True)
 
+#Track case rates for the subway only. TODO: the model should really just update itself every step.
+if SimulationParams.SIMULATION_TYPE == SimulationParams.SUBWAY_SIM:
+    case_rates_dict = {}
+    case_rates_dict = model.calculate_modzcta_case_rate(case_rates_dict, 0)
+
 # Run the simulation. Set DRAW_GRAPHS to false to make this run faster
 for i in range(1, SimulationParams.RUN_SPAN + 1):
     model.step()
     print('TIME', model.schedule.time)
     SEIR_Statistics[i, 0] = model.schedule.time
     SEIR_Statistics[i, 1:5] = model.calculate_SEIR(True)
+
+    if SimulationParams.SIMULATION_TYPE == SimulationParams.SUBWAY_SIM:
+        case_rates_dict = model.calculate_modzcta_case_rate(case_rates_dict, i)
 
     f = plt.figure()
     map_type = SimulationParams.MAP_TYPE_NYC
@@ -111,6 +122,12 @@ Graphics.draw_SEIR_curve(SEIR_Statistics, f, benchmark_SEIR=benchmark_statistics
 f.savefig("Visualizations/SEIR_Curve")
 plt.show()
 plt.close(f)
+
+#print(case_rates_dict)
+Utilities.calculate_MAPE_by_zip(actual=case_rates_dict, forecast=case_rates, offset=32, print_results=True)
+
+#0.01429076560064155
+#0.31091602777566957
 
 # Save final animation
 if DisplayParams.DRAW_GRAPHS:

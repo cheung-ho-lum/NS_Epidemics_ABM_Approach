@@ -1,0 +1,108 @@
+Intro
+- Group
+- What
+
+ToC
+- Focus NYC
+- prior researfch, other models
+
+Motivation
+- read questions
+- mention 'lines' idea
+
+London UG
+- variety of models
+- granularity: day, boroughs
+- population islington more exposed than chelsea
+- backed by flu statistics
+
+COVID London
+-whoops
+
+Singapore Buses
+- time dependent link. similar to cercanias
+- networks enable/limit contact
+- research with contact measures
+
+ABM Framework
+- MESA, an OOP programmer's solution. Describe complex environment and agent behavior.
+- Transportation Model incorporates networkx
+- SEIR Agent incorporates full compartmental mixing
+
+Simple Geometries
+- Exploration to define: 
+-- What makes subways different
+-- How are they similar
+
+WAN (Handoff)
+- Explain WAN
+- Ask Larry to explain passenger flow
+
+...
+...
+
+
+WAN (Handoff)
+- See that disease spreads domestically in china first
+- Enters Spain from Madrid, and USA through NYC/LAX. 
+
+Madrid Commuter Trains (Handoff)
+- Commuter rails. Electrichki. 
+
+...
+...
+...
+
+Madrid Commuter Trains (Handoff)
+- Rush hour matters
+
+New York City
+Reminder: Why COVID is more prevalent in some areas
+- Yes, people commute by subway
+- Quarantine Measure Fitting
+- Terminology for areas of NYC
+
+Subway Systems
+Complex = Novokuznetskaya + Tretyakovskaya
+Station = Novokuznetskaya
+Line, Route = 1:1 here. филёвская
+
+NYC Subway Data
+Station - List of station and their lines
+Map - Routing through the station list. Service S
+Turnstile - In/Out of every station. 
+* Be careful when parsing data
+
+NYC Subway Modeling
+- Simplified, and not how it's coded
+- Agents, exposure
+-- Why agents don't move
+- Complexes, a few added components to graph
+
+Hyperparameters
+- Countermeasures
+- SEIR Settings
+- A defense of bloat
+-- work-in-progress
+-- lots of requests
+-- fits well
+
+Fit 1
+-- it fits, MAPE
+-- well duh, with all the hyperparameters
+
+Fit 2
+-- it fits significantly worse
+-- but you can see that there is some predictive value
+
+Discussion
+-- Scrap a lot of these parameters/hyperparameters
+-- Used MAPE because it was suggested, might use some other metric
+
+Conclusions
+-- WAN passenger flow dictates that international airports are the 'port-of-entry' for viruses.
+-- Rush hour and central hubs are largely responsible for disease spread.  
+-- Lines and commute time are correlated to the prevalence of coronavirus.
+
+
+

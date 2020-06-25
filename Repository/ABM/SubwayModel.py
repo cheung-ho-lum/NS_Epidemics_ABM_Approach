@@ -94,6 +94,23 @@ class SubwayModel(TransportationModel):
             print('S,E,I,R:', sick, exposed, infected, recovered)
         return [sick, exposed, infected, recovered]
 
+
+    def calculate_modzcta_case_rate(self, case_rates_dict, iteration):
+        #for now this calculates cumulative case rate by modzcta and returns a dictionary of those values
+        #TODO: per usual we're totally ignoring that multiple stations are in one zip.
+        for a in self.schedule.agents:
+            loc = a.location
+            loc_case_rate = a.population[AgentParams.STATUS_INFECTED] + a.population[AgentParams.STATUS_RECOVERED]
+            loc_case_rate /= sum(a.population.values())
+            station_zip = str(self.subway_graph.graph.nodes[loc]['zip'])
+            #on iteration 1, it is ok to add if <= 1 entries
+            if station_zip in case_rates_dict.keys():
+                if len(case_rates_dict[station_zip]) <= iteration:
+                    case_rates_dict[station_zip].append(loc_case_rate)
+            else:
+                case_rates_dict[station_zip] = [loc_case_rate]
+        return case_rates_dict
+
     @property
     def subway_graph(self):
         return self._subway_graph
