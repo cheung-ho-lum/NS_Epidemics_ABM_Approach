@@ -58,28 +58,28 @@ By Ho Lum Cheung, Dimas Muntesinos, Frank Acquaye, Elie Wanko \\
 
 \section*{Abstract}
 \paragraph{}
-Public transportation plays a vital role connecting people with each other. International trade and tourism is reliant on commercial aviation. And the most successful cities all have buses, trams, or subways connecting workers to their workplaces. However, the speed and connectivity of these transportation networks leave us vulnerable to the spread of diseases.\\
+Public transportation plays a vital role connecting people with each other. International trade and tourism is reliant on commercial aviation. And the most successful cities all have buses, trams, or subways connecting workers to their workplaces. However, the speed and connectivity of these transportation networks leave us vulnerable to the spread of diseases.
 \paragraph{}
-In this paper, we introduce a general agent-based framework for modeling disease propagation on transportation networks. We use it to build models of major transportation networks, and take a special look at the New York City subway to see how well the model can predict infection rate and infection hotspots during the 2020 COVID-19 epidemic.\\
+In this paper, we introduce a general agent-based framework for modeling disease propagation on transportation networks. We use it to build models of major transportation networks, and take a special look at the New York City subway to see how well the model can predict infection rate and infection hotspots during the 2020 COVID-19 epidemic.
 \paragraph{}
 Predicating contagion on subway lines, ridership at stations, commute time, and city-wide countermeasures, we were able to fit our model closely to empirical data. This suggests a correlation between these factors and the spread of COVID-19 and other ILI.
 
 \section{Background}
 \subsection{Epidemics and COVID-19}
 \paragraph{}
-Coronavirus disease 2019 (COVID-19) is a disease caused by the SARS-CoV-2 coronavirus. Since being identified in December 2019, it has been labelled by the WHO as a pandemic, and spread around the world. Epidemics such as the coronavirus have been a subject of research for centuries, and is of special interest to those working in public health. Recent waves of new research came in 2002 (SARS), 2009 (H1N1), and 2014 (Ebola). However, in these prior epidemics, researchers did not have access to as much data as we have currently. In recent years, the state of data science research tools has also greatly improved, allowing researchers to answer questions in novel ways, but following the scientific method.
+Coronavirus disease 2019 (COVID-19) is a disease caused by the SARS-CoV-2 coronavirus. Since being identified in December 2019, it has been labelled by the WHO as a pandemic, and spread around the world. Epidemics such as the coronavirus have been a subject of research for centuries, and is of special interest to those working in public health. Recent waves of new research came in 2002 (SARS), 2009 (H1N1), and 2014 (Ebola). However, in these prior epidemics, researchers did not have access to as much data as we have currently. In recent years, the state of data science research tools has also greatly improved, allowing researchers to answer questions in novel ways, but still following the scientific method.
 
 \subsubsection{Mathematical Modeling of Epidemics}
 \paragraph{}
 There are two basic types of modeling for epidemics; statistical and mechanistic. While statistical modeling has typically given more accurate forecasts for a well-known situation, mechanistic models such as the SIR and SEIR compartmental models help to explain why phenomena such as epidemics spread the way they do, and what impact various policy decisions will have on the result.
 \subsubsection{SEIR Model}
 \paragraph{}
-As we will be using the SEIR model\cite{hethcote_2000} in our research, we will cover it briefly here. The SEIR compartmental model is a mathematical modeling of infectious diseases where a closed population of people move successively from compartment to compartment (suspected to exposed to infected and to removed). We briefly provide an explanation of each compartment and leave the equations below.
+As we will be using the SEIR model\cite{hethcote_2000} in our research, we will cover it briefly here. The SEIR compartmental model is a mathematical modeling of infectious diseases where a closed population of people move successively from compartment to compartment (from susceptible to exposed, to infected, and to removed). We briefly provide an explanation of each compartment and leave the corresponding system of equations below.
 \begin{itemize}
 	\item \textbf{Susceptible (S)} - These people are susceptible to getting the disease from someone infected.
 	\item \textbf{Exposed (E)} - These people are no longer susceptible to the disease, and do not infect others. After a latent period, they become infectious.
-	\item \textbf{Infected (I)} - These people will spread the disease to susceptible people. After a period of time they are removed by recovery, hospitalization, death.
-	\item \textbf{Removed (R)} - Sometimes known as resistant or recovered. We will do our modeling with the term 'removed'. These people are no longer spreading the disease.
+	\item \textbf{Infected (I)} - These people will spread the disease to susceptible people. After a period of time they are removed by isolation, recovery, hospitalization, or death.
+	\item \textbf{Removed (R)} - Sometimes known as resistant or recovered. We will do our modeling with the term 'removed'. These people no longer spread the disease.
 	\item \textbf{Contact Rate ($\beta$)} - Rate at which infected people infect susceptible people.
 	\item \textbf{Latent Rate ($\alpha$)} - Rate at which exposed people become infected.
 	\item \textbf{Removal Rate ($\gamma$)} - Rate at which infected people become removed.
@@ -93,13 +93,13 @@ As we will be using the SEIR model\cite{hethcote_2000} in our research, we will 
 &dr/dt = \gamma * i(t) \\\\
 \end{align*}
 \paragraph{}
-The system of equations described above can be numerically solved given $\beta,\alpha,\gamma$ and initial values $S(0),E(0),I(0),R(0)$. And if we have values for S,E,I,R at certain times, we can fit $\beta,\alpha,\gamma$ to better define the disease's epidemiological characteristics and predict its future course. Lastly, we note that $R_0$, an important characteristic known as the basic reproductive rate, can be calculated for the SEIR model as $\beta/\gamma$.
+The system of equations described above can be numerically solved given $\beta,\alpha,\gamma$ and initial values $S(0),E(0),I(0),R(0)$. And if we have values for S,E,I,R at certain times, we can fit $\beta,\alpha,\gamma$ to better define the disease's epidemiological characteristics and predict its future course. Lastly, we note that $R_0$, an important characteristic known as the basic reproductive rate, can be calculated for the SEIR model as $R_0 = \beta/\gamma$.
 \subsubsection{Other Compartmental Models}
 \paragraph{}
 While we have done research into simpler and more advanced models and are interested in cases such as super-spreaders, we believe the SEIR model to be sufficient for our needs. Basic SIR is insufficient because public health officials often make policy decisions based on positive case numbers. For example, an official may decide to impose strict isolation only after 100 positive cases. But by the time there are 100 cases of 'infected' people, there may be 1000 exposed people who will meaningfully impact epidemic statistics.
 \subsection{Epidemics on Transportation Networks}
 \paragraph{}
-Epidemics on transportation networks have been modeled in many different ways depending on the needs of the researcher. The most important differences are usually the type of transportation network, and the duration of interest, and a recurrent issue is modeling passenger flow. A popular motivation is exploring countermeasure policies. We highlight some prior research in the sections below.
+Epidemics on transportation networks have been modeled in many different ways depending on the needs of the researcher. The most important differences are usually the type of transportation network, the duration of interest, the granularity of population data, and passenger flow characteristics. A popular motivation is exploring countermeasure policies. We highlight some prior research in the sections below.
 \subsubsection{Flu on the London Underground \cite{gosce_johansson_2018}}
 \paragraph{}
 In this paper, the researchers modeled the "contact rate" of riders of the London Underground (subway system) by breaking down the stages of subway travel (entering, waiting, riding, exiting), and concluded that riders of some boroughs were at higher risk than riders from other boroughs. Their analysis was consistent with PHE data for influenza-like illnesses (ILI). The researchers also made additional observations such as that rush hour contributes to infection due to higher passenger density and longer waiting times.
@@ -120,14 +120,14 @@ In this paper, the researchers make a very thorough model of New York City. Whil
 In this paper, we focus on the NYC Subway. However, in the appendix we use our framework to model some other transportation networks to demonstrate the robustness of the framework, show similarities and differences between different types of transportation, and highlight key general facts about epidemics on transportation networks.
 \subsection{Agent-Based Models}
 \paragraph{}
-An agent-based model(ABM) is a computational model used to simulate the overall effects of individual agents on a system. Some famous prior uses include Conway's Game of Life and Schelling's Segregation Model\cite{schelling_1971}. ABMs consist of one or several types of agents interacting with an environment. For example, in Schelling's Segregation Model, the agents have a race and a tolerance level (of other races). If the agent finds the surrounding environment intolerable, they will independently move away. Given certain hyper-parameters, segregated communities eventually form in this environment.
+An agent-based model(ABM) is a computational model used to simulate the overall effects of individual agents on a system. Some famous prior uses include Conway's Game of Life and Schelling's Segregation Model\cite{schelling_1971}. ABMs consist of one or several types of agents interacting with an environment. For example, in Schelling's Segregation Model, the agents have a race and a tolerance level (of other races). If the agent finds the surrounding environment intolerable, they will independently move away. Given certain hyper-parameters, segregated communities eventually form.
 \paragraph{}
-ABMs offer a number of benefits over traditional mathematical models. Complex systems which cannot be easily solved mathematically can be simulated. These simulations help policy makers make decisions when mathematical results are not available and real world experiments are impractical \cite{medicine_geller_ogawa_wallace_2015}. \\
+ABMs offer a number of benefits over traditional mathematical models. Complex systems which cannot be easily solved mathematically can be simulated. These simulations help policy makers with decisions when mathematical results are not available and real world experiments are impractical. \cite{medicine_geller_ogawa_wallace_2015}.
 \paragraph{}
 For example, one popular use case of ABMs is in urban planning to simulate traffic flow. Given empirical traffic flow data, it is virtually impossible to calculate the optimal traffic light configuration for a city and extremely expensive to run multiple configuration experiments. However, ABM software with various vehicles as agents and the city traffic grid as the environment can easily find a satisfactory configuration \cite{traffic_book_2014}.
 \subsection{COVID-19 in NYC}
 \paragraph{}
-In addition to general knowledge about COVID-19, it would behoove the reader to know about the early spread of the disease in New York. Analysis of viral RNA in patients at the Mount Sinai Health System has lead researchers to conclude that the virus first came into the community through "multiple, independent but isolated introductions" from Europe and elsewhere in the USA\cite{gonzalez_2020}. Below we have also given an approximate timeline of some of the most relevant events as of June 1st, 2020. We would also like to note that as forensic researchers begin examining the data, some significant new dates or corrections may arise:\\ 
+In addition to general knowledge about COVID-19, it would behoove the reader to know about the early spread of the disease in New York. Analysis of viral RNA in patients at the Mount Sinai Health System has lead researchers to conclude that the virus first came into the community through "multiple, independent but isolated introductions" from Europe and elsewhere in the USA\cite{gonzalez_2020}. Below we have also given an approximate timeline of some of the most relevant events as of June 1st, 2020. Note that as forensic researchers begin examining the data, significant new dates or corrections may arise:\\ 
 \begin{itemize}
 	\item February 25 - First positive test in NYC from a 39 year-old female healthcare worker flying back from Iran.
 	\item March 3 - First confirmed P2P spread in NYC.
@@ -137,7 +137,7 @@ In addition to general knowledge about COVID-19, it would behoove the reader to 
 	\item March 22 - State order (PAUSE) to shelter in place comes into effect.
 \end{itemize}
 \subsection{COVID-19 and the NYC Subway}
-On April 24th, 2020, a researcher at MIT released a working paper finding that "The Subways Seeded the Massive Coronavirus Epidemic in New York City"\cite{subway_epidemic_seed}. The paper received a lot of attention from the media. There is, at least, significant correlation between subway lines and severity of infection, but causation is heavily disputed. For example, high infection rate could be rated to dense housing, and housing is denser around subway stations. 
+On April 24th, 2020, a researcher at MIT released a working paper finding that "The Subways Seeded the Massive Coronavirus Epidemic in New York City"\cite{subway_epidemic_seed}. The paper received a lot of attention from the media. There does not seem to be enough evidence to prove causation, and correlation could be related to a third factor. For example, high infection rate could be rated to dense housing, and housing is denser around subway stations. 
 
 From this paper, and other prior research into subways, we bring into our own work two main ideas to test about disease spread on subways:\\
 \begin{itemize}
@@ -153,12 +153,13 @@ From this paper, and other prior research into subways, we bring into our own wo
     \item {Line} - The train tracks on which services and routes run.
     \item {Service/Route} - Trains follow specific routes between stations based on a timetable. 
     \item {Borough} - A geographical region. NYC has 5 boroughs. 
-    \item {MODZCTA} - Modified Zip Code Tabulation Areas. They are very similar to zip (postal) codes, but are used due to postal codes sometimes not uniquely identifying geographical regions.
+    \item {MODZCTA} - Modified Zip Code Tabulation Areas. They are very similar to zip (postal) codes, but are used over postal codes to better identify regions and their populations.
 \end{itemize}
 \section{Data Sources and Preprocessing}
 \subsection{MTA Station Data \cite{mta_stations}}
 \paragraph{}
-This dataset has basic subway station information. It has stations, their longitude, latitude, associated complex (if any), line, route, and borough. We can find the MODZCTA from the longtitude and latitude data.\\
+This dataset has basic subway station information. It has stations, their longitude, latitude, associated complex (if any), line, route, and borough. We can find the MODZCTA from the longtitude and latitude data.
+\paragraph{}
 In this dataset, station 167 is listed twice, so we took care to combine the route data. We also split service 'S' into 3 different services as it represents 3 different shuttle services. We also split services on the 'A' line, into 3 different services depending on the destination. 
 \subsection{MTA Turnstile Data \cite{mta_turnstiles}}
 The MTA also publishes turnstile data with turnstiles reporting every 4 hours. However, we only need a basic picture of the daily in and out flow of each station, so we only process the aggregate passenger flow of each station between March 1 and March 21 (inclusive). 
@@ -167,14 +168,14 @@ The MTA also publishes turnstile data with turnstiles reporting every 4 hours. H
     \caption{NYC Subway daily turnstile entries for March 2020 \cite{toddwschneider}}
 \end{figure}
 \subsection{NYC COVID-19 Data}
-Since March 26, the NYC Health Department has been releasing and updating COVID-19 data on Github\cite{nychealth_2020}. Some data is incomplete or unavailable due to technical or privacy issues. For example, detailed case, death, and recovery numbers by MODZCTA only became available on May 18, 2020. However, a rudimentary record of positive tests for COVID-19 by modzcta has been available since April 1, 2020.
+Since March 26, the NYC Health Department has been releasing and updating COVID-19 data on Github\cite{nychealth_2020}. Some data is incomplete or unavailable due to technical or privacy issues. For example, detailed case, death, and recovery numbers by MODZCTA only became available on May 18, 2020. However, a rudimentary record of positive tests for COVID-19 by MODZCTA has been available since April 1, 2020.
 \section{Methodology}
 \subsection{MESA\cite{Mesa}}
 \paragraph{}
-To implement our ideas, we chose to use MESA, an ABM framework written in Python. There are many other ABM frameworks, but many of them are oriented towards beginners and lacking features to organize the code necessary for complex behavior. Others are not suitable for modeling a complex environment (network). MESA provides a simple framework with basic Agent, Model, and Schedule classes from which we can specify the necessary behavior. In addition, our group already has a working knowledge of modeling networks using Python's NetworkX\cite{hagberg-2008-exploring}, which will be necessary for specifying the environment of our model.
+To implement our ideas, we chose to use MESA, an ABM framework written in Python. There are many other ABM frameworks, but many of them are oriented towards beginners and lacking features to organize the code necessary for complex behavior. Others are not suitable for modeling a complex environment (network). MESA provides a simple framework with basic Agent, Model, and Schedule classes from which we can build more complex behavior. In addition, our group already has a working knowledge of modeling networks using Python's NetworkX\cite{hagberg-2008-exploring}, which will be necessary for specifying the environments of our models.
 \subsection{Modeling Framework}
 \paragraph{}
-Before focusing on the NYC subways, we built a general framework for modeling various transportation problems. This allowed us to see specifically how subways (and subway commuters) differ from other types of transportation networks. It also allows us to extend our initial research into other networks and environments. In the appendix, the reader will find some other models we have built and the key point behind the modeling. Below is a UML diagram of our framework.
+Before focusing on the NYC subways, we built a general framework for modeling various transportation problems. This allowed us to see how subways (and subway commuters) differ from other types of transportation networks. It also allows us to extend our initial research into other networks and environments. In the appendix, the reader will find some other models we have built and the key point behind the modeling. Below is a UML diagram of our framework.
 \begin{figure}[htbp]
 \includegraphics[width = 1.0\textwidth]{Scratch_Visuals/covid_subway.png}
 \end{figure}
