@@ -27,6 +27,7 @@
 \hypersetup{colorlinks,urlcolor=blue}
 \captionsetup[figure]{font=small}
 \setbeamerfont{caption}{size=tiny}
+\setbeamerfont{bibliography item}{size=\footnotesize}
 
 %==================================================
 %My commands: Define your commands here:
@@ -180,7 +181,7 @@ Data Sources:
 \begin{frame}
 \frametitle{Madrid Commuter Trains}
 Method: Agent Based Model (ABM)\linebreak
-Agents: passengers\linebreak
+Agents: Passengers\linebreak
 Flow based on weights $w$ which depend on the turnstiles data: \textit{in-weight} and \textit{out-weight} (incoming and outcoming passengers respectively).
 \end{frame}
 \begin{frame}
@@ -192,7 +193,7 @@ $N$ passengers join the network randomly:
 	\item Join at a random time.
 	\item Origin station depending on the \textit{in-weight}.
 	\item Platform choice based on the weight of the next platforms.
-	\item The passengers wait in the platform until a train arrives.
+	\item The passengers wait on the platform until a train arrives.
 \end{enumerate}
 Passengers who are in a train:
 \begin{itemize}
@@ -208,14 +209,14 @@ In order to simulate the spread of an infection:
 	\item Infected passengers: $50,000$ ($10\%$ of them).
 	\item Infection probability: $0.005$.
 \end{itemize}
-On average, an infected passenger will infect to other $5.04$ people.
+On average, an infected passenger will infect $5.04$ other people.
 \end{frame}
 \begin{frame}
 \frametitle{Madrid Commuter Trains - Results}
 \begin{figure}
 	\centering
 	\includegraphics[width=.5\linewidth]{Scratch_Visuals/madrid-cercanias-map-top10.png}
-	\caption{Top 10 stations with more infections}
+	\caption{Top 10 stations with most infections}
 \end{figure}
 \end{frame}
 \begin{frame}
@@ -223,7 +224,7 @@ On average, an infected passenger will infect to other $5.04$ people.
 \begin{figure}
 	\centering
 	\includegraphics[width=.4\linewidth]{Scratch_Visuals/madrid-cercanias-stats-top20.png}
-	\caption{Top 20 stations with more infections}
+	\caption{Top 20 stations with most infections}
 \end{figure}
 \end{frame}
 \begin{frame}
@@ -249,8 +250,6 @@ On average, an infected passenger will infect to other $5.04$ people.
 	\caption{Infections in a central hub (left) and a station in a suburb (right).}
 \end{figure}
 \end{frame}
-
-
 \begin{frame}
 \frametitle{NYC Demographics And COVID Timeline
 \includegraphics[width=1cm]{Scratch_Visuals/NYC_COVID_Case_Rate.png}
@@ -309,7 +308,7 @@ Stations, Map, Turnstiles (GTFS not considered)
 \end{algorithmic}
 \end{algorithm}
 Subway Agent - SEIR Agent with additional exposure based on location. \\
-Subway Graph - Nodes $\propto$ Stations, Edges $\propto$ \textbf{Lines, Complex}, Route Lookup.
+Subway Environment (Graph) - Nodes $\propto$ Stations, Edges $\propto$ \textbf{Lines, Complex}
 \end{frame}
 \begin{frame}
 \frametitle{NYC Model Parameters, Hyper-parameters}
@@ -327,7 +326,7 @@ Subway Graph - Nodes $\propto$ Stations, Edges $\propto$ \textbf{Lines, Complex}
 \textbf{\begin{tabular}[c]{@{}l@{}}Awareness\\ Modifier\end{tabular}}      & 1 to 0.25     & 1            & 1            & I \textgreater 500  \\ \hline
 \end{tabular}
 \end{table}
-\textit{Other Parameters: Defiance, Global Exposure, Commuter Ratio By Station, Awareness Increase Rate, Borough Commuting Modifier...}
+\textit{Other Parameters: Global Exposure, Defiance, Commuter Ratio By Station, Awareness Increase Rate, Borough Commuting Modifier...}
 \end{frame}
 \begin{frame}
 \frametitle{Compartmental Modeling Results (NYC)}
@@ -374,7 +373,7 @@ Dimas Muñoz-Montesinos - Madrid, Hotspots\\
 Elie Wanko - Theory, Consulting\\
 \href{https://github.com/cheung-ho-lum/NS_Epidemics_ABM_Approach}{Project on Github}
 \end{frame}
-\begin{frame}[shrink=50]
+\begin{frame}[shrink=50, fragile]
 \frametitle{References}
 \bibliography{bib_file}
 \bibliographystyle{unsrt}
