@@ -3,6 +3,10 @@
 In this project, we build an ABM framework for modeling epidemics on transportation networks, and use it to take a look at the spread of COVID on the NYC Subway as well as on the world airline network.
 
 ## Contents and Quick Links
+[Current Report](https://github.com/cheung-ho-lum/NS_Epidemics_ABM_Approach/blob/master/Report/ABM_NYC_Subway.pdf)
+
+[Current Presentation](https://github.com/cheung-ho-lum/NS_Epidemics_ABM_Approach/blob/master/Report/Presentation_G3.pdf)
+
 [Meeting Notes](https://github.com/cheung-ho-lum/NS_Epidemics_ABM_Approach/tree/master/Meeting%20Notes) contains meeting notes
 
 [Reports](https://github.com/cheung-ho-lum/NS_Epidemics_ABM_Approach/tree/master/Report) contain reportable like our report and presentation
@@ -10,10 +14,6 @@ In this project, we build an ABM framework for modeling epidemics on transportat
 [Repository](https://github.com/cheung-ho-lum/NS_Epidemics_ABM_Approach/tree/master/Repository) contains code
 
 [Research](https://github.com/cheung-ho-lum/NS_Epidemics_ABM_Approach/tree/master/Research) contains links to our initial research
-
-[Current Report](https://github.com/cheung-ho-lum/NS_Epidemics_ABM_Approach/blob/master/Report/ABM_NYC_Subway.pdf)
-
-[Current Presentation](https://github.com/cheung-ho-lum/NS_Epidemics_ABM_Approach/blob/master/Report/Presentation_G3.pdf)
 
 [Visuals](https://github.com/cheung-ho-lum/NS_Epidemics_ABM_Approach/tree/master/Report/Scratch_Visuals) contains some of the visuals we used
 
