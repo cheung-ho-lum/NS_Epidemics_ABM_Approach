@@ -1,0 +1,72 @@
+This is BibTeX, Version 0.99d
+Capacity: max_strings=200000, hash_size=200000, hash_prime=170003
+The top-level auxiliary file: Presentation_G3.aux
+Reallocating 'name_of_file' (item size: 1) to 9 items.
+Reallocating 'name_of_file' (item size: 1) to 6 items.
+The style file: plain.bst
+Database file #1: bib_file.bib
+Warning--I'm ignoring subway_epidemic_seed's extra "note" field
+--line 5 of file bib_file.bib
+Warning--to sort, need author or key in nyc_health_covid_summary
+Too many commas in name 1 of "Baichuan Mo, Kairui Feng, Yu Shen, Clarence Tam, Daqing Li, Yafeng Yin, Jinhua Zhao" for entry singapore_bus_2020
+while executing---line 1049 of file plain.bst
+Too many commas in name 1 of "Baichuan Mo, Kairui Feng, Yu Shen, Clarence Tam, Daqing Li, Yafeng Yin, Jinhua Zhao" for entry singapore_bus_2020
+while executing---line 1049 of file plain.bst
+Too many commas in name 1 of "Baichuan Mo, Kairui Feng, Yu Shen, Clarence Tam, Daqing Li, Yafeng Yin, Jinhua Zhao" for entry singapore_bus_2020
+while executing---line 1049 of file plain.bst
+Too many commas in name 1 of "Baichuan Mo, Kairui Feng, Yu Shen, Clarence Tam, Daqing Li, Yafeng Yin, Jinhua Zhao" for entry singapore_bus_2020
+while executing---line 1049 of file plain.bst
+Warning--to sort, need author or key in nyc_commuting
+Warning--to sort, need author or key in Novokuznetskaya
+Warning--to sort, need author or key in toddwschneider
+Too many commas in name 1 of "Baichuan Mo, Kairui Feng, Yu Shen, Clarence Tam, Daqing Li, Yafeng Yin, Jinhua Zhao" for entry singapore_bus_2020
+while executing---line 1090 of file plain.bst
+Too many commas in name 1 of "Baichuan Mo, Kairui Feng, Yu Shen, Clarence Tam, Daqing Li, Yafeng Yin, Jinhua Zhao" for entry singapore_bus_2020
+while executing---line 1090 of file plain.bst
+Too many commas in name 1 of "Baichuan Mo, Kairui Feng, Yu Shen, Clarence Tam, Daqing Li, Yafeng Yin, Jinhua Zhao" for entry singapore_bus_2020
+while executing---line 1090 of file plain.bst
+Too many commas in name 1 of "Baichuan Mo, Kairui Feng, Yu Shen, Clarence Tam, Daqing Li, Yafeng Yin, Jinhua Zhao" for entry singapore_bus_2020
+while executing---line 1090 of file plain.bst
+Warning--empty year in singapore_bus_2020
+You've used 7 entries,
+            2118 wiz_defined-function locations,
+            528 strings with 5303 characters,
+and the built_in function-call counts, 1317 in all, are:
+= -- 119
+> -- 31
+< -- 0
++ -- 17
+- -- 8
+* -- 53
+:= -- 192
+add.period$ -- 18
+call.type$ -- 7
+change.case$ -- 25
+chr.to.int$ -- 0
+cite$ -- 12
+duplicate$ -- 55
+empty$ -- 150
+format.name$ -- 8
+if$ -- 293
+int.to.chr$ -- 0
+int.to.str$ -- 7
+missing$ -- 2
+newline$ -- 35
+num.names$ -- 6
+pop$ -- 63
+preamble$ -- 1
+purify$ -- 18
+quote$ -- 0
+skip$ -- 45
+stack$ -- 0
+substring$ -- 37
+swap$ -- 7
+text.length$ -- 0
+text.prefix$ -- 0
+top$ -- 0
+type$ -- 28
+warning$ -- 5
+while$ -- 6
+width$ -- 8
+write$ -- 61
+(There were 8 error messages)

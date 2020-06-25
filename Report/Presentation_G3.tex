@@ -152,16 +152,103 @@ Major challenge with this is the fact that the graph is undirected hence the HIT
 
 \begin{frame}
 \frametitle{Madrid Commuter Trains (Central Hubs)}
-How important are central transportation hubs to disease spread?
-Data Source (madrid renfe gtfs)
+How important are central transportation hubs to disease spread?\linebreak
+\linebreak
+Data Sources:
+\begin{itemize}
+	\item Madrid Renfe GTFS: \url{https://crtm.maps.arcgis.com/home/item.html?id=1a25440bf66f499bae2657ec7fb40144}
+	\item Madrid Renfe Turnstile data: \url{https://data.renfe.com/dataset/volumen-de-viajeros-por-franja-horaria-madrid}
+\end{itemize}
 \end{frame}
 \begin{frame}
-\frametitle{Madrid Commuter Trains (Central Hubs)}
-Methods (ABM)
+\frametitle{Madrid Commuter Trains}
+\begin{figure}
+	\centering
+	\begin{subfigure}
+		\centering
+		\includegraphics[width=.4\linewidth]{Scratch_Visuals/madrid-cercanias-map-fix.png}
+	\end{subfigure}%
+	\begin{subfigure}
+		\centering
+		\includegraphics[width=.4\linewidth]{Scratch_Visuals/madrid-cercanias-map-py.png}
+	\end{subfigure}
+	\caption{Madrid Cercanias map 2020 (urban trains)}
+\end{figure}
 \end{frame}
 \begin{frame}
-\frametitle{Results (Madrid)}
+\frametitle{Madrid Commuter Trains}
+Method: Agent Based Model (ABM)\linebreak
+Agents: passengers\linebreak
+Flow based on weights $w$ which depend on the turnstiles data: \textit{in-weight} and \textit{out-weight} (incoming and outcoming passengers respectively).
 \end{frame}
+\begin{frame}
+\frametitle{Madrid Commuter Trains - Passengers flow}
+At each time step $t$...\linebreak
+\linebreak
+$N$ passengers join the network randomly:
+\begin{enumerate}
+	\item Join at a random time.
+	\item Origin station depending on the \textit{in-weight}.
+	\item Platform choice based on the weight of the next platforms.
+	\item The passengers wait in the platform until a train arrives.
+\end{enumerate}
+Passengers who are in a train:
+\begin{itemize}
+\item Leave the network (destination arrival) depending on the \textit{out-weight} of the station.
+\item Leave the train and go to another platform depending on the weights of each platform.
+\end{itemize}
+\end{frame}
+\begin{frame}
+\frametitle{Madrid Commuter Trains - Parameters}
+In order to simulate the spread of an infection:
+\begin{itemize}
+	\item Passengers (in a day): $500,000$.
+	\item Infected passengers: $50,000$ ($10\%$ of them).
+	\item Infection probability: $0.005$.
+\end{itemize}
+On average, an infected passenger will infect to other $5.04$ people.
+\end{frame}
+\begin{frame}
+\frametitle{Madrid Commuter Trains - Results}
+\begin{figure}
+	\centering
+	\includegraphics[width=.5\linewidth]{Scratch_Visuals/madrid-cercanias-map-top10.png}
+	\caption{Top 10 stations with more infections}
+\end{figure}
+\end{frame}
+\begin{frame}
+\frametitle{Madrid Commuter Trains - Results}
+\begin{figure}
+	\centering
+	\includegraphics[width=.4\linewidth]{Scratch_Visuals/madrid-cercanias-stats-top20.png}
+	\caption{Top 20 stations with more infections}
+\end{figure}
+\end{frame}
+\begin{frame}
+\frametitle{Madrid Commuter Trains - Results}
+\begin{figure}
+\centering
+\includegraphics[width=.6\linewidth]{Scratch_Visuals/madrid-infection-timeline.jpg}
+\caption{Infections in the whole network during a day.}
+\end{figure}
+\end{frame}
+\begin{frame}
+\frametitle{Madrid Commuter Trains - Results}
+\begin{figure}
+	\centering
+	\begin{subfigure}
+		\centering
+		\includegraphics[width=.4\linewidth]{Scratch_Visuals/madrid-infection-timeline-atocha.png}
+	\end{subfigure}%
+	\begin{subfigure}
+		\centering
+		\includegraphics[width=.4\linewidth]{Scratch_Visuals/madrid-infection-timeline-fuenlabrada.png}
+	\end{subfigure}
+	\caption{Infections in a central hub (left) and a station in a suburb (right).}
+\end{figure}
+\end{frame}
+
+
 \begin{frame}
 \frametitle{NYC Demographics And COVID Timeline
 \includegraphics[width=1cm]{Scratch_Visuals/NYC_COVID_Case_Rate.png}

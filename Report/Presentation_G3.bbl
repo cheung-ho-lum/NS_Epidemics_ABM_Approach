@@ -1,0 +1,40 @@
+\begin{thebibliography}{1}
+
+\bibitem{nyc_health_covid_summary}
+Covid-19: Data.
+\newblock \url{https://www1.nyc.gov/site/doh/covid/covid-19-data.page}.
+
+\bibitem{nyc_commuting}
+The ins and outs of nyc commuting.
+\newblock
+  \url{https://www1.nyc.gov/assets/planning/download/pdf/planning-level/housing-economy/nyc-ins-and-out-of-commuting.pdf}.
+
+\bibitem{toddwschneider}
+New york city subway usage.
+\newblock \url{https://toddwschneider.com/dashboards/nyc-subway-turnstiles/}.
+
+\bibitem{Novokuznetskaya}
+Plan of metro station novokuznetskaya.
+\newblock http://www.karta-metro.ru/stations/96/428/.
+
+\bibitem{singapore_bus_2020}
+Yu~Shen Clarence Tam Daqing Li Yafeng Yin Jinhua~Zhao Baichuan~Mo, Kairui~Feng.
+\newblock Modeling epidemic spreading through public transit using time-varying
+  encounter network.
+\newblock {\em Preprint, ResearchGate}.
+\newblock
+  \url{https://www.researchgate.net/publication/340541290_Modeling_Epidemic_Spreading_through_Public_Transit_using_Time-Varying_Encounter_Network}.
+
+\bibitem{gosce_johansson_2018}
+Lara Goscé and Anders Johansson.
+\newblock Analysing the link between public transport use and airborne
+  transmission: mobility and contagion in the london underground.
+\newblock {\em Environmental Health}, 17(1), 2018.
+
+\bibitem{subway_epidemic_seed}
+Jeffrey~E. Harris.
+\newblock The subways seeded the massive coronavirus epidemic in new york city.
+\newblock
+  \url{http://web.mit.edu/jeffrey/harris/HarrisJE_WP2_COVID19_NYC_24-Apr-2020.pdf}.
+
+\end{thebibliography}
