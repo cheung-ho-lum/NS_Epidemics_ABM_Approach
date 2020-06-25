@@ -34,7 +34,10 @@
 \begin{document}
 \title{Planes, Trains, and Afflictions}
 \subtitle{Agent-based modeling for the spread of disease through transportation networks}
-\author{NS Group 3}
+\author[NS Group 3]{Frank Acquaye\\
+Ho Lum Cheung\\
+Dimas Muñoz-Montesinos\\
+Elie Wanko}
 \institute[HSE]
 {
   \inst{}%
@@ -83,7 +86,6 @@ Data: Oyster (Card), CASA (Timetable), PHE Data (Demographics)\\
 \begin{frame}
 \frametitle{COVID in London}
 \includegraphics[width=0.7\textwidth]{Scratch_Visuals/London_Covid_Adapted.png}
-\textit{Speaker's Remark: Boroughs of NY != Boroughs of London}
 \end{frame}
 \begin{frame}
 \frametitle{Prior Research (Singapore Buses)}
@@ -91,10 +93,6 @@ Data: Oyster (Card), CASA (Timetable), PHE Data (Demographics)\\
 \includegraphics[width=0.5\textwidth]{Scratch_Visuals/Singapore_2.png}
 \textit{The direct contact in trains is, however, difficult to obtain from smart card data because the transactions are recorded at the station level}
 \cite{singapore_bus_2020}
-\textit{Speaker's note:\\
-- We show these things not to embarrass ourselves, but the depth of research available even just looking at one system.
-- List some other research
-}
 \end{frame}
 \begin{frame}
 \frametitle{ABM Framework}
@@ -111,45 +109,49 @@ Base Classes: \href{https://github.com/cheung-ho-lum/NS_Epidemics_ABM_Approach/b
     \item \href{https://github.com/cheung-ho-lum/NS_Epidemics_ABM_Approach/blob/master/Repository/Visualizations/infection_timelapse_moscow.gif}{Moscow}
 \end{itemize}
 \end{frame}
-
-
 \begin{frame}
-\frametitle{World Airline Network (Passenger Flow) - Challenges}
-Obtaining accurate data bout world passenger flow is a bit of callenge, one has 3 options:
+\frametitle{World Airline Network (Passenger Flow)}
+\begin{itemize}
+    \item Investigate similarities and differences with subways
+    \item Make framework more robust
+\end{itemize}
+\includegraphics[width=1.0\textwidth]{Scratch_Visuals/covid_airlines_initial.png}
+\end{frame}
+\begin{frame}
+\frametitle{World Airline Network (Passenger Flow)}
+Main Idea: Detailed route data can help model spread of diseases.
+\begin{itemize}
+    \item Regional / Domestic / EU Domestic / International Airports
+    \item Regional / Domestic / EU Domestic / International Air Routes
+\end{itemize}
+Problem: This data not widely available. Solutions \cite{mao_wu_huang_tatem_2015}:
 \begin{enumerate}
-	\item Pay for it
-	\item Using superior math to extrapolate or estimate
-	\item Extrapolate based on what I know; We obted for option 3 
+	\item Commercial Providers
+	\item Open Data
+	\item Statistical Modeling
 \end{enumerate}
 \end{frame}
 \begin{frame}
-\frametitle{Algorithm 1 to estimate WAN (Passenger Flow)}
+\frametitle{World Airline Network (Passenger Flow)}
+\begin{itemize}
+    \item List of Airports - OpenFlights \cite{openflights}
+    \item List of Air Routes - OpenFlights \cite{openflights}
+    \item Airport Passenger Flow Numbers - \cite{airport_traffic}
+    \item Top Air Routes \cite{airport_pairs}
+    \item Other Air Routes
+\end{itemize}
 \begin{enumerate}
-	\item Find total number of passengers going through a specific airport
-	\item Total number of destinations from said airport
-	\item Ratio of traffic from each airport
-	\item Split population of passengers into various destinations based on ratio 
+    \item Process airports, air routes
+    \item Add all known passenger flow numbers
+	\item Add all known airport and air route labels
+	\item Classify remaining airports and air routes
+	\item Interpolate missing air route data 
 \end{enumerate}
-Major challenge with this is the fact that we need to find data to answer each of these questions  in order to make an estimate (ratios data)
 \end{frame}
-
-\begin{frame}
-\frametitle{Algorithm 2 to estimate WAN (Passenger Flow)}
-Using Data from Wikipedia and Openflights
-\begin{enumerate}
-	\item Get the total population of data passengers that go through a specific airport.
-	\item Using HITS algorithm on airport pairs.
-	\item Split population of passengers into various destinations based on hubs obtained from HITS
-\end{enumerate}
-Major challenge with this is the fact that the graph is undirected hence the HITS results were unreliable. Also if the data was split into major known hubs the data returned the same value from HITS.
+\begin{frame}[shrink=5]
+\frametitle{World Airline Network Visualization (\href{https://github.com/cheung-ho-lum/NS_Epidemics_ABM_Approach/blob/master/Repository/Visualizations/infection_timelapse_world.gif}{gif})}
+\includegraphics[width=1.0\textwidth]{Scratch_Visuals/covid_airlines.png}
 \end{frame}
-
-\begin{frame}
-\frametitle{World Airline Network (Passenger Flow)  Algorithm}
-\end{frame}
-
-
-
 \begin{frame}
 \frametitle{Madrid Commuter Trains (Central Hubs)}
 How important are central transportation hubs to disease spread?
@@ -224,11 +226,21 @@ Subway Graph - Nodes $\propto$ Stations, Edges $\propto$ \textbf{Lines, Complex}
 \end{frame}
 \begin{frame}
 \frametitle{NYC Model Parameters, Hyper-parameters}
-Default SEIR Rates: $\beta,\alpha,\gamma$ = 1.75, 0.20, 0.50 \\
-Countermeasures: Isolation, Recommendation, Awareness: = 5000, 500, 500 \\
-\textit{Defiance}: 10\% Local, 25\% Global \\
-\textit{Global Exposure}: 0.7 \\
-\textit{Commute Time}: ~Squared shortest path from Grand Central or Times Square \\
+\begin{table}[htbp]
+\begin{tabular}{|l|l|l|l|l|}
+\hline
+\textbf{} &
+  \textbf{\begin{tabular}[c]{@{}l@{}}Contact\\ Rate ($\beta$)\end{tabular}} &
+  \textbf{\begin{tabular}[c]{@{}l@{}}Latent\\ Rate ($\alpha$)\end{tabular}} &
+  \textbf{\begin{tabular}[c]{@{}l@{}}Removal\\ Rate ($\gamma$)\end{tabular}} &
+  \textbf{\begin{tabular}[c]{@{}l@{}}Start\\ Trigger\end{tabular}} \\ \hline
+\textbf{Default}                                                           & \textbf{1.75} & \textbf{0.2} & \textbf{0.5} & t = 0               \\ \hline
+\textbf{\begin{tabular}[c]{@{}l@{}}Isolation\\ Modifier\end{tabular}}      & 0.25          & 1            & 2            & I \textgreater 5000 \\ \hline
+\textbf{\begin{tabular}[c]{@{}l@{}}Recommendation\\ Modifier\end{tabular}} & 0.67          & 1            & 1.5          & I \textgreater 500  \\ \hline
+\textbf{\begin{tabular}[c]{@{}l@{}}Awareness\\ Modifier\end{tabular}}      & 1 to 0.25     & 1            & 1            & I \textgreater 500  \\ \hline
+\end{tabular}
+\end{table}
+\textit{Other Parameters: Defiance, Global Exposure, Commuter Ratio By Station, Awareness Increase Rate, Borough Commuting Modifier}
 \end{frame}
 \begin{frame}
 \frametitle{Compartmental Modeling Results (NYC)}
@@ -244,31 +256,34 @@ Countermeasures: Isolation, Recommendation, Awareness: = 5000, 500, 500 \\
 \end{frame}
 \begin{frame}
 \frametitle{Discussion}
-All models are wrong!\\
 \begin{itemize}
-    \item Passenger Flow
-    \item Outer suburbs phenomenon exists
-    \item Simple GDP/capita data
-    \item Erase some of these stupid parameters
+    \item More granular passenger flow and population data.
+    \item New York City is not a closed system.
+    \item Control for population density, income, and other factors.
+    \item Simplify away the feature bloat
 \end{itemize}
 \end{frame}
 \begin{frame}
 \frametitle{Conclusions}
+\textit{All models are wrong, but some are useful -George Box}\\~\\
 \begin{itemize}
     \item Determining passenger flow is a difficult problem for all transportation networks at all granularities.
-    \item 
-    \item 
+    \item Rush hour and hubs contribute strongly to disease propagation
+    \item Commute time is correlated to prevalence of ILIs
+    \item Subway routes are correlated to prevalence of ILIs
 \end{itemize}
 \end{frame}
 \begin{frame}
-\frametitle{Credits, Links, References}
+\frametitle{Acknowledgements (and Questions)}
 Frank Acquaye - WAN, Passenger Flow\\
 Ho Lum Cheung - NYC, Organization, Research, Testing\\
 Dimas Muñoz-Montesinos - Madrid, Hotspots\\
 Elie Wanko - Theory, Consulting\\
-github link
-references used in slides
-\bibliography{bib_file}{}
-\bibliographystyle{plain}
+\href{https://github.com/cheung-ho-lum/NS_Epidemics_ABM_Approach}{Project on Github}
+\end{frame}
+\begin{frame}[shrink=50]
+\frametitle{References}
+\bibliography{bib_file}
+\bibliographystyle{unsrt}
 \end{frame}
 \end{document}
