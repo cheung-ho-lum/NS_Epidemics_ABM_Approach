@@ -561,19 +561,19 @@ def update_population_flow_data(network, location='NYC', pop_files=None):
             borough = network.nodes[n]['region']
             if borough == EnvParams.BOROUGH_BRONX:
                 network.nodes[n]['population'] = flow * 2.53
-                network.nodes[n]['commuter_ratio'] = 0.45 + 0.1 * random.random()
+                network.nodes[n]['commuter_ratio'] = 0.50  # + 0.1 * random.random()
                 total_commuters += 0.5 * 2.53 * flow
             elif borough == EnvParams.BOROUGH_BROOKLYN:
                 network.nodes[n]['population'] = flow * 1.61
-                network.nodes[n]['commuter_ratio'] = 0.45 + 0.1 * random.random()
+                network.nodes[n]['commuter_ratio'] = 0.50  #+ 0.1 * random.random()
                 total_commuters += 0.5 * 1.61 * flow
             elif borough == EnvParams.BOROUGH_MANHATTAN:
                 network.nodes[n]['population'] = flow * 0.34
-                network.nodes[n]['commuter_ratio'] = 0.15 + 0.1 * random.random()
+                network.nodes[n]['commuter_ratio'] = 0.20  # + 0.1 * random.random()
                 total_commuters += 0.1 * 0.34 * flow
             elif borough == EnvParams.BOROUGH_QUEENS:
                 network.nodes[n]['population'] = flow * 2.30
-                network.nodes[n]['commuter_ratio'] = 0.35 + 0.1 * random.random()
+                network.nodes[n]['commuter_ratio'] = 0.40  # + 0.1 * random.random()
                 total_commuters += 0.5 * 2.30 * flow
             else:
                 print('Borough ID error', n, borough)
