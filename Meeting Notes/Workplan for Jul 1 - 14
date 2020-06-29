@@ -1,0 +1,16 @@
+Basic Revisions Needed Before July 14. Total time available: 50 hrs.
+
+Code edits to remove feature bloat (3 hrs)
+Adding a model of London. (granularity: borough) (2 hrs)
+Adding a model of Madrid if feasible. (granularity: barrio) (2 hrs)
+Add models: 'A day in NYC', 'A day in Madrid', 'A day in London'. (5 hrs)
+Adding code to evaluate some 'baseline' forecasts (5 hrs)
+
+Investigations into Madrid and London data sets (3 hrs)
+Parsing the data (5 hrs)
+
+Adding new content to report (5 hours)
+Editing report for clarity (2 hours)
+Adding better, more fancy sounding results and conclusions (5 hours)
+
+Slack ~13 hours.
