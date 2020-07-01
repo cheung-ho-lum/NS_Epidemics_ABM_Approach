@@ -203,7 +203,7 @@ Station ID,Complex ID,GTFS Stop ID,Division,Line,Stop Name,Borough,Daytime Route
 201,201,H13,IND,Rockaway,Beach 98 St,Q,A S,Viaduct,40.585307,-73.820558,Manhattan,Rockaway Park,11693,
 202,202,H14,IND,Rockaway,Beach 105 St,Q,A S,Viaduct,40.583209,-73.827559,Manhattan,Rockaway Park,11693,
 203,203,H15,IND,Rockaway,Rockaway Park - Beach 116 St,Q,A S,At Grade,40.580903,-73.835592,Manhattan,,11694,
-204,204,H06,IND,Rockaway,Beach 67 St,Q,A,Viaduct,40.590927,-73.796924,Manhattan,Far Rockaway,12692,
+204,204,H06,IND,Rockaway,Beach 67 St,Q,A,Viaduct,40.590927,-73.796924,Manhattan,Far Rockaway,11692,
 205,205,H07,IND,Rockaway,Beach 60 St,Q,A,Viaduct,40.592374,-73.788522,Manhattan,Far Rockaway,11692,
 206,206,H08,IND,Rockaway,Beach 44 St,Q,A,Viaduct,40.592943,-73.776013,Manhattan,Far Rockaway,11691,
 207,207,H09,IND,Rockaway,Beach 36 St,Q,A,Viaduct,40.595398,-73.768175,Manhattan,Far Rockaway,11692,

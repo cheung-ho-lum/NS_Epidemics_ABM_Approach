@@ -24,26 +24,29 @@ class SubwayModel(TransportationModel):
             if loc == AgentParams.MAP_LOCATION_JUNCTION_BLVD \
                     or loc == AgentParams.MAP_LOCATION_55_ST \
                     or loc == AgentParams.MAP_LOCATION_98_BEACH:  # TODO: this method of seeding is actually quite bad.
-                a.population[AgentParams.STATUS_EXPOSED] += population * 0.0002
-                a.population[AgentParams.STATUS_INFECTED] += population * 0.0001
+                a.population[AgentParams.STATUS_EXPOSED] += population * 0.5 * 2.5e-6
+                a.population[AgentParams.STATUS_INFECTED] += population * 0.5 * 1.0e-6
                 a.population[AgentParams.STATUS_RECOVERED] += 0
-                a.population[AgentParams.STATUS_SUSCEPTIBLE] -= population * 0.0003
+                a.population[AgentParams.STATUS_SUSCEPTIBLE] -= population * 0.5 * 3.5e-6
 
             elif loc == AgentParams.MAP_LOCATION_COLMENAR_VIEJO:
-                a.population[AgentParams.STATUS_EXPOSED] += population * 0.0002
-                a.population[AgentParams.STATUS_INFECTED] += population * 0.0001
+                a.population[AgentParams.STATUS_EXPOSED] += population * 0.00025
+                a.population[AgentParams.STATUS_INFECTED] += population * 0.00010
                 a.population[AgentParams.STATUS_RECOVERED] += 0
-                a.population[AgentParams.STATUS_SUSCEPTIBLE] -= population * 0.0003
+                a.population[AgentParams.STATUS_SUSCEPTIBLE] -= population * 0.00035
+
+            else:
+                a.population[AgentParams.STATUS_EXPOSED] += population * 0.1 * 2.5e-6
+                a.population[AgentParams.STATUS_INFECTED] += population * 0.1 * 1.0e-6
+                a.population[AgentParams.STATUS_RECOVERED] += 0
+                a.population[AgentParams.STATUS_SUSCEPTIBLE] -= population * 0.1 * 3.5e-6
 
 
             self.schedule.add(a)
 
             # Fill Zip-to-station dictionary
             station_zip = subway_map.nodes[loc]['zip']
-            if station_zip in self._zip_to_station_dictionary:
-                self._zip_to_station_dictionary[station_zip].append(loc)
-            else:
-                self._zip_to_station_dictionary[station_zip] = [loc]
+            self.zip_to_station_dictionary.setdefault(station_zip, []).append(loc)
 
 
     # Decay the viral loads in the environment. just wipes them for now.
@@ -71,17 +74,17 @@ class SubwayModel(TransportationModel):
         for a in self.schedule.agents:
             infected += a.population[AgentParams.STATUS_INFECTED]
         if EnvParams.ISOLATION_COUNTERMEASURE not in active.keys():
-            if infected >= 5000:  # we have 20x the size of NYC atm
+            if infected >= 3000:
                 active[EnvParams.ISOLATION_COUNTERMEASURE] = self.schedule.time
                 print('isolation countermeasure taken!')
-        if EnvParams.RECOMMENDATION_COUNTERMEASURE not in active.keys():
-            if infected >= 500:  # we have 20x the size of NYC atm
-                active[EnvParams.RECOMMENDATION_COUNTERMEASURE] = self.schedule.time
-                print('recommendation countermeasure taken!')
-        if EnvParams.AWARENESS_COUNTERMEASURE not in active.keys():
-            if infected >= 500:  # start awareness campaign
-                active[EnvParams.AWARENESS_COUNTERMEASURE] = self.schedule.time
-                print('awareness countermeasure taken!')
+        # if EnvParams.RECOMMENDATION_COUNTERMEASURE not in active.keys():
+        #     if infected >= 500:
+        #         active[EnvParams.RECOMMENDATION_COUNTERMEASURE] = self.schedule.time
+        #         print('recommendation countermeasure taken!')
+        # if EnvParams.AWARENESS_COUNTERMEASURE not in active.keys():
+        #     if infected >= 500:  # start awareness campaign
+        #         active[EnvParams.AWARENESS_COUNTERMEASURE] = self.schedule.time
+        #         print('awareness countermeasure taken!')
 
     def calculate_SEIR(self, print_results=False):
         sick, exposed, infected, recovered = 0, 0, 0, 0
@@ -102,7 +105,7 @@ class SubwayModel(TransportationModel):
             loc = a.location
             loc_case_rate = a.population[AgentParams.STATUS_INFECTED] + a.population[AgentParams.STATUS_RECOVERED]
             loc_case_rate /= sum(a.population.values())
-            station_zip = str(self.subway_graph.graph.nodes[loc]['zip'])
+            station_zip = self.subway_graph.graph.nodes[loc]['zip']
             #on iteration 1, it is ok to add if <= 1 entries
             if station_zip in case_rates_dict.keys():
                 if len(case_rates_dict[station_zip]) <= iteration:

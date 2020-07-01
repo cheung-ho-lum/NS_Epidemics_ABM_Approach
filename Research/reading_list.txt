@@ -63,3 +63,7 @@ https://www.ncbi.nlm.nih.gov/books/NBK305917/
 
 NYC commuting statistics
 https://psplvv-ctwprtla.nyc.gov/assets/planning/download/pdf/planning-level/housing-economy/nyc-ins-and-out-of-commuting.pdf
+
+Some better numbers for r0
+https://www.aimspress.com/fileOther/PDF/aimsph/publichealth-07-02-026.pdf
+https://wwwnc.cdc.gov/eid/article/26/7/20-0282_article#tnF1

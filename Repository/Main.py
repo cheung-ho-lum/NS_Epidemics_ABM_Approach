@@ -16,7 +16,8 @@ if DisplayParams.DRAW_NYC_CASES:
     Utilities.draw_severity_by_region()
 
 # Forecasting dictionary by modzcta. Starts from April 1 (t = 32)
-case_rates = Utilities.nyc_case_data_to_modzcta_forecast_dict()
+case_rates_actual = Utilities.nyc_case_data_by_modzcta_dict()
+raw_case_data = Utilities.nyc_case_data_by_modzcta_dict(normalized=False)
 
 # Subway Simulation Setup
 if SimulationParams.SIMULATION_TYPE == SimulationParams.SUBWAY_SIM:
@@ -35,7 +36,8 @@ if SimulationParams.SIMULATION_TYPE == SimulationParams.SUBWAY_SIM:
 
     date_start = datetime.datetime(2020, 3, 1, 0, 0)  # inclusive
     date_end = datetime.datetime(2020, 3, 21, 0, 0)  # inclusive
-    benchmark_statistics = Preprocessing.get_benchmark_statistics('NYC', date_start)
+    valid_zip_codes = model.zip_to_station_dictionary.keys()
+    benchmark_statistics = Utilities.get_benchmark_statistics('NYC', date_start, 31, raw_case_data, valid_zip_codes)
 # Airway Simulation Setup
 elif SimulationParams.SIMULATION_TYPE == SimulationParams.AIR_SIM:
     g_airway_map = Preprocessing.get_airway_map(SimulationParams.MAP_TYPE_HLC_CURATED_WAN)
@@ -124,7 +126,7 @@ plt.show()
 plt.close(f)
 
 #print(case_rates_dict)
-Utilities.calculate_MAPE_by_zip(actual=case_rates_dict, forecast=case_rates, offset=32, print_results=True)
+Utilities.calculate_MAPE_by_zip(actual=case_rates_actual, forecast=case_rates_dict, offset=32, print_results=True)
 
 #0.01429076560064155
 #0.31091602777566957

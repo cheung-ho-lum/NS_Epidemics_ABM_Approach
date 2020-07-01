@@ -3,8 +3,12 @@ from datetime import datetime
 from datetime import timedelta
 from pathlib import Path
 import numpy as np
+import pandas as pd
+from sklearn import preprocessing
+#import geopandas as gpd
 
 import Graphics
+from Parameters import SimulationParams
 
 
 def draw_severity_by_region(location='NYC', file_location='Data/NYC/Case_Death_Recovery/compiled_test_by_zcta.csv'):
@@ -75,7 +79,7 @@ def draw_severity_by_region(location='NYC', file_location='Data/NYC/Case_Death_R
 
 
 #TODO: sure reuses a lot of code from the draw utility
-def nyc_case_data_to_modzcta_forecast_dict():
+def nyc_case_data_by_modzcta_dict(normalized=True):
     forecast_dict = {}
     file_to_open = Path('Data/NYC/Case_Death_Recovery/data-by-modzcta.csv')
     zip_pop_dict = {}
@@ -106,6 +110,9 @@ def nyc_case_data_to_modzcta_forecast_dict():
         next(f)
         current_date = datetime(2020, 3, 31, 0, 0).date()  # TODO: too lazy to look up right syntax
         stop_date = datetime(2020, 6, 8, 0, 0).date() #100 days from march 1
+
+        skip_date_1 = datetime(2020, 4, 26, 0, 0).date() #The data from april 26 is faulty.
+
         max_idx = 0
         for row in f:
             row_data = row.split(',')
@@ -117,11 +124,13 @@ def nyc_case_data_to_modzcta_forecast_dict():
             if s_modzcta in ignore_zip:
                 continue
 
-
             if s_modzcta not in forecast_dict.keys():
                 forecast_dict[s_modzcta]=[]
             date_raw = date_raw.split('T')[0]
             date = datetime.strptime(date_raw, '%Y-%m-%d').date()
+
+            if date == skip_date_1:
+                continue
 
             if date > current_date + timedelta(days=1): #timeskip
                 delta = date - current_date
@@ -141,7 +150,10 @@ def nyc_case_data_to_modzcta_forecast_dict():
 
             pop_denom = zip_pop_dict[s_modzcta]
             case_rate = int(positive_cases) / pop_denom
-            forecast_dict[s_modzcta].append(case_rate)
+            if normalized:
+                forecast_dict[s_modzcta].append(case_rate)
+            else:
+                forecast_dict[s_modzcta].append(int(positive_cases))
 
     return forecast_dict
 
@@ -163,8 +175,8 @@ def calculate_MAPE_by_zip(actual={}, forecast={}, offset=32, print_results=False
     mape_dict = {}
     for key in actual.keys():
         if key in forecast.keys():
-            actual_values = actual[key][offset:]
-            forecast_values = forecast[key]
+            actual_values = actual[key]
+            forecast_values = forecast[key][offset:] #31 days of march + initial
             if len(actual_values) != len(forecast_values):
                 print('sizing error for', key, len(actual_values), len(forecast_values))
             else:
@@ -172,6 +184,9 @@ def calculate_MAPE_by_zip(actual={}, forecast={}, offset=32, print_results=False
                 for i in range(0, len(actual_values)):
                     val_actual = actual_values[i]
                     val_forecast = forecast_values[i]
+                    if val_actual == 0:
+                        print('bad key-val:', key, i, val_actual, val_forecast)
+                        val_actual += 1e-9
                     err = abs(val_actual - val_forecast) / val_actual
                     total_err += err
                 mape_dict[key] = total_err / len(actual_values)
@@ -181,3 +196,124 @@ def calculate_MAPE_by_zip(actual={}, forecast={}, offset=32, print_results=False
             total_mape += mape_dict[k]
         print('Average Regional MAPE:', total_mape / len(mape_dict.keys()))
     return mape_dict
+
+
+def NYC_turnstile_script():
+    dirpath = "Data/NYC/Subway/"
+    # Combine it all into one dataframe
+    filenames = ['turnstile_200222.txt', 'turnstile_200229.txt', 'turnstile_200307.txt']
+
+    file_list = []
+    for file in filenames:
+        file_to_open = Path(dirpath + file)
+        df = pd.read_csv(file_to_open, index_col=None, header=0)
+        file_list.append(df)
+    turnstile_data = pd.concat(file_list, axis=0, ignore_index=True)
+
+    # Remove extraneous data and remove non Subway lines like the PATH and Staten Island Railway
+    turnstile_data.drop(["C/A", "SCP", "DESC", "LINENAME"], axis=1, inplace=True)
+    turnstile_data.columns = ['UNIT', 'STATION', 'DIV', 'DATE', 'TIME', 'ENTRIES', 'EXITS']
+    turnstile_data = turnstile_data[turnstile_data.DIV != "SRT"]
+    turnstile_data = turnstile_data[turnstile_data.DIV != "RIT"]
+    turnstile_data = turnstile_data[turnstile_data.DIV != "PTH"]
+    turnstile_data.drop(["DIV"], axis=1, inplace=True)
+
+    # Reformat the date and time creating a Pandas datetime
+    turnstile_data['DATETIME'] = turnstile_data.DATE + ' ' + turnstile_data.TIME
+    turnstile_data['DATETIME'] = pd.to_datetime(turnstile_data['DATETIME'], format='%m/%d/%Y %H:%M:%S')
+    turnstile_data.drop(["DATE", "TIME", "STATION"], axis=1, inplace=True)
+
+    # Because the exits and entries are cumulative, difference them
+    turnstile_data.ENTRIES = turnstile_data.ENTRIES.diff()
+    turnstile_data.EXITS = turnstile_data.EXITS.diff()
+
+    # Remove negative numbers and extreme outliers
+    turnstile_data = turnstile_data[turnstile_data.ENTRIES >= 0]
+    turnstile_data = turnstile_data[turnstile_data.EXITS >= 0]
+    turnstile_data = turnstile_data[turnstile_data.ENTRIES <= turnstile_data.ENTRIES.quantile(.99)]
+    turnstile_data = turnstile_data[turnstile_data.EXITS <= turnstile_data.EXITS.quantile(0.99)]
+
+    # Write out cleaned data to csv
+    turnstile_data.to_csv(dirpath + "nonaveraged_turnstile_data.csv", index=False)
+
+    turnstile_data['DATETIME'] = pd.to_datetime(turnstile_data['DATETIME'], format='%Y/%m/%d %H:%M:%S')
+    turnstile_data = turnstile_data.groupby(['UNIT', 'DATETIME'], as_index=True).aggregate('sum')
+
+    # Because the readings are every few hours, there are gaps in time. Moreover the timings don't match for each station. Thus we should interpolate and fill in the gaps.
+    turnstile_data = turnstile_data.groupby(level=0).apply(
+        lambda x: x.reset_index(level=0, drop=True).resample("1H").interpolate(method='linear'))
+
+    # Group and average the times so instead of days over years, we have an average for every hour of the day of week
+    turnstile_data.reset_index(inplace=True)
+    turnstile_data['HOUR'] = turnstile_data.DATETIME.dt.hour
+    turnstile_data['DAYOFWEEK'] = turnstile_data.DATETIME.dt.dayofweek
+    turnstile_data = turnstile_data.drop(['DATETIME'], axis=1)
+    turnstile_data = turnstile_data.groupby(['UNIT', 'DAYOFWEEK', 'HOUR'], as_index=False).mean()
+
+    # Normalize the Data across the Averaged Times as we don't want things like general population density to interfere
+    entries = turnstile_data[['ENTRIES']].values.astype(float)
+    entries_min_max_scaler = preprocessing.MinMaxScaler()
+    entries_scaled = entries_min_max_scaler.fit_transform(entries)
+    turnstile_data['NORMALIZED_ENTRIES'] = entries_scaled
+
+    exits = turnstile_data[['EXITS']].values.astype(float)
+    exits_min_max_scaler = preprocessing.MinMaxScaler()
+    exits_scaled = exits_min_max_scaler.fit_transform(exits)
+    turnstile_data['NORMALIZED_EXITS'] = exits_scaled
+
+    turnstile_data['INTENSITY'] = turnstile_data['NORMALIZED_EXITS'] - turnstile_data['NORMALIZED_ENTRIES']
+    turnstile_data = turnstile_data.drop(['NORMALIZED_ENTRIES', 'NORMALIZED_EXITS', 'ENTRIES', 'EXITS'], axis=1)
+
+    # Merge the data with the Stations data to get geometry
+    station_ids_with_unit_ids = pd.read_csv("data/station_data/stations.csv")
+    turnstile_data = turnstile_data.merge(station_ids_with_unit_ids, on="UNIT")
+    turnstile_data = turnstile_data.drop(['UNIT'], axis=1)
+    turnstile_data = turnstile_data.drop_duplicates()
+
+    # Write out the data to csv
+    turnstile_data.to_csv(dirpath + "averaged_turnstile_data.csv", index=False)
+
+
+def get_benchmark_statistics(location, start_date, duration, case_data, valid_zip_codes):
+    '''https://www1.nyc.gov/site/doh/covid/covid-19-data.page'''
+    if location == 'NYC':
+        # TODO: and the kludging starts here (by ignoring start date and just pulling data)
+        # TODO: build benchmarking statistics from the same data source
+        # (which is compiled_test_by_zcta w/o zip codes that have no subway stations
+        # we can use the simple data divided by 6/7 (normalizing for population) until april 1
+
+        file_to_open = Path('Data/NYC/Case_Death_Recovery/covid_nyc_simple.csv')
+        benchmark_stats = np.zeros(shape=(SimulationParams.RUN_SPAN + 1, 5))
+        with open(file_to_open, 'r') as f:
+            next(f)  # skip header row
+            time = 0
+            total_infected = 0
+            for row in f:
+                if time == SimulationParams.RUN_SPAN + 1:
+                    break
+                infection_data = row.strip().split(',')
+                date = infection_data[0]
+                infected = int(infection_data[1]) / 2.5 # TODO: Note! /=2 to fit data
+                total_infected += infected
+                benchmark_stats[time, 0] = time
+                benchmark_stats[time, 2] = infected
+                benchmark_stats[time, 3] = total_infected
+                time += 1
+
+        last_total_infected = benchmark_stats[duration, 3]
+        for i in range(0, SimulationParams.RUN_SPAN - duration):
+            time = i + duration + 1
+            total_infected = 0
+
+            for k,v in case_data.items():
+                if k in valid_zip_codes:
+                    total_infected += v[i]
+            benchmark_stats[time, 0] = time
+            benchmark_stats[time, 2] = total_infected - last_total_infected
+            benchmark_stats[time, 3] = total_infected
+            last_total_infected = total_infected
+        pd.DataFrame(benchmark_stats).to_csv("debug.csv")
+        return benchmark_stats
+    else:
+        print('what statistics?')
+    return None

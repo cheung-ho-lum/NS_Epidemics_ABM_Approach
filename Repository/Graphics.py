@@ -102,7 +102,7 @@ def draw_graph(nx_graph, node_attr="type", timestamp="", vmin=0, vmax=0.11,
             for info, shape in zip(m.NYC_info, m.NYC):
                 norm_hotspot = -1
                 #print(info)
-                modzcta = int(info['modzcta'])
+                modzcta = info['modzcta']
                 zcta = info['zcta']
                 #print(modzcta, zcta) #zcta has multipe entries
                 patches.append(Polygon(np.array(shape), True))

@@ -24,11 +24,11 @@ class AirAgent(SEIR_Agent):
             # TODO: don't ask, but in this model, viral load only updated from outside
             for nn in nx_graph.neighbors(self._location):
                 pair_flow = nx_graph[self._location][nn]['pair_flow']
-                nx_graph.nodes[nn]['viral_load'] += num_infected * pair_flow/passenger_flow  # TODO: also crap I made up
+                nx_graph.nodes[nn]['exposure'] += num_infected * pair_flow/passenger_flow  # TODO: also crap I made up
 
     def update_agent_health(self):
         # update beta based on viral load
-        viral_load = self.model.airway_graph.graph.nodes[self._location]['viral_load']
+        viral_load = self.model.airway_graph.graph.nodes[self._location]['exposure']
         # self._epi_characteristics['beta'] = min(2, viral_load / 100)  # TODO: this is also just some crap I made up
 
         # also give a chance to convert purely based on viral load

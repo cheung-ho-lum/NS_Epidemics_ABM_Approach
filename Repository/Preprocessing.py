@@ -15,33 +15,6 @@ import geopy
 from geopy.geocoders import Nominatim
 from geopy.extra.rate_limiter import RateLimiter
 
-def get_benchmark_statistics(location, start_date):
-    '''https://www1.nyc.gov/site/doh/covid/covid-19-data.page'''
-    if location == 'NYC':
-        # TODO: and the kludging starts here (by ignoring start date and just pulling data)
-        file_to_open = Path('Data/NYC/Case_Death_Recovery/covid_nyc_simple.csv')
-        benchmark_stats = np.zeros(shape=(SimulationParams.RUN_SPAN + 1, 5))
-        with open(file_to_open, 'r') as f:
-            next(f) #skip header row
-            time = 0
-            total_infected = 0
-            for row in f:
-                if time == SimulationParams.RUN_SPAN + 1:
-                    break
-                infection_data = row.strip().split(',')
-                date = infection_data[0]
-                infected =  int(infection_data[1])
-                total_infected += infected
-                benchmark_stats[time, 0] = time
-                benchmark_stats[time, 2] = infected
-                benchmark_stats[time, 3] = total_infected
-                time += 1
-        return benchmark_stats
-    else:
-        print('what statistics?')
-    return None
-
-
 def generate_cercanias_map():
 
     file_to_open = Path('Data/madrid/trains/station_list.csv')
@@ -59,7 +32,7 @@ def generate_cercanias_map():
             station_lat_y = float(station_data[2])  # Latitude
             station_long_x = float(station_data[3])  # Longtitude
             _ = station_data[4]  # Direction? ??
-            station_zip = int(station_data[5])  # probably codigo postal (postal code). Wish NYC did this.
+            station_zip = station_data[5]  # probably codigo postal (postal code). Wish NYC did this.
             station_region = station_data[6]  # poblacion? probably region
             _ = station_data[7]  # province (pretty much madrid with a few exceptions)
 
@@ -107,7 +80,7 @@ def generate_cercanias_map():
 
     #Setting some default node attributes
     nx.set_node_attributes(subway_map, EnvParams.NODE_TYPE_STATION, 'type')
-    nx.set_node_attributes(subway_map, 0, 'viral_load')
+    nx.set_node_attributes(subway_map, 0, 'exposure')
     nx.set_node_attributes(subway_map, 0, 'flow')
 
 
@@ -130,7 +103,8 @@ def generate_cercanias_map():
             path_len = nx.algorithms.shortest_path_length(subway_map, station_id, dest_id)
             if path_len < station_shortest_path:
                 station_shortest_path = path_len
-        subway_map.nodes[station_id]['commute_time'] = (station_shortest_path + 1)*(station_shortest_path + 1)
+        # Approximate each edge to take 4 minutes (1/360 day) to traverse.
+        subway_map.nodes[station_id]['commute_time'] = 2*(station_shortest_path + 1) / 360
 
     return subway_map, routes_and_stations
 
@@ -172,7 +146,7 @@ def generate_geometric_map(type="sierpinski"):
                 previous_station_id = station_id
 
     nx.set_node_attributes(subway_map, EnvParams.NODE_TYPE_STATION, 'type')
-    nx.set_node_attributes(subway_map, 0, 'viral_load')
+    nx.set_node_attributes(subway_map, 0, 'exposure')
     nx.set_node_attributes(subway_map, 0, 'flow')
     return subway_map, routes_and_stations
 
@@ -241,7 +215,7 @@ def generate_moskva_subway_map():
     subway_map.add_edge(113, 87)  # МЦК
 
     nx.set_node_attributes(subway_map, EnvParams.NODE_TYPE_STATION, 'type')
-    nx.set_node_attributes(subway_map, 0, 'viral_load')
+    nx.set_node_attributes(subway_map, 0, 'exposure')
     nx.set_node_attributes(subway_map, 0, 'flow')
 
     return subway_map, routes_and_stations
@@ -265,6 +239,21 @@ def generate_NYC_subway_map():
     file_to_open = Path('Data/NYC/Subway/Stations.csv')
     routes_and_stations = {}
     complex_to_station_dict = {}
+    modzcta_to_stations_dict = {}
+    zip_to_modzcta = {} #TODO: this last dictionary could be stored elsewhere.
+    #TODO: more importantly, maybe just reverse geocode the modzcta... jeez.
+    #I Mean... did they even code the zip codes right or just randomly slap them on?!
+    zip_to_modzcta['10153'] = '10022'
+    zip_to_modzcta['11227'] = '11217'
+    zip_to_modzcta['10000'] = '10007'
+    zip_to_modzcta['10279'] = '10007'
+    zip_to_modzcta['12692'] = '11692'  # this was clearly an error. fixed in file anyway.
+    zip_to_modzcta['10020'] = '10019'  # rockefeller center -> midtown
+    zip_to_modzcta['11451'] = '11432'
+    zip_to_modzcta['10115'] = '10035'  # east harlem
+    zip_to_modzcta['10107'] = '10019'  # 50th st. -> midtown
+    zip_to_modzcta['10199'] = '10001'
+
     with open(file_to_open, 'r') as f:
         next(f)  # skip header row
         complex_dict = {}  # dictionary of complexes. values = stations at that complex
@@ -283,7 +272,10 @@ def generate_NYC_subway_map():
             station_long_x = float(station_data[10])  # Longtitude
             _ = station_data[11] #north label
             _ = station_data[12] #south label
-            station_zip = int(station_data[13])
+            station_zip = station_data[13] #TODO: convert this to a string too eventually
+
+            if station_zip in zip_to_modzcta.keys():
+                station_zip = zip_to_modzcta[station_zip]
 
             #done once to get the zip codes for all routes. Keeping this code for... posterity I guess.
             #station 225, 315, 328, 330, 466, 468 errors. no zip code.
@@ -296,6 +288,7 @@ def generate_NYC_subway_map():
 
             #TODO: turns out complexID + divid is not a unique identifier! see 467, 468
             complex_to_station_dict[(complex_id, division_id)] = station_id
+            modzcta_to_stations_dict.setdefault(station_zip, []).append(station_id)
 
             # We're not counting Staten Island
             if 'SIR' in routes:
@@ -328,10 +321,7 @@ def generate_NYC_subway_map():
             # you know, this doesn't even guarantee correctness. just logical correctness.
 
             for route in routes.split():
-                if route not in routes_and_stations:
-                    routes_and_stations[route] = [station_id]
-                else:
-                    routes_and_stations[route].append(station_id)
+                routes_and_stations.setdefault(route, []).append(station_id)
 
     build_edges_from_file = True
     # Builds the edges between stations based on our own listing of correct edges between stations
@@ -454,7 +444,7 @@ def generate_NYC_subway_map():
         f_route_names.close()
 
     nx.set_node_attributes(subway_map, EnvParams.NODE_TYPE_STATION, 'type')
-    nx.set_node_attributes(subway_map, 0, 'viral_load')
+    nx.set_node_attributes(subway_map, 0, 'exposure')
     nx.set_node_attributes(subway_map, 0, 'flow')
 
     # TODO: Of course these should be model params, but we haven't the least  idea how to use them yet.
@@ -463,7 +453,7 @@ def generate_NYC_subway_map():
 
     # I suppose the nice thing about python is I don't have too much to update if I need to return something new.
     update_flow_data(subway_map, 'Turnstile_Data.csv', complex_to_station_dict, date_start, date_end)
-    update_population_flow_data(subway_map, location='NYC')
+    update_population_flow_data(subway_map, location='NYC', zc_to_stations_dict=modzcta_to_stations_dict)
 
     NYC_TIMES_SQUARE = [11, 317, 467, 468]
     NYC_GRAND_CENTRAL = [465, 469, 402, ]
@@ -475,7 +465,9 @@ def generate_NYC_subway_map():
             if path_len < station_shortest_path:
                 station_shortest_path = path_len
 
-        subway_map.nodes[station_id]['commute_time'] = station_shortest_path + 1
+        # TODO: Approximate commute time as 4 minutes per edge (1/360 day), waiting is 4 minutes, 1/3 day is in public
+        # This is really a proxy for ... additional exposure due to commute time. Hmm....
+        subway_map.nodes[station_id]['commute_time'] = 2*(station_shortest_path + 1) / 20
 
         #TODO: this sucks a bit.
         #sqrt_eccentricity = math.sqrt(nx.algorithms.distance_measures.eccentricity(subway_map,station_id))
@@ -530,12 +522,11 @@ def update_flow_data(subway_map, flow_files, complex_to_station_dict, date_start
 
     return total_flow
 
-def update_population_flow_data(network, location='NYC', pop_files=None):
-    """creates population data, normalizes flow to population"""
-    if location == 'NYC':
-        population_bx, population_bk, population_m, population_q = 0, 0, 0, 0
 
-        #Just modify passenger flow by borough modifier pulled from [my @$$], I mean...
+def update_population_flow_data(network, location='NYC', pop_files=None, zc_to_stations_dict=None):
+    """creates population data, normalizes flow to population. Really requires a zipdict"""
+    if location == 'NYC':
+        #The link below is useful for some approximate data while we make the real thing.
         """https://psplvv-ctwprtla.nyc.gov/assets/planning/download/pdf/planning-level/housing-economy/nyc-ins-and-out-of-commuting.pdf"""
 
         # Percentage of total population and flow percentage
@@ -544,41 +535,77 @@ def update_population_flow_data(network, location='NYC', pop_files=None):
         # Manhattan 0.2074  0.60    0.34
         # Queens    0.2894  0.13    2.30
 
-        # total commuters should be about 3 million
-        nyc_population = 7853000  # Population NOT on Staten Island
+        #nyc_population = 7853000  # Population NOT on Staten Island
 
-        multiplier = nyc_population / get_feature_sum(network, 'flow')
+        # total commuters should be about 3 million
+        #TODO: base this on popdict... valid zipcodes only.
+        pop_dict = get_population_by_modzcta_dict()
+        keys_to_remove = []
+        for key in pop_dict.keys():
+            if key not in zc_to_stations_dict.keys():
+                keys_to_remove.append(key)
+        for key in keys_to_remove:
+            pop_dict.pop(key)
+
+        total_population = sum(pop_dict.values())
+        print('population considered:', total_population)
+
+        multiplier = total_population / get_feature_sum(network, 'flow')
         total_commuters = 0
+
         for n in network.nodes():
             #Update flow data
             flow = network.nodes[n]['flow'] * multiplier
             network.nodes[n]['flow'] = flow
 
+        for n in network.nodes():
             #Write population and commuter data
             # TODO: population data should be independent of flow data
             # commuter ratio too...
 
+            zipcode = network.nodes[n]['zip']
+            stations_in_zc = zc_to_stations_dict[zipcode]
+            if zipcode not in pop_dict.keys():
+                print(zipcode)
+                zipcode='10019'
+            population_in_zc = pop_dict[zipcode]
+            total_flow = 0
+            for station in stations_in_zc:
+                total_flow += network.nodes[station]['flow']
+            station_flow_percentage_in_zc = network.nodes[n]['flow'] / total_flow
+            station_population = station_flow_percentage_in_zc * population_in_zc
+            network.nodes[n]['population'] = station_population
+
             borough = network.nodes[n]['region']
             if borough == EnvParams.BOROUGH_BRONX:
-                network.nodes[n]['population'] = flow * 2.53
-                network.nodes[n]['commuter_ratio'] = 0.50  # + 0.1 * random.random()
-                total_commuters += 0.5 * 2.53 * flow
+                network.nodes[n]['commuter_ratio'] = 0.50
             elif borough == EnvParams.BOROUGH_BROOKLYN:
-                network.nodes[n]['population'] = flow * 1.61
-                network.nodes[n]['commuter_ratio'] = 0.50  #+ 0.1 * random.random()
-                total_commuters += 0.5 * 1.61 * flow
+                network.nodes[n]['commuter_ratio'] = 0.50
             elif borough == EnvParams.BOROUGH_MANHATTAN:
-                network.nodes[n]['population'] = flow * 0.34
-                network.nodes[n]['commuter_ratio'] = 0.20  # + 0.1 * random.random()
-                total_commuters += 0.1 * 0.34 * flow
+                network.nodes[n]['commuter_ratio'] = 0.20
             elif borough == EnvParams.BOROUGH_QUEENS:
-                network.nodes[n]['population'] = flow * 2.30
-                network.nodes[n]['commuter_ratio'] = 0.40  # + 0.1 * random.random()
-                total_commuters += 0.5 * 2.30 * flow
+                network.nodes[n]['commuter_ratio'] = 0.40
             else:
                 print('Borough ID error', n, borough)
 
         #print(total_commuters) #this should be about 3 million, total ridership should be 7 million
+
+
+def get_population_by_modzcta_dict():
+    # it appears this file (and all its successors) has stopped with the crappy NA and zip code 99999 crap.
+    # Not that it matters.
+    file_to_open = 'Data/NYC/Case_Death_Recovery/data-by-modzcta.csv'
+    # MODIFIED_ZCTA,NEIGHBORHOOD_NAME,BOROUGH_GROUP,COVID_CASE_COUNT,COVID_CASE_RATE,POP_DENOMINATOR,COVID_DEATH_COUNT,COVID_DEATH_RATE,PERCENT_POSITIVE,TOTAL_COVID_TESTS
+    modzcta_pop_dict = {}
+
+    with open(file_to_open, 'r') as f:
+        next(f)
+        for row in f:
+            modzcta_data = row.split(',')
+            modzcta = modzcta_data[0]  # modzcta (string)
+            population = float(modzcta_data[5])  # population (...decimal)
+            modzcta_pop_dict[modzcta] = population
+    return modzcta_pop_dict
 
 def get_feature_sum(network, feature):
     feature_total = 0
@@ -617,7 +644,7 @@ def generate_simple_triangle_map():
     routes_and_stations[3] = [3, 1]
 
     nx.set_node_attributes(subway_map, EnvParams.NODE_TYPE_STATION, 'type')
-    nx.set_node_attributes(subway_map, 0, 'viral_load')
+    nx.set_node_attributes(subway_map, 0, 'exposure')
     nx.set_node_attributes(subway_map, 0, 'flow')
 
     return subway_map, routes_and_stations
@@ -658,7 +685,7 @@ def generate_fake_world_map():
     air_graph.nodes[3]['flow'] = 100
 
     nx.set_node_attributes(air_graph, EnvParams.NODE_TYPE_STATION, 'type') #LOL?
-    nx.set_node_attributes(air_graph, 0, 'viral_load')
+    nx.set_node_attributes(air_graph, 0, 'exposure')
 
     return AirGraph(air_graph, 300)
 
@@ -720,7 +747,7 @@ def generate_wan_map():
 
     nx.set_node_attributes(airway_map, 0, 'flow')
     nx.set_node_attributes(airway_map, EnvParams.NODE_TYPE_STATION, 'type')  # LOL?
-    nx.set_node_attributes(airway_map, 0, 'viral_load')
+    nx.set_node_attributes(airway_map, 0, 'exposure')
 
     return AirGraph(airway_map)
 
