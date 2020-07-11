@@ -67,3 +67,24 @@ https://psplvv-ctwprtla.nyc.gov/assets/planning/download/pdf/planning-level/hous
 Some better numbers for r0
 https://www.aimspress.com/fileOther/PDF/aimsph/publichealth-07-02-026.pdf
 https://wwwnc.cdc.gov/eid/article/26/7/20-0282_article#tnF1
+
+commute time
+https://public.tableau.com/profile/srd.media#!/vizhome/NYCAverageCommuteTimebyNeighborhood/Map
+
+commute time by zip code.
+http://zipatlas.com/us/ny/brooklyn/zip-code-comparison/average-commute-time.htm
+
+commute type census:
+https://data.census.gov/cedsci/table?lastDisplayedRow=20&table=B08301&tid=ACSDT1Y2018.B08301&t=Commuting&hidePreview=true&y=2018&g=0500000US36047,36005,36081,36061
+Table B08301 Means of Transit (2018)
+has it down to the ZCTA. Meaning we could approximate by station. but we will approximate by borough.
+Location	Subway		Public Transit		Total
+Bronx		239896		338577			579718
+Queens		432454		567601			1104840
+Brooklyn	628661		733874			1209919
+Manhattan	464967		530120			885112
+
+
+
+london population:
+https://www.ons.gov.uk/peoplepopulationandcommunity/populationandmigration/populationestimates/datasets/populationestimatesforukenglandandwalesscotlandandnorthernireland

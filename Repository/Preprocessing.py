@@ -1,9 +1,10 @@
 import datetime
 import random
+import statistics
 
 import networkx as nx
 from ABM.AirGraph import AirGraph
-from Parameters import EnvParams, SimulationParams
+from Parameters import EnvParams, SimulationParams, DisplayParams
 from pathlib import Path
 import math
 from transliterate import translit
@@ -103,8 +104,8 @@ def generate_cercanias_map():
             path_len = nx.algorithms.shortest_path_length(subway_map, station_id, dest_id)
             if path_len < station_shortest_path:
                 station_shortest_path = path_len
-        # Approximate each edge to take 4 minutes (1/360 day) to traverse.
-        subway_map.nodes[station_id]['commute_time'] = 2*(station_shortest_path + 1) / 360
+        # really the 'commute distance'
+        subway_map.nodes[station_id]['commute_time'] = station_shortest_path
 
     return subway_map, routes_and_stations
 
@@ -219,7 +220,128 @@ def generate_moskva_subway_map():
     nx.set_node_attributes(subway_map, 0, 'flow')
 
     return subway_map, routes_and_stations
+def generate_LON_subway_map():
+    subway_map = nx.Graph()
+    routes_and_stations = {}
 
+    # Stations
+    file_to_open = Path('Data/London/Subway/Stations.csv')
+    """id","latitude","longitude","name","display_name","zone","total_lines","rail,borough,Comments"""
+    borough_to_station_dict = {}
+    with open(file_to_open, 'r') as f:
+        next(f)
+        for row in f:
+            station_data = row.split(',')
+            station_id = int(station_data[0])  # station id as int (we'll try to keep this convention)
+            station_lat_y = float(station_data[1])
+            station_long_x = float(station_data[2])
+            stop_name = station_data[3]
+            _ = station_data[4]
+            zone = float(station_data[5])  # zone
+            _ = station_data[6]
+            _ = station_data[7]
+            station_borough = station_data[8]
+
+            subway_map.add_node(station_id)
+            subway_map.nodes[station_id]['x'] = station_long_x
+            subway_map.nodes[station_id]['y'] = station_lat_y
+            subway_map.nodes[station_id]['pos'] = (station_long_x, station_lat_y)
+            subway_map.nodes[station_id]['name'] = stop_name
+            subway_map.nodes[station_id]['commute_time'] = 2 * zone + 1
+            subway_map.nodes[station_id]['region'] = station_borough
+            subway_map.nodes[station_id]['zip'] = station_borough
+
+            borough_to_station_dict.setdefault(station_borough, []).append(station_id)
+
+            #For finding the borough of the station initially
+            if station_id >= 99999:  # in [37,46,50,51,53,62,68,88,158,168,214,256,280]:
+                coordinates = (station_lat_y, station_long_x)
+                locator = Nominatim(user_agent='myGeocoder')
+                location = locator.reverse(coordinates)
+                #London does a lot of things well, but sometimes no 'borough' sorting
+                raw_string = str(location.raw)
+                #print(raw_string)
+                try:
+                    borough_name = raw_string.split('London Borough of ')[1].split(',')[0]
+                except:
+                    borough_name = raw_string
+
+                print(station_id, borough_name)
+
+    # Routes
+    file_to_open = Path('Data/London/Subway/Routes.csv')
+    with open(file_to_open, 'r') as f:
+        """line","name","colour","stripe"""
+        next(f)
+        for row in f:
+            route_data = row.split(',')
+            route_id = int(route_data[0])
+            routes_and_stations[route_id] = []
+
+    # Routing Data
+    nx.set_node_attributes(subway_map, [], 'routes')
+    file_to_open = Path('Data/London/Subway/Routing.csv')
+    with open(file_to_open, 'r') as f:
+        next(f)
+        """station1","station2","line"""
+        for row in f:
+            routing_data = row.split(',')
+            station_1 = int(routing_data[0])
+            station_2 = int(routing_data[1])
+            route_id = int(routing_data[2])
+            subway_map.add_edge(station_1, station_2)
+
+            if station_1 not in routes_and_stations[route_id]:
+                routes_and_stations[route_id].append(station_1)
+            if station_2 not in routes_and_stations[route_id]:
+                routes_and_stations[route_id].append(station_2)
+
+        for route in routes_and_stations:
+            for station in routes_and_stations[route]:
+                subway_map.nodes[station]['routes'].append(route)
+
+    # Flow Data
+    nx.set_node_attributes(subway_map, 0.5, 'commuter_ratio')
+    nx.set_node_attributes(subway_map, 10000, 'flow')
+
+    # Population Data
+    borough_pop_dict = {}  #TODO: this is useful later? I forget.
+    file_to_open = Path('Data/London/Case Data/london_pop_by_borough.csv')
+    """Borough,Population,Borough Code"""
+    with open(file_to_open, 'r') as f:
+        next(f)
+        for row in f:
+            borough_data = row.replace('\n', '').split(',')
+            borough_name = borough_data[0]
+            borough_population = int(borough_data[1])
+
+            if borough_name in ['Bexley', 'Bromley', 'Croydon', 'Kingston upon Thames', 'Sutton']: #skip areas with no stations
+                continue
+
+            borough_pop_dict[borough_name] = borough_population
+            if borough_name not in borough_to_station_dict.keys():
+                continue
+
+            borough_stations = borough_to_station_dict[borough_name]
+
+            for station_id in borough_stations:
+                station_population = borough_population / len(borough_stations)
+                subway_map.nodes[station_id]['population'] = station_population
+
+    for key in borough_pop_dict:
+        if key not in borough_to_station_dict.keys():
+            print('Warning, adding borough with no stations:', key)
+
+    # Other Data
+    nx.set_node_attributes(subway_map, EnvParams.NODE_TYPE_STATION, 'type')
+    nx.set_node_attributes(subway_map, 0, 'normalized_hotspot')
+
+    # Remove subway stations in other cities
+    stations_in_other_cities = [37, 46, 50, 51, 53, 62, 68, 88, 158, 168, 214, 256, 280, 6]
+    for station in stations_in_other_cities:
+        subway_map.remove_node(station)
+
+    return subway_map, routes_and_stations
 
 def generate_NYC_subway_map():
     """This is pretty straightforward as NYC keeps station data in a csv. In principle, we should probably
@@ -277,14 +399,18 @@ def generate_NYC_subway_map():
             if station_zip in zip_to_modzcta.keys():
                 station_zip = zip_to_modzcta[station_zip]
 
-            #done once to get the zip codes for all routes. Keeping this code for... posterity I guess.
+            #done once to get the zip codes for all stations. Keeping this code for... posterity I guess.
             #station 225, 315, 328, 330, 466, 468 errors. no zip code.
             #some zips are weird and I went back and fixed them (station 115)
-            if station_id >= 700:
+            if station_id >= 99999:
+                print(station_id)
                 coordinates = (station_lat_y, station_long_x)
                 locator = Nominatim(user_agent='myGeocoder')
                 location = locator.reverse(coordinates)
-                print(station_id, location.raw['address']['postcode'])
+                actual_zip = location.raw['address']['postcode']
+                if actual_zip != station_zip:  #-.- need to validate MTA's zip codes
+                    print(station_id, actual_zip, station_zip)
+
 
             #TODO: turns out complexID + divid is not a unique identifier! see 467, 468
             complex_to_station_dict[(complex_id, division_id)] = station_id
@@ -340,116 +466,14 @@ def generate_NYC_subway_map():
                     previous_station = station
 
 
-    make_best_guess_routes = False
-    if make_best_guess_routes:
-        "Adding Edges, a more logical approach (but still possibly crap, also might not matter)"
-        "Best theoretical mathy approach would be to find the shortest hamiltonian path. but i am lazy"
-        file_routing_by_id = Path('Data/NYC/Subway/Our_Routing_By_Id.csv')
-        file_routing_by_name = Path('Data/NYC/Subway/Our_Routing_By_Name.csv')
-        f_route_ids = open(file_routing_by_id, 'w')
-        f_route_names = open(file_routing_by_name, 'w')
-
-        for route in routes_and_stations:
-            minX = -70
-            maxX = -75
-            minY = 42
-            maxY = 38
-            # TODO Just do something readable and logical and make an actual edge list later if needed.
-            # TODO after writing this and still having to hack in some lines, I 100% approve of that idea.
-            for station in routes_and_stations[route]:
-                x_coord = subway_map.nodes[station]['x']
-                y_coord = subway_map.nodes[station]['y']
-
-                if x_coord < minX:
-                    minX = x_coord
-                if x_coord > maxX:
-                    maxX = x_coord
-                if y_coord < minY:
-                    minY = y_coord
-                if y_coord > maxY:
-                    maxY = y_coord
-
-            terminal_station = -1
-            for station in routes_and_stations[route]:
-                x_coord = subway_map.nodes[station]['x']
-                y_coord = subway_map.nodes[station]['y']
-                if (x_coord == minX and y_coord == minY) or (x_coord == minX and y_coord == maxY) or \
-                    (x_coord == maxX and y_coord == minY) or(x_coord == maxX and y_coord == maxY):
-                    terminal_station = station
-                    break
-            if route == 'F':
-                terminal_station = 58
-            if route == 'J':
-                terminal_station = 278
-            if route == 'Z':
-                terminal_station = 278
-            if route == 'M':
-                terminal_station = 108
-            if route == 'A':
-                terminal_station = 203
-            if route == 'C':
-                terminal_station = 188
-            if route == 'E':
-                terminal_station = 278
-            if route == '3':
-                terminal_station = 436
-            if route == '5':
-                terminal_station = 359
-
-            if terminal_station == -1:
-                print('HACK WAS UNABLE TO FIND TERMINAL STATION FOR ROUTE', route)
-
-            uncombined_stations = routes_and_stations[route].copy()
-            last_station = terminal_station
-            # TODO: we don't really need to rewrite (to validate every time)
-            station_list = [terminal_station]
-            station_list_names = [subway_map.nodes[terminal_station]['name']]
-            x_coord_last = subway_map.nodes[last_station]['x']
-            y_coord_last = subway_map.nodes[last_station]['y']
-            uncombined_stations.remove(terminal_station)
-
-            while len(uncombined_stations) > 0:
-                best_distance = 100
-                best_candidate = -1
-                # Find the closest station to our current endpoint
-                for station_candidate in uncombined_stations:
-                    candidate_distance = math.hypot(
-                        x_coord_last - subway_map.nodes[station_candidate]['x'],
-                        y_coord_last - subway_map.nodes[station_candidate]['y']
-                    )
-                    if candidate_distance < best_distance:
-                        best_distance = candidate_distance
-                        best_candidate = station_candidate
-
-                #Add the edge
-                subway_map.add_edge(last_station, best_candidate)
-
-                #Make the new endpoint
-                x_coord_last = subway_map.nodes[best_candidate]['x']
-                y_coord_last = subway_map.nodes[best_candidate]['y']
-                uncombined_stations.remove(best_candidate)
-                last_station = best_candidate
-
-                #Update the route list for validation
-                station_list.append(last_station)
-                station_list_names.append(subway_map.nodes[last_station]['name'])
-
-            ids_as_csv = ','.join(map(str, station_list))
-            names_as_csv = ','.join(map(str, station_list_names))
-
-            f_route_ids.write(route + ',' + ids_as_csv + '\n')
-            f_route_names.write(route + ',' + names_as_csv + '\n')
-
-        f_route_ids.close()
-        f_route_names.close()
-
     nx.set_node_attributes(subway_map, EnvParams.NODE_TYPE_STATION, 'type')
     nx.set_node_attributes(subway_map, 0, 'exposure')
     nx.set_node_attributes(subway_map, 0, 'flow')
+    nx.set_node_attributes(subway_map, 0, 'normalized_hotspot')
 
     # TODO: Of course these should be model params, but we haven't the least  idea how to use them yet.
-    date_start = datetime.datetime(2020, 3, 1, 0, 0)  # inclusive
-    date_end = datetime.datetime(2020, 3, 21, 0, 0)  # inclusive
+    date_start = datetime.datetime(2020, 2, 16, 0, 0)  # inclusive
+    date_end = datetime.datetime(2020, 3, 7, 0, 0)  # inclusive
 
     # I suppose the nice thing about python is I don't have too much to update if I need to return something new.
     update_flow_data(subway_map, 'Turnstile_Data.csv', complex_to_station_dict, date_start, date_end)
@@ -458,6 +482,12 @@ def generate_NYC_subway_map():
     NYC_TIMES_SQUARE = [11, 317, 467, 468]
     NYC_GRAND_CENTRAL = [465, 469, 402, ]
 
+    # Eigenvalue centrality
+    # centrality = nx.eigenvector_centrality(subway_map)
+    # print({k: v for k, v in sorted(centrality.items(), key=lambda item: item[1], reverse=True)})
+
+    #TODO: you can do this in subwaygraph after you've created the shortest path dictionary
+
     for station_id in subway_map:
         station_shortest_path = 999999
         for dest_id in NYC_GRAND_CENTRAL + NYC_TIMES_SQUARE:
@@ -465,9 +495,8 @@ def generate_NYC_subway_map():
             if path_len < station_shortest_path:
                 station_shortest_path = path_len
 
-        # TODO: Approximate commute time as 4 minutes per edge (1/360 day), waiting is 4 minutes, 1/3 day is in public
         # This is really a proxy for ... additional exposure due to commute time. Hmm....
-        subway_map.nodes[station_id]['commute_time'] = 2*(station_shortest_path + 1) / 20
+        subway_map.nodes[station_id]['commute_time'] = station_shortest_path + 1
 
         #TODO: this sucks a bit.
         #sqrt_eccentricity = math.sqrt(nx.algorithms.distance_measures.eccentricity(subway_map,station_id))
@@ -487,7 +516,7 @@ def update_flow_data(subway_map, flow_files, complex_to_station_dict, date_start
     # Remember that complex id and div id are strings!
     file_to_open = Path('Data/NYC/Subway/' + flow_files)
     total_flow = 0
-
+    per_day_trip_modifier = 2 * (date_end - date_start).days  # in/out = 1 trip, #days = number of days
     with open(file_to_open, 'r') as f:
         next(f)  # skip header row
         for row in f:
@@ -508,8 +537,8 @@ def update_flow_data(subway_map, flow_files, complex_to_station_dict, date_start
                 if (flow_complex_id, flow_division) in complex_to_station_dict:
                     station_id = complex_to_station_dict[(flow_complex_id, flow_division)]
                     if station_id in subway_map.nodes():  # we may have removed some stations (cough, staten island)
-                        subway_map.nodes[station_id]['flow'] += flow_in + flow_out
-                        total_flow += flow_in + flow_out
+                        subway_map.nodes[station_id]['flow'] += (flow_in + flow_out) / per_day_trip_modifier
+                        total_flow += (flow_in + flow_out) / per_day_trip_modifier
 
     # TODO: HACK ALERT! DUE TO ISSUES WITH COMPLEX/STATION DATA. REFERENCE COMPLEX_TO_STATION_DICT TODO:
     for station_id in subway_map.nodes():
@@ -517,9 +546,10 @@ def update_flow_data(subway_map, flow_files, complex_to_station_dict, date_start
         if subway_map.nodes[station_id]['flow'] == 0:
             estimated_flow = estimate_feature_from_nn(subway_map, 'flow', station_id, ignore_zeros=True)
             subway_map.nodes[station_id]['flow'] = estimated_flow
+            #print('flow estimated!!', station_id, estimated_flow)
             total_flow += estimated_flow
             #print('Flow estimate:', station_id, station_name, subway_map.nodes[station_id]['flow'])
-
+    print('trips per day:', total_flow)
     return total_flow
 
 
@@ -550,14 +580,11 @@ def update_population_flow_data(network, location='NYC', pop_files=None, zc_to_s
         total_population = sum(pop_dict.values())
         print('population considered:', total_population)
 
-        multiplier = total_population / get_feature_sum(network, 'flow')
-        total_commuters = 0
-
-        for n in network.nodes():
-            #Update flow data
-            flow = network.nodes[n]['flow'] * multiplier
-            network.nodes[n]['flow'] = flow
-
+        # Used to see how commuter ratio is adjusted
+        adjustments_by_borough = {EnvParams.BOROUGH_MANHATTAN: [],
+                                  EnvParams.BOROUGH_QUEENS: [],
+                                  EnvParams.BOROUGH_BROOKLYN: [],
+                                  EnvParams.BOROUGH_BRONX: []}
         for n in network.nodes():
             #Write population and commuter data
             # TODO: population data should be independent of flow data
@@ -566,27 +593,59 @@ def update_population_flow_data(network, location='NYC', pop_files=None, zc_to_s
             zipcode = network.nodes[n]['zip']
             stations_in_zc = zc_to_stations_dict[zipcode]
             if zipcode not in pop_dict.keys():
-                print(zipcode)
+                print('Warning! zip', zipcode, 'not in pop dict!')
                 zipcode='10019'
             population_in_zc = pop_dict[zipcode]
-            total_flow = 0
-            for station in stations_in_zc:
-                total_flow += network.nodes[station]['flow']
-            station_flow_percentage_in_zc = network.nodes[n]['flow'] / total_flow
-            station_population = station_flow_percentage_in_zc * population_in_zc
+
+            station_population = population_in_zc / len(stations_in_zc)
+            if DisplayParams.PRINT_DEBUG and station_population >= 40000:
+                print('High Population Station', n, zipcode, station_population, network.nodes[n]['name'])
+            #network.nodes[n]['population'] = min(40000, station_population) #cap station population to 40k
             network.nodes[n]['population'] = station_population
 
+            if DisplayParams.PRINT_DEBUG and 42 <= n <= 55:
+                print('numbers for station', n, network.nodes[n]['flow'], network.nodes[n]['population'])
+
+            flow = network.nodes[n]['flow']
+            population = network.nodes[n]['population']
+            name = network.nodes[n]['name']
             borough = network.nodes[n]['region']
+
+
             if borough == EnvParams.BOROUGH_BRONX:
-                network.nodes[n]['commuter_ratio'] = 0.50
+                commuter_ratio = EnvParams.COMMUTER_RATIO_BRONX
             elif borough == EnvParams.BOROUGH_BROOKLYN:
-                network.nodes[n]['commuter_ratio'] = 0.50
+                commuter_ratio = EnvParams.COMMUTER_RATIO_BROOKLYN
             elif borough == EnvParams.BOROUGH_MANHATTAN:
-                network.nodes[n]['commuter_ratio'] = 0.20
+                commuter_ratio = EnvParams.COMMUTER_RATIO_MANHATTAN
             elif borough == EnvParams.BOROUGH_QUEENS:
-                network.nodes[n]['commuter_ratio'] = 0.40
+                commuter_ratio = EnvParams.COMMUTER_RATIO_QUEENS
             else:
                 print('Borough ID error', n, borough)
+
+            #if population < 5000 and borough != 'M':
+            #    print('low population', n, borough, population)
+
+            number_of_commuters = population * commuter_ratio
+            # if the flow numbers simply cannot be representative, adjust the ratio down until it can
+            adjusted = False
+            if flow < number_of_commuters and EnvParams.ADJUST_COMMUTERS_BY_FLOW: #if the only people using this station was its own commuters
+                commuter_ratio = flow / population
+                adjustments_by_borough[borough].append(commuter_ratio)
+
+
+            network.nodes[n]['commuter_ratio'] = commuter_ratio
+
+        if DisplayParams.PRINT_DEBUG:
+            # this analysis is only valid if commuter ratio params are 1 or something high)
+            print('Recommended Commuter Ratios Based on Residential Areas:')
+            for borough in adjustments_by_borough:
+                if len(adjustments_by_borough[borough]) > 0:
+                    print(borough, statistics.median(adjustments_by_borough[borough]))
+
+            for borough in adjustments_by_borough:
+                for adjustment in adjustments_by_borough[borough]:
+                    print(borough, adjustment)
 
         #print(total_commuters) #this should be about 3 million, total ridership should be 7 million
 
@@ -659,6 +718,8 @@ def get_subway_map(map_type):
         return generate_simple_triangle_map()
     if map_type == SimulationParams.MAP_TYPE_NYC:
         return generate_NYC_subway_map()
+    if map_type == SimulationParams.MAP_TYPE_LONDON:
+        return generate_LON_subway_map()
     if map_type == SimulationParams.MAP_TYPE_GEOMETRIC_SIERPINSKI:
         return generate_geometric_map('sierpinski')
     if map_type == SimulationParams.MAP_TYPE_GEOMETRIC_CIRCULAR:

@@ -14,58 +14,32 @@ class SubwayAgent(SEIR_Agent):
         super().__init__(unique_id, model, location, population, epi_characteristics)
 
     def infect(self):
-        # Adds exposure to a node.
-        # Exposure is equivalent to I in terms of its eventual effect.
-        # There is exposure from the same station
-        # some base 'wait time' at the same platform + the distance that they travel together (commute time)
-        # There is some exposure from stations on the same route
-        # + the distance that they travel together (commute time, distance between stations)
-        # And there is (NO) general exposure from the number of total infected commuters
-        total_exposure = 0
-        infected_count = 0
+        #Infects routes based on how many commuters and infected commuters there are.
+        subway_map_wrapper = self.model.subway_graph
+        subway_map = subway_map_wrapper.graph
+        routes = subway_map.nodes[self.location]['routes']
 
-        subway_map = self.model.subway_graph.graph
-        current_node = subway_map.nodes[self.location]
-        commute_time = current_node['commute_time']
-        commuter_ratio = current_node['commuter_ratio']
-        num_infected = self._population[AgentParams.STATUS_INFECTED]
-        # Same station
-        # On second thought... let's not double-count same-station exposure
-        #total_exposure += num_infected * commuter_ratio * commute_time #TODO: commute time should be some fraction of day
-        infected_count += num_infected
+        commuter_ratio = subway_map.nodes[self.location]['commuter_ratio']
+        # TODO: This copy pasta is here because I don't save off a default commuter ratio
+        if EnvParams.ISOLATION_COUNTERMEASURE in self.model.countermeasures.keys():
+            elapsed_time = self.model.schedule.time - self.model.countermeasures[EnvParams.ISOLATION_COUNTERMEASURE]
+            commuter_ratio -= commuter_ratio * 0.9 * (min(1, elapsed_time / 7))
 
-        # Same route (find stations)
-        routes_affected = current_node['routes']
-        stations_affected = []  # TODO: this should be a set. but I forgot how make set ops
-        for route in routes_affected:
-            stations_on_route = self.model.subway_graph.routing_dict[route]
-            for station in stations_on_route:
-                if station not in stations_affected and station != self.location:
-                    stations_affected.append(station)
+        num_commuters = sum(self._population.values()) * commuter_ratio
+        num_infected_commuters = self._population[AgentParams.STATUS_INFECTED] * commuter_ratio
+        num_routes = len(routes)
 
-        # Same route (find number of infected)
-        for station in stations_affected:
-            distance_to_costation = nx.algorithms.shortest_path_length(subway_map, self.location, station)
-            costation_commute_time = subway_map.nodes[station]['commute_time']
-            costation_infected = subway_map.nodes[station]['infected']
-            costation_commuter_ratio = subway_map.nodes[station]['commuter_ratio']
+        for route in routes:
+            subway_map_wrapper.commuters_by_route_dict[route] += num_commuters / num_routes
+            subway_map_wrapper.infected_by_route_dict[route] += num_infected_commuters / num_routes
 
-            # TODO: ok 2 stations on opposite ends of the line will expose each other a lot. fix this.
-            # Why not just calculate the shared commute time of each node pair?
-            if distance_to_costation < 10:
-                shared_commute = min(costation_commute_time, commute_time) / max(costation_commute_time, commute_time)
-            else:
-                shared_commute = 0
-            total_exposure += costation_infected * costation_commuter_ratio * shared_commute
-            infected_count += costation_infected
-
-        # General Exposure
-        total_infected = self.model.calculate_SEIR()[2]
-        other_infected = total_infected - infected_count
-        total_exposure += other_infected * 0.30 * 0.00001  # average commuter ratio and a very small shared commute
-        #TODO: hmm... this is not adjusted by reduced ridership countermeasure.
-
-        current_node['exposure'] = total_exposure * 100
+        # Old code based on individual station exposure.
+        # for station in subway_map.nodes():
+        #     if station != self.location:
+        #         shared_commute = self.model.subway_graph.calculate_commute_similarity(self._location, station)
+        #
+        #         subway_map.nodes[station]['exposure'] += \
+        #             number_of_infected_commuters * shared_commute * AgentParams.CONTACT_MODIFIER
 
         return None
 
@@ -74,48 +48,79 @@ class SubwayAgent(SEIR_Agent):
         # *HLC 30.06.20 - Simplifying this to the following:
         # We'll only have 1 countermeasure for now. ISOLATION.
         ## ISOLATION - Kicks in linearly over a week:
-        ### Lowers general contact rate by... 50%?
-        ### Increases removal rate by 250% (2 day average after not feeling well)
         ### Lowers commuter ratio by 90% (reflects subway shutdown)
         # We'll still let the super-class handle regular fully mixing SEIR
         # This class will add exposure from the outside to susceptible commuters based on viral load
-        # This class will hold off on gloabl mixing (~0.3) until later.
-        exposure = self.model.subway_graph.graph.nodes[self._location]['exposure']
+        # Finally, this is calculated here and not at the model level because... well, adjustments originally made
+        # Based on location.
+
         beta = AgentParams.DEFAULT_BETA  # Eventually, we should reference node beta
         gamma = AgentParams.DEFAULT_GAMMA
-        commuter_ratio = self.model.subway_graph.graph.nodes[self._location]['commuter_ratio']
+        subway_map_wrapper = self.model.subway_graph
+        current_node = subway_map_wrapper.graph.nodes[self._location]
+        commuter_ratio = current_node['commuter_ratio']
+        commute_time = current_node['commute_time']
+        routes = current_node['routes']
+
+        # A quick experiment turning off exposure in 10003
+        # if self.location in [15, 16, 17, 18, 20, 117, 118, 406, 407, 413, 414]:
+        #    exposure = 0
 
         if EnvParams.ISOLATION_COUNTERMEASURE in self.model.countermeasures.keys():
             elapsed_time = self.model.schedule.time - self.model.countermeasures[EnvParams.ISOLATION_COUNTERMEASURE]
-            beta -= beta * 0.6 * (min(1, elapsed_time / 7))
-            gamma += gamma * 4.0 * (min(1, elapsed_time / 7))
-            commuter_ratio -= commuter_ratio * 0.9 * (min(1, elapsed_time / 7))
+            emergency_reduction = AgentParams.INITIAL_REDUCTION_TGT
+            emergency_time = AgentParams.INITIAL_REDUCTION_TIME
+            full_reduction = AgentParams.FULL_REDUCTION_TGT
+            full_time = AgentParams.FULL_REDUCTION_TIME
 
-        self._epi_characteristics['beta'] = beta  # And yet more random params from me
+            #distribute reductions evenly between beta and gamma
+            if elapsed_time <= emergency_time:
+                actual_r0 = emergency_reduction + \
+                            (beta / gamma - emergency_reduction) * (emergency_time - elapsed_time) / emergency_time
+            else:
+                actual_r0 = full_reduction + \
+                            (emergency_reduction - full_reduction) * \
+                            max(0, (full_time - emergency_time - elapsed_time)) / \
+                            (full_time - emergency_time)
+
+            reduction_ratio = actual_r0 / (beta/gamma)
+            beta *= math.sqrt(reduction_ratio)
+            gamma /= math.sqrt(reduction_ratio)
+
+            commuter_ratio -= commuter_ratio * 0.9 * (min(1, elapsed_time / 7))  # 90% drop in commuters
+
+        self._epi_characteristics['beta'] = beta
         self._epi_characteristics['gamma'] = gamma
-        self._epi_characteristics['commuter_ratio'] = commuter_ratio
-
-        susceptible = self.population[AgentParams.STATUS_SUSCEPTIBLE]
-        seir_numbers = self.model.calculate_SEIR()
-        normalization_factor = sum(seir_numbers)
 
         # Subway rider spread
+        susceptible = self.population[AgentParams.STATUS_SUSCEPTIBLE]
         susceptible_commuters = susceptible * commuter_ratio
 
-        self.population[AgentParams.STATUS_SUSCEPTIBLE] -= susceptible_commuters * beta * exposure / normalization_factor
-        self.population[AgentParams.STATUS_EXPOSED] += susceptible_commuters * beta * exposure / normalization_factor
+        num_routes = len(routes)
+        total_rate = 0
+        for route in routes:
+            infected = subway_map_wrapper.infected_by_route_dict[route]
+            total = subway_map_wrapper.commuters_by_route_dict[route]
+            average_contact_rate = infected/total
+            total_rate += average_contact_rate
 
-        # Global spread TODO: NOT USED!
-        # Really if this didn't have a commute time factor, then it would mean spread OUTSIDE of the subway system.
+        weighted_contact_rate = total_rate / num_routes
+
+        exposure_mu = AgentParams.CONTACT_MODIFIER * weighted_contact_rate * commute_time
+
+
+        self.population[AgentParams.STATUS_SUSCEPTIBLE] -= susceptible_commuters * exposure_mu
+        self.population[AgentParams.STATUS_EXPOSED] += susceptible_commuters * exposure_mu
+
 
         super().update_agent_health()
         if DisplayParams.PRINT_DEBUG:
-            if self.location == AgentParams.MAP_LOCATION_98_BEACH \
-                    or self.location == AgentParams.MAP_LOCATION_55_ST \
-                    or self.location == AgentParams.MAP_LOCATION_JUNCTION_BLVD:
-                print(self.location, self.population,
-                      susceptible_commuters * beta * exposure / normalization_factor,
-                      self._epi_characteristics['beta'])
+            if self.location in [21, 105, 106, 170, 171, 172, 331, 411]: #AgentParams.MAP_LOCATION_98_BEACH \
+                    #or self.location == AgentParams.MAP_LOCATION_55_ST \
+                    #or self.location == AgentParams.MAP_LOCATION_JUNCTION_BLVD: \
+                    #or 50 <= self.location <= 55:
+                r_0 = "{:.2f}".format(beta/gamma)
+                print(self.location, self.population, exposure_mu, susceptible_commuters, susceptible_commuters * exposure_mu, r_0)
 
     def step(self):
         self.move()

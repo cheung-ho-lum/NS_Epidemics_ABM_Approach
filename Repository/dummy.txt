@@ -53,6 +53,7 @@
 - A suggestion to upgrade the WAN node sizes.
 # Stage 4.5
 # London
+# Observation: Manhattan MAPE obnoxiously bad due to seed and base beta, alpha, gamma
 
 # Stage 6:
 # Give agents some work data

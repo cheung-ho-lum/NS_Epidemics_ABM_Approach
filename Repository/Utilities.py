@@ -1,4 +1,5 @@
 # Need a utility to draw a map of NYC cases
+import statistics
 from datetime import datetime
 from datetime import timedelta
 from pathlib import Path
@@ -6,9 +7,10 @@ import numpy as np
 import pandas as pd
 from sklearn import preprocessing
 #import geopandas as gpd
-
 import Graphics
 from Parameters import SimulationParams
+import codecs
+import csv
 
 
 def draw_severity_by_region(location='NYC', file_location='Data/NYC/Case_Death_Recovery/compiled_test_by_zcta.csv'):
@@ -79,7 +81,7 @@ def draw_severity_by_region(location='NYC', file_location='Data/NYC/Case_Death_R
 
 
 #TODO: sure reuses a lot of code from the draw utility
-def nyc_case_data_by_modzcta_dict(normalized=True):
+def nyc_case_data_by_modzcta_dict(normalized=True, smoothing=0):
     forecast_dict = {}
     file_to_open = Path('Data/NYC/Case_Death_Recovery/data-by-modzcta.csv')
     zip_pop_dict = {}
@@ -117,7 +119,7 @@ def nyc_case_data_by_modzcta_dict(normalized=True):
         for row in f:
             row_data = row.split(',')
             s_modzcta = row_data[0]  # a string for now
-            positive_cases = row_data[1] # positive cases
+            positive_cases = row_data[1]  # positive cases
             total_cases = row_data[2]
             date_raw = row_data[3]
 
@@ -191,10 +193,8 @@ def calculate_MAPE_by_zip(actual={}, forecast={}, offset=32, print_results=False
                     total_err += err
                 mape_dict[key] = total_err / len(actual_values)
     if print_results:
-        total_mape = 0
-        for k in mape_dict:
-            total_mape += mape_dict[k]
-        print('Average Regional MAPE:', total_mape / len(mape_dict.keys()))
+        print('Mean Regional MAPE:', sum(mape_dict.values()) / len(mape_dict.keys()))
+        print('Median MAPE:', statistics.median(mape_dict.values()))
     return mape_dict
 
 
@@ -275,6 +275,24 @@ def NYC_turnstile_script():
 
 
 def get_benchmark_statistics(location, start_date, duration, case_data, valid_zip_codes):
+    benchmark_stats = np.zeros(shape=(SimulationParams.RUN_SPAN + 1, 5))
+    # don't have to kludge data... NICE
+    if location == SimulationParams.MAP_TYPE_LONDON:
+        for i in range(0, SimulationParams.RUN_SPAN):
+            total_infected = 0
+            for k,v in case_data.items():
+                total_infected += v[i]
+            time = i+1
+            benchmark_stats[time, 0] = time
+            benchmark_stats[time, 2] = total_infected - benchmark_stats[time-1, 3]
+            benchmark_stats[time, 3] = total_infected
+
+        #TODO: bit of a hack to get zeroth entry not so far off
+        benchmark_stats[0, 2] = benchmark_stats[1, 2]
+        benchmark_stats[0, 3] = benchmark_stats[1, 3]
+
+        return benchmark_stats
+
     '''https://www1.nyc.gov/site/doh/covid/covid-19-data.page'''
     if location == 'NYC':
         # TODO: and the kludging starts here (by ignoring start date and just pulling data)
@@ -283,7 +301,6 @@ def get_benchmark_statistics(location, start_date, duration, case_data, valid_zi
         # we can use the simple data divided by 6/7 (normalizing for population) until april 1
 
         file_to_open = Path('Data/NYC/Case_Death_Recovery/covid_nyc_simple.csv')
-        benchmark_stats = np.zeros(shape=(SimulationParams.RUN_SPAN + 1, 5))
         with open(file_to_open, 'r') as f:
             next(f)  # skip header row
             time = 0
@@ -300,7 +317,6 @@ def get_benchmark_statistics(location, start_date, duration, case_data, valid_zi
                 benchmark_stats[time, 3] = total_infected
                 time += 1
 
-        last_total_infected = benchmark_stats[duration, 3]
         for i in range(0, SimulationParams.RUN_SPAN - duration):
             time = i + duration + 1
             total_infected = 0
@@ -309,11 +325,82 @@ def get_benchmark_statistics(location, start_date, duration, case_data, valid_zi
                 if k in valid_zip_codes:
                     total_infected += v[i]
             benchmark_stats[time, 0] = time
-            benchmark_stats[time, 2] = total_infected - last_total_infected
+            benchmark_stats[time, 2] = total_infected - benchmark_stats[time-1, 3]
             benchmark_stats[time, 3] = total_infected
-            last_total_infected = total_infected
+
         pd.DataFrame(benchmark_stats).to_csv("debug.csv")
         return benchmark_stats
-    else:
-        print('what statistics?')
+    return None
+
+def london_case_data_by_borough_dict(normalized=True, smoothing=0):
+    #Get Population Data
+    borough_pop_dict = {}
+    actual_case_rate_dict = {}
+
+    file_to_open = Path('Data/London/Case Data/london_pop_by_borough.csv')
+    with open(file_to_open, 'r') as f:
+        next(f)
+        for row in f:
+            borough_data = row.replace('\n', '').split(',')
+            borough_name = borough_data[0]
+            borough_population = int(borough_data[1])
+
+            borough_pop_dict[borough_name] = borough_population
+
+    start_date = datetime(2020, 3, 1, 0, 0).date()
+    end_date = datetime(2020, 6, 30, 0, 0).date()
+    # Get Case Data\
+    file_to_open = Path('Data/London/Case Data/london_case_data.csv')
+    with codecs.open(file_to_open, 'r', encoding='utf8') as f:
+        csv_reader = csv.reader(f, delimiter=',', quotechar='"') #TODO, really this should be done everywhere
+        # We assume the file is in date order
+        # TODO: we're also going to just set the timespan to 31 + 30 + 31 + 30 = 122 days for now.
+        """Area name,Area code,Area type,Specimen date,Daily lab-confirmed cases,Previously reported daily cases,
+        Change in daily cases,Cumulative lab-confirmed cases,Previously reported cumulative cases,Change in cumulative cases,Cumulative lab-confirmed cases rate"""
+        """England	E92000001	Nation	2020-01-30	2	2	0	2	2	0	0"""
+        next(f)
+        for area_data in csv_reader:
+            area_name = area_data[0]
+            _ = area_data[1]
+            area_type = area_data[2]
+            area_date_raw = area_data[3]
+            _ = area_data[4]  # daily cases
+            _ = area_data[5]  # previous cases
+            _ = area_data[6]  # changes in cases
+            area_cumulative_cases = int(area_data[7]) # cumulative cases
+            current_date = datetime.strptime(area_date_raw, '%Y-%m-%d').date()
+            if current_date < start_date or current_date > end_date:
+                continue
+
+            number_of_entries = (current_date - start_date).days + 1
+
+            if area_type != 'Upper tier local authority':
+                continue
+            if area_name in ['Bexley', 'Bromley', 'Croydon', 'Kingston upon Thames', 'Sutton']: #skip areas with no stations
+                continue
+
+            if area_name == 'Hackney and City of London':
+                area_name = 'Hackney'  # TODO: Eliminate city of London from calculations
+
+            if area_name in borough_pop_dict.keys():
+                actual_case_rate_dict.setdefault(area_name, [])
+                entries = actual_case_rate_dict[area_name]
+                if normalized:
+                    entry_to_add = area_cumulative_cases / borough_pop_dict[area_name]
+                else:
+                    entry_to_add = area_cumulative_cases
+
+                while len(entries) < number_of_entries:
+                    entries.append(entry_to_add)
+
+    for key in actual_case_rate_dict.keys():
+        while len(actual_case_rate_dict[key]) < (end_date - start_date).days + 1:
+            actual_case_rate_dict[key].append(actual_case_rate_dict[key][-1])
+
+    return actual_case_rate_dict
+
+
+
+
+
     return None

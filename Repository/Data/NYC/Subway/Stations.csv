@@ -1,12 +1,12 @@
 Station ID,Complex ID,GTFS Stop ID,Division,Line,Stop Name,Borough,Daytime Routes,Structure,GTFS Latitude,GTFS Longitude,North Direction Label,South Direction Label,Zip,Raw Zip
 1,1,R01,BMT,Astoria,Astoria - Ditmars Blvd,Q,N W,Elevated,40.775036,-73.912034,,Manhattan,11101,
-2,2,R03,BMT,Astoria,Astoria Blvd,Q,N W,Elevated,40.770258,-73.917843,Ditmars Blvd,Manhattan,11101,
+2,2,R03,BMT,Astoria,Astoria Blvd,Q,N W,Elevated,40.770258,-73.917843,Ditmars Blvd,Manhattan,11102,11101
 3,3,R04,BMT,Astoria,30 Av,Q,N W,Elevated,40.766779,-73.921479,Astoria - Ditmars Blvd,Manhattan,11101,
 4,4,R05,BMT,Astoria,Broadway,Q,N W,Elevated,40.76182,-73.925508,Astoria - Ditmars Blvd,Manhattan,11101,
 5,5,R06,BMT,Astoria,36 Av,Q,N W,Elevated,40.756804,-73.929575,Astoria - Ditmars Blvd,Manhattan,11106,
 6,6,R08,BMT,Astoria,39 Av,Q,N W,Elevated,40.752882,-73.932755,Astoria - Ditmars Blvd,Manhattan,11101,
 7,613,R11,BMT,Astoria,Lexington Av/59 St,M,N W R,Subway,40.76266,-73.967258,Queens,Downtown & Brooklyn,10022,
-8,8,R13,BMT,Astoria,5 Av/59 St,M,N W R,Subway,40.764811,-73.973347,Queens,Downtown & Brooklyn,10153,
+8,8,R13,BMT,Astoria,5 Av/59 St,M,N W R,Subway,40.764811,-73.973347,Queens,Downtown & Brooklyn,10022,10153
 9,9,R14,BMT,Broadway - Brighton,57 St - 7 Av,M,N Q R W,Subway,40.764664,-73.980658,Uptown & Queens,Downtown & Brooklyn,10019,
 10,10,R15,BMT,Broadway - Brighton,49 St,M,N R W,Subway,40.759901,-73.984139,Uptown & Queens,Downtown & Brooklyn,10019,
 11,611,R16,BMT,Broadway - Brighton,Times Sq - 42 St,M,N Q R W,Subway,40.754672,-73.986754,Uptown & Queens,Downtown & Brooklyn,10036,
@@ -34,11 +34,11 @@ Station ID,Complex ID,GTFS Stop ID,Division,Line,Stop Name,Borough,Daytime Route
 33,33,R39,BMT,4th Av,45 St,Bk,R,Subway,40.648939,-74.010006,Manhattan,Bay Ridge - 95 St,11220,
 34,34,R40,BMT,4th Av,53 St,Bk,R,Subway,40.645069,-74.014034,Manhattan,Bay Ridge - 95 St,11220,
 35,35,R41,BMT,4th Av,59 St,Bk,N R,Subway,40.641362,-74.017881,Manhattan,Coney Island - Bay Ridge,11220,
-36,36,R42,BMT,4th Av,Bay Ridge Av,Bk,R,Subway,40.634967,-74.023377,Manhattan,95 St,11220,
+36,36,R42,BMT,4th Av,Bay Ridge Av,Bk,R,Subway,40.634967,-74.023377,Manhattan,95 St,11209,11220
 37,37,R43,BMT,4th Av,77 St,Bk,R,Subway,40.629742,-74.02551,Manhattan,95 St,11209,
 38,38,R44,BMT,4th Av,86 St,Bk,R,Subway,40.622687,-74.028398,Manhattan,95 St,11209,
 39,39,R45,BMT,4th Av,Bay Ridge - 95 St,Bk,R,Subway,40.616622,-74.030876,Manhattan,,11209,
-40,617,D24,BMT,Broadway - Brighton,Atlantic Av - Barclays Ctr,Bk,B Q,Subway,40.68446,-73.97689,Manhattan,Brighton Beach & Coney Island,11227,
+40,617,D24,BMT,Broadway - Brighton,Atlantic Av - Barclays Ctr,Bk,B Q,Subway,40.68446,-73.97689,Manhattan,Brighton Beach & Coney Island,11227,11217
 41,41,D25,BMT,Broadway - Brighton,7 Av,Bk,B Q,Subway,40.67705,-73.972367,Manhattan,Brighton Beach & Coney Island,11217,
 42,42,D26,BMT,Broadway - Brighton,Prospect Park,Bk,B Q,Open Cut,40.661614,-73.962246,Manhattan & Franklin Av,Brighton Beach & Coney Island,11225,
 43,43,D27,BMT,Broadway - Brighton,Parkside Av,Bk,B Q,Open Cut,40.655292,-73.961495,Manhattan,Brighton Beach & Coney Island,11225,
@@ -103,8 +103,8 @@ Station ID,Complex ID,GTFS Stop ID,Division,Line,Stop Name,Borough,Daytime Route
 102,625,M18,BMT,Jamaica,Essex St,M,J M Z,Subway,40.718315,-73.987437,Brooklyn,Broad St (JZ) - Uptown (M),10002,
 103,103,M19,BMT,Jamaica,Bowery,M,J Z,Subway,40.72028,-73.993915,Brooklyn,Broad St,10002,
 104,623,M20,BMT,Jamaica,Canal St,M,J Z,Subway,40.718092,-73.999892,Brooklyn,Broad St,10013,
-105,622,M21,BMT,Jamaica,Chambers St,M,J Z,Subway,40.713243,-74.003401,Brooklyn,Broad St,10000,
-106,628,M22,BMT,Jamaica,Fulton St,M,J Z,Subway,40.710374,-74.007582,Brooklyn,Broad St,10279,
+105,622,M21,BMT,Jamaica,Chambers St,M,J Z,Subway,40.713243,-74.003401,Brooklyn,Broad St,10000,10007
+106,628,M22,BMT,Jamaica,Fulton St,M,J Z,Subway,40.710374,-74.007582,Brooklyn,Broad St,10279,10007
 107,107,M23,BMT,Jamaica,Broad St,M,J Z,Subway,40.706476,-74.011056,Brooklyn,,10004,
 108,108,M01,BMT,Myrtle Av,Middle Village - Metropolitan Av,Q,M,Elevated,40.711396,-73.889601,Manhattan,,11385,
 109,109,M04,BMT,Myrtle Av,Fresh Pond Rd,Q,M,Elevated,40.706186,-73.895877,Manhattan,Metropolitan Av,11385,
@@ -113,8 +113,8 @@ Station ID,Complex ID,GTFS Stop ID,Division,Line,Stop Name,Borough,Daytime Route
 112,630,M08,BMT,Myrtle Av,Myrtle - Wyckoff Avs,Bk,M,Elevated,40.69943,-73.912385,Manhattan,Metropolitan Av,11385,
 113,113,M09,BMT,Myrtle Av,Knickerbocker Av,Bk,M,Elevated,40.698664,-73.919711,Manhattan,Metropolitan Av,11237,
 114,114,M10,BMT,Myrtle Av,Central Av,Bk,M,Elevated,40.697857,-73.927397,Manhattan,Metropolitan Av,11237,
-115,618,L01,BMT,Canarsie,8 Av,M,L,Subway,40.739777,-74.002578,,Brooklyn,10011,
-116,601,L02,BMT,Canarsie,6 Av,M,L,Subway,40.737335,-73.996786,8 Av,Brooklyn,10011,
+115,618,L01,BMT,Canarsie,8 Av,M,L,Subway,40.739777,-74.002578,,Brooklyn,10011,10011
+116,601,L02,BMT,Canarsie,6 Av,M,L,Subway,40.737335,-73.996786,8 Av,Brooklyn,10019,10011
 117,602,L03,BMT,Canarsie,Union Sq - 14 St,M,L,Subway,40.734789,-73.99073,8 Av,Brooklyn,10003,
 118,118,L05,BMT,Canarsie,3 Av,M,L,Subway,40.732849,-73.986122,8 Av,Brooklyn,10003,
 119,119,L06,BMT,Canarsie,1 Av,M,L,Subway,40.730953,-73.981628,8 Av,Brooklyn,10009,
@@ -124,7 +124,7 @@ Station ID,Complex ID,GTFS Stop ID,Division,Line,Stop Name,Borough,Daytime Route
 123,123,L12,BMT,Canarsie,Grand St,Bk,L,Subway,40.711926,-73.94067,Manhattan,Canarsie - Rockaway Parkway,11207,
 124,124,L13,BMT,Canarsie,Montrose Av,Bk,L,Subway,40.707739,-73.93985,Manhattan,Canarsie - Rockaway Parkway,11206,
 125,125,L14,BMT,Canarsie,Morgan Av,Bk,L,Subway,40.706152,-73.933147,Manhattan,Canarsie - Rockaway Parkway,11206,
-126,126,L15,BMT,Canarsie,Jefferson St,Bk,L,Subway,40.706607,-73.922913,Manhattan,Canarsie - Rockaway Parkway,11237,
+126,126,L15,BMT,Canarsie,Jefferson St,Bk,L,Subway,40.706607,-73.922913,Manhattan,Canarsie - Rockaway Parkway,11385,11237
 127,127,L16,BMT,Canarsie,DeKalb Av,Bk,L,Subway,40.703811,-73.918425,Manhattan,Canarsie - Rockaway Parkway,11385,
 128,630,L17,BMT,Canarsie,Myrtle - Wyckoff Avs,Bk,L,Subway,40.699814,-73.911586,Manhattan,Canarsie - Rockaway Parkway,11385,
 129,129,L19,BMT,Canarsie,Halsey St,Q,L,Subway,40.695602,-73.904084,Manhattan,Canarsie - Rockaway Parkway,11385,
@@ -143,15 +143,15 @@ Station ID,Complex ID,GTFS Stop ID,Division,Line,Stop Name,Borough,Daytime Route
 143,143,A02,IND,8th Av - Fulton St,Inwood - 207 St,M,A,Subway,40.868072,-73.919899,,Downtown & Brooklyn,10034,
 144,144,A03,IND,8th Av - Fulton St,Dyckman St,M,A,Subway,40.865491,-73.927271,207 St,Downtown & Brooklyn,10040,
 145,145,A05,IND,8th Av - Fulton St,190 St,M,A,Subway,40.859022,-73.93418,207 St,Downtown & Brooklyn,10040,
-146,146,A06,IND,8th Av - Fulton St,181 St,M,A,Subway,40.851695,-73.937969,207 St,Downtown & Brooklyn,10033,
+146,146,A06,IND,8th Av - Fulton St,181 St,M,A,Subway,40.851695,-73.937969,207 St,Downtown & Brooklyn,10040,10033
 147,147,A07,IND,8th Av - Fulton St,175 St,M,A,Subway,40.847391,-73.939704,207 St,Downtown & Brooklyn,10033,
 148,605,A09,IND,8th Av - Fulton St,168 St,M,A C,Subway,40.840719,-73.939561,207 St,Downtown & Brooklyn,10040,
 149,149,A10,IND,8th Av - Fulton St,163 St - Amsterdam Av,M,C,Subway,40.836013,-73.939892,Uptown,Downtown & Brooklyn,10032,
-150,150,A11,IND,8th Av - Fulton St,155 St,M,C,Subway,40.830518,-73.941514,Uptown,Downtown & Brooklyn,10032,
+150,150,A11,IND,8th Av - Fulton St,155 St,M,C,Subway,40.830518,-73.941514,Uptown,Downtown & Brooklyn,10040,10032
 151,151,A12,IND,8th Av - Fulton St,145 St,M,A C,Subway,40.824783,-73.944216,Uptown & The Bronx,Downtown & Brooklyn,10031,
 151,151,D13,IND,Concourse,145 St,M,B D,Subway,40.824783,-73.944216,Uptown & The Bronx,Downtown & Brooklyn,10031,
 152,152,A14,IND,8th Av - Fulton St,135 St,M,B C,Subway,40.817894,-73.947649,Uptown & The Bronx,Downtown & Brooklyn,10040,
-153,153,A15,IND,8th Av - Fulton St,125 St,M,A B C D,Subway,40.811109,-73.952343,Uptown & The Bronx,Downtown & Brooklyn,10027,
+153,153,A15,IND,8th Av - Fulton St,125 St,M,A B C D,Subway,40.811109,-73.952343,Uptown & The Bronx,Downtown & Brooklyn,10040,10027
 154,154,A16,IND,8th Av - Fulton St,116 St,M,B C,Subway,40.805085,-73.954882,Uptown & The Bronx,Downtown & Brooklyn,10026,
 155,155,A17,IND,8th Av - Fulton St,Cathedral Pkwy (110 St),M,B C,Subway,40.800603,-73.958161,Uptown & The Bronx,Downtown & Brooklyn,10026,
 156,156,A18,IND,8th Av - Fulton St,103 St,M,B C,Subway,40.796092,-73.961454,Uptown & The Bronx,Downtown & Brooklyn,10025,10025-4403
@@ -159,19 +159,19 @@ Station ID,Complex ID,GTFS Stop ID,Division,Line,Stop Name,Borough,Daytime Route
 158,158,A20,IND,8th Av - Fulton St,86 St,M,B C,Subway,40.785868,-73.968916,Uptown & The Bronx,Downtown & Brooklyn,10024,
 159,159,A21,IND,8th Av - Fulton St,81 St - Museum of Natural History,M,B C,Subway,40.781433,-73.972143,Uptown & The Bronx,Downtown & Brooklyn,10024,
 160,160,A22,IND,8th Av - Fulton St,72 St,M,B C,Subway,40.775594,-73.97641,Uptown & The Bronx,Downtown & Brooklyn,10023,
-161,614,A24,IND,8th Av - Fulton St,59 St - Columbus Circle,M,A B C D,Subway,40.768296,-73.981736,Uptown & The Bronx,Downtown & Brooklyn,10034,
+161,614,A24,IND,8th Av - Fulton St,59 St - Columbus Circle,M,A B C D,Subway,40.768296,-73.981736,Uptown & The Bronx,Downtown & Brooklyn,10107,10034
 162,162,A25,IND,8th Av - Fulton St,50 St,M,C E,Subway,40.762456,-73.985984,Uptown - Queens,Downtown & Brooklyn,10019,
 163,611,A27,IND,8th Av - Fulton St,42 St - Port Authority Bus Terminal,M,A C E,Subway,40.757308,-73.989735,Uptown - Queens,Downtown & Brooklyn,10036,
-164,164,A28,IND,8th Av - Fulton St,34 St - Penn Station,M,A C E,Subway,40.752287,-73.993391,Uptown - Queens,Downtown & Brooklyn,10001,
+164,164,A28,IND,8th Av - Fulton St,34 St - Penn Station,M,A C E,Subway,40.752287,-73.993391,Uptown - Queens,Downtown & Brooklyn,10017,10001
 165,165,A30,IND,8th Av - Fulton St,23 St,M,C E,Subway,40.745906,-73.998041,Uptown - Queens,Downtown & Brooklyn,10011,
 166,618,A31,IND,8th Av - Fulton St,14 St,M,A C E,Subway,40.740893,-74.00169,Uptown - Queens,Downtown & Brooklyn,10011,
-167,167,A32,IND,8th Av - Fulton St,W 4 St,M,A C E,Subway,40.732338,-74.000495,Uptown - Queens,Downtown & Brooklyn,10014,
-167,167,D20,IND,6th Av - Culver,W 4 St,M,B D F M,Subway,40.732338,-74.000495,Uptown - Queens,Downtown & Brooklyn,10014,
+167,167,A32,IND,8th Av - Fulton St,W 4 St,M,A C E,Subway,40.732338,-74.000495,Uptown - Queens,Downtown & Brooklyn,10019,10014
+167,167,D20,IND,6th Av - Culver,W 4 St,M,B D F M,Subway,40.732338,-74.000495,Uptown - Queens,Downtown & Brooklyn,10019,10014
 168,168,A33,IND,8th Av - Fulton St,Spring St,M,C E,Subway,40.726227,-74.003739,Uptown - Queens,Downtown & Brooklyn,10012,
 169,169,A34,IND,8th Av - Fulton St,Canal St,M,A C E,Subway,40.720824,-74.005229,Uptown - Queens,Downtown & Brooklyn,10019,
 170,624,A36,IND,8th Av - Fulton St,Chambers St,M,A C,Subway,40.714111,-74.008585,Uptown,Downtown & Brooklyn,10007,
 171,624,E01,IND,8th Av - Fulton St,World Trade Center,M,E,Subway,40.712582,-74.009781,Uptown & Queens,,10007,
-172,628,A38,IND,8th Av - Fulton St,Fulton St,M,A C,Subway,40.710197,-74.007691,Uptown,Brooklyn,10279,
+172,628,A38,IND,8th Av - Fulton St,Fulton St,M,A C,Subway,40.710197,-74.007691,Uptown,Brooklyn,10279,10007
 173,173,A40,IND,8th Av - Fulton St,High St,Bk,A C,Subway,40.699337,-73.990531,Manhattan,Euclid - Lefferts - Rockaways,11201,
 174,636,A41,IND,8th Av - Fulton St,Jay St - MetroTech,Bk,A C F,Subway,40.692338,-73.987342,Manhattan,Euclid - Lefferts - Rockaways - Coney Island,11201,11201-1832
 175,175,A42,IND,8th Av - Fulton St,Hoyt - Schermerhorn Sts,Bk,A C G,Subway,40.688484,-73.985001,Manhattan - Church Av,Euclid Av & Queens - Court Sq,11217,
@@ -180,13 +180,13 @@ Station ID,Complex ID,GTFS Stop ID,Division,Line,Stop Name,Borough,Daytime Route
 178,627,A45,IND,8th Av - Fulton St,Franklin Av,Bk,C,Subway,40.68138,-73.956848,Manhattan,Euclid Av,11238,
 179,179,A46,IND,8th Av - Fulton St,Nostrand Av,Bk,A C,Subway,40.680438,-73.950426,Manhattan,Euclid - Lefferts - Rockaways,11216,
 180,180,A47,IND,8th Av - Fulton St,Kingston - Throop Avs,Bk,C,Subway,40.679921,-73.940858,Manhattan,Euclid Av,11207,
-181,181,A48,IND,8th Av - Fulton St,Utica Av,Bk,A C,Subway,40.679364,-73.930729,Manhattan,Euclid - Lefferts - Rockaways,11213,
+181,181,A48,IND,8th Av - Fulton St,Utica Av,Bk,A C,Subway,40.679364,-73.930729,Manhattan,Euclid - Lefferts - Rockaways,11207,11213
 182,182,A49,IND,8th Av - Fulton St,Ralph Av,Bk,C,Subway,40.678822,-73.920786,Manhattan,Euclid Av,11233,
 183,183,A50,IND,8th Av - Fulton St,Rockaway Av,Bk,C,Subway,40.67834,-73.911946,Manhattan,Euclid Av,11233,
 184,621,A51,IND,8th Av - Fulton St,Broadway Jct,Bk,A C,Subway,40.678334,-73.905316,Manhattan,Euclid - Lefferts - Rockaways,11233,
 185,185,A52,IND,8th Av - Fulton St,Liberty Av,Bk,C,Subway,40.674542,-73.896548,Manhattan,Euclid Av,11207,
 186,186,A53,IND,8th Av - Fulton St,Van Siclen Av,Bk,C,Subway,40.67271,-73.890358,Manhattan,Euclid Av,11207,
-187,187,A54,IND,8th Av - Fulton St,Shepherd Av,Bk,C,Subway,40.67413,-73.88075,Manhattan,Euclid Av,11208,
+187,187,A54,IND,8th Av - Fulton St,Shepherd Av,Bk,C,Subway,40.67413,-73.88075,Manhattan,Euclid Av,11207,11208
 188,188,A55,IND,8th Av - Fulton St,Euclid Av,Bk,A C,Subway,40.675377,-73.872106,Manhattan,Lefferts - Rockaways,11208,
 189,189,A57,IND,Liberty Av,Grant Av,Bk,A,Subway,40.677044,-73.86505,Manhattan,Lefferts - Rockaways,11208,
 190,190,A59,IND,Liberty Av,80 St,Q,A,Elevated,40.679371,-73.858992,Manhattan,Lefferts - Rockaways,11419,
@@ -203,7 +203,7 @@ Station ID,Complex ID,GTFS Stop ID,Division,Line,Stop Name,Borough,Daytime Route
 201,201,H13,IND,Rockaway,Beach 98 St,Q,A S,Viaduct,40.585307,-73.820558,Manhattan,Rockaway Park,11693,
 202,202,H14,IND,Rockaway,Beach 105 St,Q,A S,Viaduct,40.583209,-73.827559,Manhattan,Rockaway Park,11693,
 203,203,H15,IND,Rockaway,Rockaway Park - Beach 116 St,Q,A S,At Grade,40.580903,-73.835592,Manhattan,,11694,
-204,204,H06,IND,Rockaway,Beach 67 St,Q,A,Viaduct,40.590927,-73.796924,Manhattan,Far Rockaway,11692,
+204,204,H06,IND,Rockaway,Beach 67 St,Q,A,Viaduct,40.590927,-73.796924,Manhattan,Far Rockaway,12692,11692
 205,205,H07,IND,Rockaway,Beach 60 St,Q,A,Viaduct,40.592374,-73.788522,Manhattan,Far Rockaway,11692,
 206,206,H08,IND,Rockaway,Beach 44 St,Q,A,Viaduct,40.592943,-73.776013,Manhattan,Far Rockaway,11691,
 207,207,H09,IND,Rockaway,Beach 36 St,Q,A,Viaduct,40.595398,-73.768175,Manhattan,Far Rockaway,11692,
@@ -269,7 +269,7 @@ Station ID,Complex ID,GTFS Stop ID,Division,Line,Stop Name,Borough,Daytime Route
 267,616,G14,IND,Queens Blvd,Jackson Hts - Roosevelt Av,Q,E F M R,Subway,40.746644,-73.891338,Forest Hills - Jamaica,Manhattan,11373,
 268,268,G15,IND,Queens Blvd,65 St,Q,M R,Subway,40.749669,-73.898453,Forest Hills,Manhattan,11377,
 269,269,G16,IND,Queens Blvd,Northern Blvd,Q,M R,Subway,40.752885,-73.906006,Forest Hills,Manhattan,11377,
-270,270,G18,IND,Queens Blvd,46 St,Q,M R,Subway,40.756312,-73.913333,Forest Hills,Manhattan,11103,
+270,270,G18,IND,Queens Blvd,46 St,Q,M R,Subway,40.756312,-73.913333,Forest Hills,Manhattan,11373,11103
 271,271,G19,IND,Queens Blvd,Steinway St,Q,M R,Subway,40.756879,-73.92074,Forest Hills,Manhattan,11103,
 272,272,G20,IND,Queens Blvd,36 St,Q,M R,Subway,40.752039,-73.928781,Forest Hills,Manhattan,11101,
 273,273,G21,IND,Queens Blvd,Queens Plaza,Q,E M R,Subway,40.748973,-73.937243,Forest Hills - Jamaica,Manhattan,11101,
@@ -277,7 +277,7 @@ Station ID,Complex ID,GTFS Stop ID,Division,Line,Stop Name,Borough,Daytime Route
 275,612,F11,IND,Queens Blvd,Lexington Av/53 St,M,E M,Subway,40.757552,-73.969055,Queens,Downtown & Brooklyn,10022,
 276,276,F12,IND,Queens Blvd,5 Av/53 St,M,E M,Subway,40.760167,-73.975224,Queens,Downtown & Brooklyn,10022,
 277,277,D14,IND,Queens Blvd,7 Av,M,B D E,Subway,40.762862,-73.981637,Uptown & The Bronx - Queens,Downtown & Brooklyn,10019,
-278,278,G05,IND,Queens - Archer,Jamaica Center - Parsons/Archer,Q,E J Z,Subway,40.702147,-73.801109,,Manhattan,11451,
+278,278,G05,IND,Queens - Archer,Jamaica Center - Parsons/Archer,Q,E J Z,Subway,40.702147,-73.801109,,Manhattan,11451,11432
 279,279,G06,IND,Queens - Archer,Sutphin Blvd - Archer Av - JFK Airport,Q,E J Z,Subway,40.700486,-73.807969,Jamaica Center,Manhattan,11433,
 280,280,G07,IND,Queens - Archer,Jamaica - Van Wyck,Q,E,Subway,40.702566,-73.816859,Jamaica Center,Manhattan,11435,
 281,606,G22,IND,Crosstown,Court Sq,Q,G,Subway,40.746554,-73.943832,,Brooklyn,11101,
@@ -305,7 +305,7 @@ Station ID,Complex ID,GTFS Stop ID,Division,Line,Stop Name,Borough,Daytime Route
 303,303,113,IRT,Broadway - 7Av,157 St,M,1,Subway,40.834041,-73.94489,Uptown & The Bronx,Downtown,10032,
 304,304,114,IRT,Broadway - 7Av,145 St,M,1,Subway,40.826551,-73.95036,Uptown & The Bronx,Downtown,10031,
 305,305,115,IRT,Broadway - 7Av,137 St - City College,M,1,Subway,40.822008,-73.953676,Uptown & The Bronx,Downtown,10031,
-306,306,116,IRT,Broadway - 7Av,125 St,M,1,Elevated,40.815581,-73.958372,Uptown & The Bronx,Downtown,10115,
+306,306,116,IRT,Broadway - 7Av,125 St,M,1,Elevated,40.815581,-73.958372,Uptown & The Bronx,Downtown,10115,10035
 307,307,117,IRT,Broadway - 7Av,116 St - Columbia University,M,1,Subway,40.807722,-73.96411,Uptown & The Bronx,Downtown,10027,
 308,308,118,IRT,Broadway - 7Av,Cathedral Pkwy,M,1,Subway,40.803967,-73.966847,Uptown & The Bronx,Downtown,10025,
 309,309,119,IRT,Broadway - 7Av,103 St,M,1,Subway,40.799446,-73.968379,Uptown & The Bronx,Downtown,10025,
@@ -314,10 +314,10 @@ Station ID,Complex ID,GTFS Stop ID,Division,Line,Stop Name,Borough,Daytime Route
 312,312,122,IRT,Broadway - 7Av,79 St,M,1,Subway,40.783934,-73.979917,Uptown & The Bronx,Downtown,10024,
 313,313,123,IRT,Broadway - 7Av,72 St,M,1 2 3,Subway,40.778453,-73.98197,Uptown & The Bronx,Downtown & Brooklyn,10023,
 314,314,124,IRT,Broadway - 7Av,66 St - Lincoln Center,M,1,Subway,40.77344,-73.982209,Uptown & The Bronx,Downtown,10034,
-315,614,125,IRT,Broadway - 7Av,59 St - Columbus Circle,M,1,Subway,40.768247,-73.981929,Uptown & The Bronx,Downtown,10023,
-316,316,126,IRT,Broadway - 7Av,50 St,M,1,Subway,40.761728,-73.983849,Uptown & The Bronx,Downtown,10107,
+315,614,125,IRT,Broadway - 7Av,59 St - Columbus Circle,M,1,Subway,40.768247,-73.981929,Uptown & The Bronx,Downtown,10034,10023
+316,316,126,IRT,Broadway - 7Av,50 St,M,1,Subway,40.761728,-73.983849,Uptown & The Bronx,Downtown,10107,10019
 317,611,127,IRT,Broadway - 7Av,Times Sq - 42 St,M,1 2 3,Subway,40.75529,-73.987495,Uptown & The Bronx,Downtown & Brooklyn,10036,
-318,318,128,IRT,Broadway - 7Av,34 St - Penn Station,M,1 2 3,Subway,40.750373,-73.991057,Uptown & The Bronx,Downtown & Brooklyn,10199,
+318,318,128,IRT,Broadway - 7Av,34 St - Penn Station,M,1 2 3,Subway,40.750373,-73.991057,Uptown & The Bronx,Downtown & Brooklyn,10199,10001
 319,319,129,IRT,Broadway - 7Av,28 St,M,1,Subway,40.747215,-73.993365,Uptown & The Bronx,Downtown,10001,
 320,320,130,IRT,Broadway - 7Av,23 St,M,1,Subway,40.744081,-73.995657,Uptown & The Bronx,Downtown,10011,
 321,321,131,IRT,Broadway - 7Av,18 St,M,1,Subway,40.74104,-73.997871,Uptown & The Bronx,Downtown,10001,
@@ -337,7 +337,7 @@ Station ID,Complex ID,GTFS Stop ID,Division,Line,Stop Name,Borough,Daytime Route
 335,620,232,IRT,Clark St,Borough Hall,Bk,2 3,Subway,40.693219,-73.989998,Manhattan,Flatbush - New Lots,11201,
 336,336,233,IRT,Eastern Pky,Hoyt St,Bk,2 3,Subway,40.690545,-73.985065,Manhattan,Flatbush - New Lots,11207,
 337,337,234,IRT,Eastern Pky,Nevins St,Bk,2 3 4 5,Subway,40.688246,-73.980492,Manhattan,Flatbush - Utica - New Lots,11217,
-338,617,235,IRT,Eastern Pky,Atlantic Av - Barclays Ctr,Bk,2 3 4 5,Subway,40.684359,-73.977666,Manhattan,Flatbush - New Lots,11227,
+338,617,235,IRT,Eastern Pky,Atlantic Av - Barclays Ctr,Bk,2 3 4 5,Subway,40.684359,-73.977666,Manhattan,Flatbush - New Lots,11227,11217
 339,339,236,IRT,Eastern Pky,Bergen St,Bk,2 3,Subway,40.680829,-73.975098,Manhattan,Flatbush - New Lots,11213,
 340,340,237,IRT,Eastern Pky,Grand Army Plaza,Bk,2 3,Subway,40.675235,-73.971046,Manhattan,Flatbush - New Lots,11217,
 341,341,238,IRT,Eastern Pky,Eastern Pkwy - Brooklyn Museum,Bk,2 3,Subway,40.671987,-73.964375,Manhattan,Flatbush - New Lots,11238,
@@ -408,9 +408,9 @@ Station ID,Complex ID,GTFS Stop ID,Division,Line,Stop Name,Borough,Daytime Route
 406,602,635,IRT,Lexington Av,14 St - Union Sq,M,4 5 6,Subway,40.734673,-73.989951,Uptown & The Bronx,Downtown & Brooklyn,10003,
 407,407,636,IRT,Lexington Av,Astor Pl,M,6,Subway,40.730054,-73.99107,Uptown & The Bronx,Downtown,10003,
 408,619,637,IRT,Lexington Av,Bleecker St,M,6,Subway,40.725915,-73.994659,Uptown & The Bronx,Downtown,10012,10012-3332
-409,409,638,IRT,Lexington Av,Spring St,M,6,Subway,40.722301,-73.997141,Uptown & The Bronx,Downtown,10012,
+409,409,638,IRT,Lexington Av,Spring St,M,6,Subway,40.722301,-73.997141,Uptown & The Bronx,Downtown,10012,10012-3332
 410,623,639,IRT,Lexington Av,Canal St,M,6,Subway,40.718803,-74.000193,Uptown & The Bronx,Downtown,10013,
-411,622,640,IRT,Lexington Av,Brooklyn Bridge - City Hall,M,4 5 6,Subway,40.713065,-74.004131,Uptown & The Bronx,Downtown & Brooklyn,10000,
+411,622,640,IRT,Lexington Av,Brooklyn Bridge - City Hall,M,4 5 6,Subway,40.713065,-74.004131,Uptown & The Bronx,Downtown & Brooklyn,10000,10007
 412,628,418,IRT,Lexington Av,Fulton St,M,4 5,Subway,40.710368,-74.009509,Uptown & The Bronx,Downtown & Brooklyn,10038,
 413,413,419,IRT,Lexington Av,Wall St,M,4 5,Subway,40.707557,-74.011862,Uptown & The Bronx,Downtown & Brooklyn,10003,
 414,414,420,IRT,Lexington Av,Bowling Green,M,4 5,Subway,40.704817,-74.014065,Uptown & The Bronx,Brooklyn,10003,
@@ -446,8 +446,8 @@ Station ID,Complex ID,GTFS Stop ID,Division,Line,Stop Name,Borough,Daytime Route
 444,444,503,IRT,Dyre Av,Gun Hill Rd,Bx,5,Open Cut,40.869526,-73.846384,Eastchester - Dyre Av,Manhattan,10469,
 445,445,504,IRT,Dyre Av,Pelham Pkwy,Bx,5,Open Cut,40.858985,-73.855359,Eastchester - Dyre Av,Manhattan,10469,
 446,446,505,IRT,Dyre Av,Morris Park,Bx,5,Open Cut,40.854364,-73.860495,Eastchester - Dyre Av,Manhattan,10462,
-447,447,701,IRT,Flushing,Flushing - Main St,Q,7,Subway,40.7596,-73.83003,,Manhattan,11354,
-448,448,702,IRT,Flushing,Mets - Willets Point,Q,7,Elevated,40.754622,-73.845625,Flushing,Manhattan,11368,
+447,447,701,IRT,Flushing,Flushing - Main St,Q,7,Subway,40.7596,-73.83003,,Manhattan,11354,111354
+448,448,702,IRT,Flushing,Mets - Willets Point,Q,7,Elevated,40.754622,-73.845625,Flushing,Manhattan,11368,111354
 449,449,705,IRT,Flushing,111 St,Q,7,Elevated,40.75173,-73.855334,Flushing,Manhattan,11368,
 450,450,706,IRT,Flushing,103 St - Corona Plaza,Q,7,Elevated,40.749865,-73.8627,Flushing,Manhattan,11368,
 451,451,707,IRT,Flushing,Junction Blvd,Q,7,Elevated,40.749145,-73.869527,Flushing,Manhattan,11368,
@@ -470,7 +470,7 @@ Station ID,Complex ID,GTFS Stop ID,Division,Line,Stop Name,Borough,Daytime Route
 467,611,725,IRT,Flushing,Times Sq - 42 St,M,7,Subway,40.755477,-73.987691,Queens,34 St - Hudson Yards,10036,
 468,611,902,IRT,Lexington - Shuttle,Times Sq - 42 St,M,S,Subway,40.755983,-73.986229,,Grand Central,10036,
 469,610,901,IRT,Lexington - Shuttle,Grand Central - 42 St,M,S,Subway,40.752769,-73.979189,Times Sq,,10017,
-471,471,726,IRT,Flushing,34 St - 11 Av,M,7,Subway,40.755882,-74.00191,Queens,,10199,
+471,471,726,IRT,Flushing,34 St - 11 Av,M,7,Subway,40.755882,-74.00191,Queens,,10199,10001
 475,475,Q05,IND,Second Av,96 St,M,Q,Subway,40.784318,-73.947152,,Downtown & Brooklyn,10128,
 476,476,Q04,IND,Second Av,86 St,M,Q,Subway,40.777891,-73.951787,Uptown,Downtown & Brooklyn,10028,
 477,477,Q03,IND,Second Av,72 St,M,Q,Subway,40.768799,-73.958424,Uptown,Downtown & Brooklyn,10021,
